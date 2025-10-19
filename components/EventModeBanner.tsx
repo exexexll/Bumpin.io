@@ -105,21 +105,18 @@ export function EventModeBanner() {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: -100, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-[#ff9b6b] to-[#ff7a45] text-white shadow-lg"
-      >
-        <div className="container mx-auto px-4 py-3">
+          className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-[#ff9b6b] to-[#ff7a45] text-white shadow-lg"
+        >
+          <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
-                <span className="text-lg">🎉</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
               <div>
-                <p className="font-medium">
-                  Event Mode Active
-                </p>
-                <p className="text-sm text-white/90">
-                  Matchmaking available {eventStatus.eventStartTime.substring(0, 5)} - {eventStatus.eventEndTime.substring(0, 5)} {eventStatus.timezone?.replace('America/', '')}
-                </p>
+                <span className="font-semibold">Event Mode Active</span>
+                <span className="mx-2 opacity-50">•</span>
+                <span className="text-sm text-white/90">
+                  {eventStatus.eventStartTime.substring(0, 5)} - {eventStatus.eventEndTime.substring(0, 5)} {eventStatus.timezone?.replace('America/', '')}
+                </span>
               </div>
             </div>
             
