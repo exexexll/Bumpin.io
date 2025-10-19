@@ -400,7 +400,7 @@ router.get('/status', requireAuth, async (req: any, res) => {
  * POST /payment/admin/generate-code
  * Admin: Generate a permanent invite code
  */
-router.post('/admin/generate-code', requireAuth, requireAdmin, async (req: any, res) => {
+router.post('/admin/generate-code', requireAdmin, async (req: any, res) => {
   try {
     const { label } = req.body;
     const admin = await store.getUser(req.userId);
@@ -449,7 +449,7 @@ router.post('/admin/generate-code', requireAuth, requireAdmin, async (req: any, 
  * GET /payment/admin/codes
  * Admin: List all invite codes
  */
-router.get('/admin/codes', requireAuth, requireAdmin, async (req: any, res) => {
+router.get('/admin/codes', requireAdmin, async (req: any, res) => {
   const allCodes = Array.from(store['inviteCodes'].values())
     .sort((a, b) => b.createdAt - a.createdAt);
 
@@ -472,7 +472,7 @@ router.get('/admin/codes', requireAuth, requireAdmin, async (req: any, res) => {
  * POST /payment/admin/deactivate-code
  * Admin: Deactivate a code
  */
-router.post('/admin/deactivate-code', requireAuth, requireAdmin, async (req: any, res) => {
+router.post('/admin/deactivate-code', requireAdmin, async (req: any, res) => {
   const { code } = req.body;
   
   if (!code) {
