@@ -148,8 +148,16 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     const video = videoRef.current;
     if (!video) return; // Guard against null ref
     
+    console.log('[UserCard] Video state check:', { 
+      isActive, 
+      isVideoPaused, 
+      userName: user.name,
+      videoSrc: video.src?.substring(video.src.lastIndexOf('/') + 1)
+    });
+    
     if (isActive && !isVideoPaused) {
       // Unmute and play when card becomes active
+      console.log('[UserCard] ▶️ UNMUTING and PLAYING video for:', user.name);
       video.muted = false;
       video.volume = 1.0;
       video.play().catch((err) => {
@@ -162,21 +170,20 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
       });
     } else {
       // CRITICAL: Immediately pause and mute when card becomes inactive
-      // This happens BEFORE exit animation, preventing audio leak
+      console.log('[UserCard] ⏸️ PAUSING and MUTING video for:', user.name);
       video.pause();
       video.muted = true;
-      video.volume = 0; // Also set volume to 0 for extra safety
-      console.log('[UserCard] Video paused/muted (inactive or paused state)');
+      video.volume = 0;
     }
     
     // CRITICAL CLEANUP: Stop video when component unmounts or becomes inactive
     return () => {
       if (video) {
-        console.log('[UserCard] Cleaning up video for:', user.name);
+        console.log('[UserCard] 🧹 CLEANUP - Stopping video for:', user.name);
         video.pause();
         video.muted = true;
         video.volume = 0;
-        video.currentTime = 0; // Reset to beginning
+        video.currentTime = 0;
       }
     };
   }, [isActive, isVideoPaused, user.name]);
