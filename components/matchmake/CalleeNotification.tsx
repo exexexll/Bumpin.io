@@ -45,6 +45,21 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
     return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata);
   }, []);
 
+  // CRITICAL: Cleanup video on unmount to prevent audio leak
+  useEffect(() => {
+    const video = videoRef.current;
+    
+    return () => {
+      if (video) {
+        console.log('[CalleeNotification] Cleaning up video on unmount');
+        video.pause();
+        video.muted = true;
+        video.volume = 0;
+        video.src = '';
+      }
+    };
+  }, []);
+
   // Countdown for decision timer
   useEffect(() => {
     timerRef.current = setInterval(() => {
