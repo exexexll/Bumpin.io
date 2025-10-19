@@ -403,21 +403,18 @@ router.get('/status', requireAuth, async (req: any, res) => {
 router.post('/admin/generate-code', requireAdmin, async (req: any, res) => {
   try {
     const { label } = req.body;
-    const admin = await store.getUser(req.userId);
     
-    if (!admin) {
-      console.error('[Admin] User not found:', req.userId);
-      return res.status(404).json({ error: 'Admin user not found' });
-    }
-
-    console.log('[Admin] Generating code for:', admin.name);
+    // Admin username is set by requireAdmin middleware in req.adminUser
+    const adminUsername = req.adminUser;
+    console.log('[Admin] Generating code, admin username:', adminUsername);
+    
     const code = await generateSecureCode();
     console.log('[Admin] Code generated successfully:', code);
     
     const inviteCode: InviteCode = {
       code,
-      createdBy: req.userId,
-      createdByName: label || `Admin (${admin.name})`,
+      createdBy: 'admin', // Admin-generated code
+      createdByName: label || `Admin (${adminUsername})`,
       createdAt: Date.now(),
       type: 'admin',
       maxUses: -1, // Unlimited
@@ -428,7 +425,7 @@ router.post('/admin/generate-code', requireAdmin, async (req: any, res) => {
 
     await store.createInviteCode(inviteCode);
 
-    console.log(`[Admin] ✅ Permanent code created: ${code} by ${admin.name}`);
+    console.log(`[Admin] ✅ Permanent code created: ${code} by ${adminUsername}`);
 
     res.json({
       code,
