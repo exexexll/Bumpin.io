@@ -38,13 +38,14 @@ export default function EventWaitPage() {
     const handleSettingsChanged = (data: any) => {
       console.log('[EventWait] Event settings changed:', data);
       
-      // Check if we can now access
+      // Check if event mode was disabled or we can now access
       getEventStatus(session.sessionToken).then(status => {
-        if (status.canAccess) {
-          console.log('[EventWait] Event started! Redirecting to main...');
+        // If event mode is OFF or we have access, go to main
+        if (!status.eventModeEnabled || status.canAccess) {
+          console.log('[EventWait] Event mode OFF or event started! Redirecting to main...');
           router.push('/main');
         } else {
-          // Reload data
+          // Still blocked - reload data
           loadData();
         }
       }).catch(err => {

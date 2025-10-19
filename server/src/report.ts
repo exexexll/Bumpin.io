@@ -185,10 +185,10 @@ router.get('/all', requireAdmin, async (req: any, res) => {
  * Review a ban and make decision (admin)
  * Body: { decision: 'permanent' | 'vindicated' }
  */
-router.post('/review/:userId', requireAuth, requireAdmin, async (req: any, res) => {
+router.post('/review/:userId', requireAdmin, async (req: any, res) => {
   const { userId } = req.params;
   const { decision } = req.body;
-  const reviewerId = req.userId;
+  const reviewerId = req.adminUser; // From requireAdmin middleware
 
   if (!['permanent', 'vindicated'].includes(decision)) {
     return res.status(400).json({ error: 'Invalid decision. Must be "permanent" or "vindicated"' });
