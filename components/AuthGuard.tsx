@@ -53,26 +53,24 @@ export function AuthGuard({ children }: AuthGuardProps) {
       return;
     }
 
-    // EVENT MODE CHECK: If user has session and on protected route, check event access
-    if (session && !isPublicRoute && !isAdminRoute) {
-      // Routes that should be blocked by event mode (matchmaking/main)
-      const eventRestrictedRoutes = ['/main'];
+    // EVENT MODE CHECK: Only check once per pathname change
+    if (session && !isPublicRoute && !isAdminRoute && pathname !== '/event-wait') {
+      const eventRestrictedRoutes = ['/main', '/history', '/tracker', '/refilm', '/settings'];
       const isEventRestricted = eventRestrictedRoutes.some(route => pathname?.startsWith(route));
       
-      if (isEventRestricted && pathname !== '/event-wait') {
-        // Check event status ONCE per route change
+      if (isEventRestricted) {
+        // Check event status
         getEventStatus(session.sessionToken)
           .then(status => {
-            // If event mode is ON and user doesn't have access
             if (status.eventModeEnabled && !status.canAccess) {
-              console.log('[AuthGuard] Event mode active, user blocked - redirecting to wait page');
+              console.log('[AuthGuard] Event mode ON, blocking access - redirect to wait page');
               router.push('/event-wait');
             }
             setEventCheckComplete(true);
           })
           .catch(err => {
-            console.error('[AuthGuard] Failed to check event status:', err);
-            setEventCheckComplete(true); // Continue anyway on error
+            console.error('[AuthGuard] Event check failed, allowing access:', err);
+            setEventCheckComplete(true); // Fail open on error
           });
       } else {
         setEventCheckComplete(true);

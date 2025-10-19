@@ -191,7 +191,7 @@ const activeRooms = new Map<string, { user1: string; user2: string; messages: an
 // Routes with rate limiting and dependency injection
 app.use('/auth', authLimiter, createAuthRoutes(io, activeSockets));
 app.use('/media', apiLimiter, mediaRoutes);
-// EVENT MODE: Apply event guard to matchmaking routes
+// EVENT MODE: Event guard checks access during event windows
 app.use('/room', apiLimiter, requireEventAccess, roomRoutes);
 app.use('/user', apiLimiter, userRoutes);
 app.use('/referral', apiLimiter, referralRoutes);

@@ -20,14 +20,20 @@ export function EventModeBanner() {
     const session = getSession();
     
     const checkEventStatus = async () => {
+      if (!session) {
+        setShow(false);
+        return;
+      }
+      
       try {
-        const status = await getEventStatus(session?.sessionToken);
+        const status = await getEventStatus(session.sessionToken);
         setEventStatus(status);
         
         // Show banner if event mode is ON but event is NOT active and user has no VIP access
         setShow(status.eventModeEnabled && !status.eventActive && !status.canAccess);
       } catch (error) {
         console.error('[EventBanner] Failed to check status:', error);
+        setShow(false); // Hide banner on error
       }
     };
 
