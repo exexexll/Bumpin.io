@@ -101,6 +101,71 @@ export default function RoomPage() {
   const remoteDescriptionSet = useRef(false);
   const timerStarted = useRef(false);
 
+  // Cleanup function - stops all media and closes connections
+  // DEFINED EARLY so it can be used in event listeners
+  const cleanupConnections = useCallback(() => {
+    console.log('[Room] 🧹 Cleaning up WebRTC connections and media streams...');
+    
+    // Stop timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+      console.log('[Room] ✅ Timer cleared');
+    }
+    
+    // Stop all media tracks (camera/mic)
+    if (localStreamRef.current) {
+      const tracks = localStreamRef.current.getTracks();
+      console.log('[Room] Stopping', tracks.length, 'local media tracks...');
+      tracks.forEach((track, index) => {
+        console.log(`[Room] Stopping track ${index + 1}: ${track.kind} (${track.label})`);
+        track.stop();
+      });
+      localStreamRef.current = null;
+      console.log('[Room] ✅ All local media tracks stopped');
+    }
+    
+    // Close peer connection
+    if (peerConnectionRef.current) {
+      console.log('[Room] Closing peer connection, state:', peerConnectionRef.current.connectionState);
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+      console.log('[Room] ✅ Peer connection closed');
+    }
+    
+    // Clear connection timeout
+    if (connectionTimeoutRef.current) {
+      clearTimeout(connectionTimeoutRef.current);
+      connectionTimeoutRef.current = null;
+      console.log('[Room] ✅ Connection timeout cleared');
+    }
+    
+    // Reset refs
+    iceCandidateQueue.current = [];
+    remoteDescriptionSet.current = false;
+    timerStarted.current = false;
+    iceRetryCount.current = 0;
+    
+    console.log('[Room] ✅ Cleanup complete - camera/mic stopped, connections closed');
+  }, []);
+
+  // End call function
+  // DEFINED EARLY so it can be used in timer and event listeners
+  const handleEndCall = useCallback(() => {
+    console.log('[Room] 🔴 handleEndCall called - ending video call');
+    
+    // Emit call end to server FIRST (before cleanup)
+    if (socketRef.current) {
+      console.log('[Room] Emitting call:end to server for room:', roomId);
+      socketRef.current.emit('call:end', { roomId });
+    } else {
+      console.error('[Room] ⚠️ Socket not available when trying to end call');
+    }
+    
+    // CRITICAL: Clean up WebRTC and media immediately
+    cleanupConnections();
+  }, [roomId, cleanupConnections]);
+
   // Guards
   useEffect(() => {
     const session = getSession();
@@ -370,6 +435,10 @@ export default function RoomPage() {
         socket.on('session:finalized', ({ sessionId: sid }: any) => {
           console.log('[Room] Session finalized:', sid);
           setSessionId(sid);
+          
+          // CRITICAL: Clean up WebRTC and media when session ends
+          cleanupConnections();
+          
           setViewState('ended');
         });
 
@@ -463,40 +532,14 @@ export default function RoomPage() {
 
     initializeRoom();
 
-    // Cleanup
+    // Cleanup on unmount
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach(track => track.stop());
-      }
-      if (peerConnectionRef.current) {
-        peerConnectionRef.current.close();
-      }
-      // Clear ICE candidate queue to prevent memory leaks
-      iceCandidateQueue.current = [];
-      remoteDescriptionSet.current = false;
-      timerStarted.current = false;
+      console.log('[Room] Component unmounting - running cleanup');
+      cleanupConnections();
       disconnectSocket();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // End call (defined early so it can be used in other callbacks)
-  const handleEndCall = useCallback(() => {
-    console.log('[Room] handleEndCall called');
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    if (socketRef.current) {
-      console.log('[Room] Emitting call:end to server');
-      socketRef.current.emit('call:end', { roomId });
-    } else {
-      console.error('[Room] Socket not available when trying to end call');
-    }
-  }, [roomId]);
+  }, [cleanupConnections]);
 
   // Timer (useCallback to avoid dependency warnings)
   const startTimer = useCallback(() => {
