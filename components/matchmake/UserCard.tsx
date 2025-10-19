@@ -161,9 +161,12 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
         }
       });
     } else {
-      // Pause and mute when card becomes inactive or manually paused
+      // CRITICAL: Immediately pause and mute when card becomes inactive
+      // This happens BEFORE exit animation, preventing audio leak
       video.pause();
       video.muted = true;
+      video.volume = 0; // Also set volume to 0 for extra safety
+      console.log('[UserCard] Video paused/muted (inactive or paused state)');
     }
     
     // CRITICAL CLEANUP: Stop video when component unmounts or becomes inactive
@@ -172,6 +175,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
         console.log('[UserCard] Cleaning up video for:', user.name);
         video.pause();
         video.muted = true;
+        video.volume = 0;
         video.currentTime = 0; // Reset to beginning
       }
     };
@@ -458,7 +462,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
       </motion.div>
 
       {/* Full Height Video - With padding for bottom controls */}
-      <div className="relative flex-1 bg-black flex items-center justify-center pb-32 md:pb-40">
+      <div className="relative flex-1 bg-black flex items-center justify-center pb-36 md:pb-44">
         {user.videoUrl ? (
           <div 
             className="relative cursor-pointer w-full h-full flex items-center justify-center"
@@ -470,8 +474,9 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
               src={user.videoUrl}
               loop
               playsInline
-              className="w-full h-full object-contain"
+              className="w-full h-full"
               style={{
+                objectFit: 'contain',
                 objectPosition: 'center'
               }}
             />

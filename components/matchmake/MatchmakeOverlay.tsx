@@ -1045,8 +1045,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                       key={users[currentIndex].userId}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      exit={{ opacity: 0, transition: { duration: 0 } }}
+                      transition={{ duration: 0.15 }}
                       className="absolute inset-0"
                     >
                       <UserCard
