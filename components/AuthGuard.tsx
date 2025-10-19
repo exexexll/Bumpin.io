@@ -85,6 +85,11 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [pathname, router]);
 
+  // Show nothing while checking event access (prevents flash of wrong content)
+  if (!eventCheckComplete) {
+    return null;
+  }
+
   return (
     <>
       <BanNotification />
