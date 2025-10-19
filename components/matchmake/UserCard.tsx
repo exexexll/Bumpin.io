@@ -71,6 +71,24 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     };
   }, [user.videoUrl]);
 
+  // CRITICAL: Dedicated cleanup effect that ALWAYS runs on unmount
+  // This ensures video stops even if other effects don't run cleanup
+  useEffect(() => {
+    const video = videoRef.current;
+    
+    // Cleanup function runs when component unmounts
+    return () => {
+      if (video) {
+        console.log('[UserCard] 🧹 Component unmounting - forcing video cleanup for:', user.name);
+        video.pause();
+        video.muted = true;
+        video.currentTime = 0;
+        video.src = ''; // CRITICAL: Clear src to fully release video resources
+        console.log('[UserCard] ✅ Video fully stopped and resources released');
+      }
+    };
+  }, [user.name]); // Only depends on user.name so it runs cleanup when user changes or component unmounts
+
   // Set mounted flag after initial render (prevents glitch on card change)
   useEffect(() => {
     setHasMounted(true);
@@ -147,7 +165,17 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
       video.pause();
       video.muted = true;
     }
-  }, [isActive, isVideoPaused]);
+    
+    // CRITICAL CLEANUP: Stop video when component unmounts or becomes inactive
+    return () => {
+      if (video) {
+        console.log('[UserCard] Cleaning up video for:', user.name);
+        video.pause();
+        video.muted = true;
+        video.currentTime = 0; // Reset to beginning
+      }
+    };
+  }, [isActive, isVideoPaused, user.name]);
 
   // Handle double tap/click on video to pause/play
   const handleVideoInteraction = (e: React.MouseEvent | React.TouchEvent) => {
@@ -433,13 +461,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
       <div className="relative flex-1 bg-black flex items-center justify-center">
         {user.videoUrl ? (
           <div 
-            className={`relative cursor-pointer ${
-              videoOrientation === 'portrait' 
-                ? 'h-full w-auto max-w-full' // Portrait: full height, auto width
-                : videoOrientation === 'landscape'
-                ? 'w-full h-auto max-h-full' // Landscape: full width, auto height
-                : 'h-full w-full' // Unknown: fill container
-            }`}
+            className="relative cursor-pointer w-full h-full flex items-center justify-center"
             onClick={handleVideoInteraction}
             onTouchEnd={handleVideoInteraction}
           >
@@ -448,13 +470,10 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
               src={user.videoUrl}
               loop
               playsInline
-              className={`${
-                videoOrientation === 'portrait'
-                  ? 'h-full w-auto' // Portrait: maintain aspect, full height
-                  : videoOrientation === 'landscape'
-                  ? 'w-full h-auto' // Landscape: maintain aspect, full width
-                  : 'h-full w-full object-contain' // Unknown: use object-contain as fallback
-              }`}
+              className="w-full h-full object-contain"
+              style={{
+                objectPosition: 'center'
+              }}
             />
             {/* Pause indicator */}
             {isVideoPaused && (
