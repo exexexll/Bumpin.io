@@ -28,12 +28,20 @@ function MainPageContent() {
     
     // CRITICAL SECURITY FIX: Verify user has paid before allowing access
     // Backend routes are protected with requirePayment middleware, but frontend needs check too
-    fetch(`${API_BASE}/payment/status`, {
+    const paymentPromise = fetch(`${API_BASE}/payment/status`, {
       headers: { 'Authorization': `Bearer ${session.sessionToken}` },
-    })
-      .then(res => res.json())
-      .then(data => {
-        const hasPaid = data.paidStatus === 'paid' || data.paidStatus === 'qr_verified' || data.paidStatus === 'qr_grace_period';
+    }).then(res => res.json());
+    
+    // CRITICAL FIX: Check event mode status (prevents back button bypass)
+    const eventPromise = fetch(`${API_BASE}/event/status`, {
+      headers: { 'Authorization': `Bearer ${session.sessionToken}` },
+    }).then(res => res.json());
+    
+    Promise.all([paymentPromise, eventPromise])
+      .then(([paymentData, eventData]) => {
+        const hasPaid = paymentData.paidStatus === 'paid' || 
+                        paymentData.paidStatus === 'qr_verified' || 
+                        paymentData.paidStatus === 'qr_grace_period';
         
         if (!hasPaid) {
           console.warn('[Main] Unpaid user attempted access - redirecting to paywall');
@@ -41,49 +49,59 @@ function MainPageContent() {
           return;
         }
         
-        // User has paid, continue with page load
+        // CRITICAL: Check if event mode is active and user doesn't have access
+        if (eventData.eventModeEnabled && !eventData.canAccess) {
+          console.log('[Main] Event mode active, user blocked - redirecting to event-wait');
+          console.log('[Main] User is VIP:', eventData.isVIP);
+          console.log('[Main] Event is active:', eventData.isEventActive);
+          router.push('/event-wait');
+          return;
+        }
+        
+        // User has paid AND (event mode off OR has access), continue with page load
+        console.log('[Main] Access granted - event mode:', eventData.eventModeEnabled, 'can access:', eventData.canAccess);
         setLoading(false);
         
         // Check if coming from direct match (intro or notification)
         const openMatchmaking = searchParams.get('openMatchmaking');
         const targetUser = searchParams.get('targetUser');
         const refCode = searchParams.get('ref');
-      
-      // Handle referral code (registered user clicking referral link)
-      if (refCode) {
-        console.log('[Main] Referral code detected for registered user:', refCode);
-        // Fetch target user from referral code
-        fetch(`${API_BASE}/referral/info/${refCode}`)
-          .then(res => res.json())
-          .then(data => {
-            console.log('[Main] Referral target:', data.targetUserName);
-            // Get target userId from referral system
-            fetch(`${API_BASE}/referral/direct-match`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${session.sessionToken}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ referralCode: refCode }),
-            })
-              .then(res => res.json())
-              .then(matchData => {
-                if (matchData.targetUser) {
-                  setDirectMatchTarget(matchData.targetUser.userId);
-                  setShowMatchmake(true);
-                }
+        
+        // Handle referral code (registered user clicking referral link)
+        if (refCode) {
+          console.log('[Main] Referral code detected for registered user:', refCode);
+          // Fetch target user from referral code
+          fetch(`${API_BASE}/referral/info/${refCode}`)
+            .then(res => res.json())
+            .then(data => {
+              console.log('[Main] Referral target:', data.targetUserName);
+              // Get target userId from referral system
+              fetch(`${API_BASE}/referral/direct-match`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${session.sessionToken}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ referralCode: refCode }),
               })
-              .catch(err => console.error('[Main] Failed to fetch target:', err));
-          })
-          .catch(err => console.error('[Main] Failed to fetch referral info:', err));
-      } else if (openMatchmaking === 'true' && targetUser) {
-        console.log('[Main] Opening matchmaking for direct match with:', targetUser);
-        setDirectMatchTarget(targetUser);
-        setShowMatchmake(true);
-      }
+                .then(res => res.json())
+                .then(matchData => {
+                  if (matchData.targetUser) {
+                    setDirectMatchTarget(matchData.targetUser.userId);
+                    setShowMatchmake(true);
+                  }
+                })
+                .catch(err => console.error('[Main] Failed to fetch target:', err));
+            })
+            .catch(err => console.error('[Main] Failed to fetch referral info:', err));
+        } else if (openMatchmaking === 'true' && targetUser) {
+          console.log('[Main] Opening matchmaking for direct match with:', targetUser);
+          setDirectMatchTarget(targetUser);
+          setShowMatchmake(true);
+        }
       })
       .catch(err => {
-        console.error('[Main] Payment status check failed:', err);
+        console.error('[Main] Payment/event status check failed:', err);
         // On error, redirect to onboarding to be safe
         router.push('/onboarding');
       });
