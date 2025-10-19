@@ -1,4 +1,5 @@
 import { Hero } from '@/components/Hero';
+import { LiveLoveLaughSection } from '@/components/LiveLoveLaughSection';
 import { Container } from '@/components/Container';
 import { Button } from '@/components/Button';
 import Link from 'next/link';
@@ -8,6 +9,9 @@ export default function HomePage() {
     <>
       <main id="main">
         <Hero />
+
+        {/* LIVE LOVE LAUGH Section */}
+        <LiveLoveLaughSection />
 
         {/* More Section */}
         <section id="more" className="bg-[#0a0a0c] py-20 sm:py-24 lg:py-32">
