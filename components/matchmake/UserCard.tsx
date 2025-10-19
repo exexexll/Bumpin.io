@@ -462,7 +462,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
       </motion.div>
 
       {/* Full Height Video - With padding for bottom controls */}
-      <div className="relative flex-1 bg-black flex items-center justify-center pb-36 md:pb-44">
+      <div className="relative flex-1 bg-black flex items-center justify-center pb-32">
         {user.videoUrl ? (
           <div 
             className="relative cursor-pointer w-full h-full flex items-center justify-center"
