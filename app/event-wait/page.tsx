@@ -32,28 +32,32 @@ export default function EventWaitPage() {
 
     loadData();
 
-    // REAL-TIME: Listen for event settings changes and auto-redirect when event starts
+    // REAL-TIME: Listen for event settings changes
     const socket = connectSocket(session.sessionToken);
     
-    socket.on('event:settings-changed', (data: any) => {
+    const handleSettingsChanged = (data: any) => {
       console.log('[EventWait] Event settings changed:', data);
       
-      // Reload status to check if we can now access
+      // Check if we can now access
       getEventStatus(session.sessionToken).then(status => {
         if (status.canAccess) {
           console.log('[EventWait] Event started! Redirecting to main...');
           router.push('/main');
         } else {
-          // Event mode changed but still blocked - reload page data
+          // Reload data
           loadData();
         }
+      }).catch(err => {
+        console.error('[EventWait] Status check failed:', err);
       });
-    });
+    };
+    
+    socket.on('event:settings-changed', handleSettingsChanged);
 
     return () => {
-      socket.off('event:settings-changed');
+      socket.off('event:settings-changed', handleSettingsChanged);
     };
-  }, [session, router]);
+  }, []); // Empty deps - only run once on mount
 
   const loadData = async () => {
     if (!session) return;

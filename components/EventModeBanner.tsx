@@ -18,46 +18,48 @@ export function EventModeBanner() {
 
   useEffect(() => {
     const session = getSession();
+    if (!session) {
+      setShow(false);
+      return;
+    }
+    
+    let mounted = true;
     
     const checkEventStatus = async () => {
-      if (!session) {
-        setShow(false);
-        return;
-      }
+      if (!mounted) return;
       
       try {
         const status = await getEventStatus(session.sessionToken);
-        setEventStatus(status);
-        
-        // Show banner if event mode is ON but event is NOT active and user has no VIP access
-        setShow(status.eventModeEnabled && !status.eventActive && !status.canAccess);
+        if (mounted) {
+          setEventStatus(status);
+          setShow(status.eventModeEnabled && !status.eventActive && !status.canAccess);
+        }
       } catch (error) {
-        console.error('[EventBanner] Failed to check status:', error);
-        setShow(false); // Hide banner on error
+        if (mounted) {
+          console.error('[EventBanner] Failed to check status:', error);
+          setShow(false);
+        }
       }
     };
 
     checkEventStatus();
-    const interval = setInterval(checkEventStatus, 30000); // Check every 30 seconds
+    const interval = setInterval(checkEventStatus, 60000); // Check every 60 seconds (reduced from 30)
 
-    // REAL-TIME: Listen for event settings changes via socket
-    if (session) {
-      const socket = connectSocket(session.sessionToken);
-      
-      socket.on('event:settings-changed', (data: any) => {
-        console.log('[EventBanner] Event settings changed:', data);
-        // Immediately refresh event status
-        checkEventStatus();
-      });
+    // Socket listener for real-time updates
+    const socket = connectSocket(session.sessionToken);
+    const handleSettingsChanged = (data: any) => {
+      console.log('[EventBanner] Event settings changed:', data);
+      checkEventStatus();
+    };
+    
+    socket.on('event:settings-changed', handleSettingsChanged);
 
-      return () => {
-        clearInterval(interval);
-        socket.off('event:settings-changed');
-      };
-    }
-
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+      socket.off('event:settings-changed', handleSettingsChanged);
+    };
+  }, []); // Run once on mount
 
   // Calculate time until event starts
   useEffect(() => {
