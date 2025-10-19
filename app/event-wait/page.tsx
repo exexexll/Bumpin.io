@@ -168,19 +168,28 @@ export default function EventWaitPage() {
     }
   };
 
-  const handleUpdateProfile = () => {
+  const handleUpdateProfile = async () => {
     if (!session) {
       console.error('[EventWait] No session found');
+      alert('Session not found. Please refresh the page.');
       return;
     }
 
-    console.log('[EventWait] Navigating to /refilm...');
+    console.log('[EventWait] Button clicked - starting navigation to /refilm');
+    console.log('[EventWait] Session token exists:', !!session.sessionToken);
+    console.log('[EventWait] User ID:', session.userId?.substring(0, 8));
+    
     setNavigatingToRefilm(true);
     
-    // Add small delay for visual feedback
-    setTimeout(() => {
-      router.push('/refilm');
-    }, 100);
+    try {
+      console.log('[EventWait] Calling router.push...');
+      // Use window.location as fallback if router.push doesn't work
+      window.location.href = '/refilm';
+    } catch (error) {
+      console.error('[EventWait] Navigation error:', error);
+      setNavigatingToRefilm(false);
+      alert('Navigation failed. Please try again or refresh the page.');
+    }
   };
 
   if (loading) {
