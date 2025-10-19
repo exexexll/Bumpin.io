@@ -171,13 +171,19 @@ export const rsvpLimiter = rateLimit({
 });
 
 /**
- * Public event endpoints: 20 requests per minute per IP
+ * Public event endpoints: 120 requests per minute per IP
  * Prevents data scraping of attendance and settings
  * SECURITY: Protects user privacy from profiling
+ * 
+ * INCREASED from 20 to 120 to accommodate:
+ * - EventBanner component on every page
+ * - Page navigations triggering re-mounts
+ * - Socket reconnections triggering status checks
+ * - React Strict Mode double-mounting in dev
  */
 export const eventPublicLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 20, // 20 requests per minute per IP
+  max: 120, // 120 requests per minute per IP (2 req/second)
   message: {
     error: 'Too many requests',
     message: 'Rate limit exceeded. Please wait a minute.',

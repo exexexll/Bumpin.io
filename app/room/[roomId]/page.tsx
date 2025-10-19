@@ -88,6 +88,9 @@ export default function RoomPage() {
   const [connectionPhase, setConnectionPhase] = useState<'initializing' | 'gathering' | 'connecting' | 'connected'>('initializing');
   const [connectionTimeout, setConnectionTimeout] = useState(false);
   const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [connectionFailed, setConnectionFailed] = useState(false);
+  const [connectionFailureReason, setConnectionFailureReason] = useState('');
+  const [peerConnectionFailed, setPeerConnectionFailed] = useState(false);
   
   // Refs
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -328,27 +331,73 @@ export default function RoomPage() {
 
         // Handle connection state
         pc.onconnectionstatechange = () => {
-          console.log('[WebRTC] Connection state:', pc.connectionState);
-          setConnectionState(pc.connectionState);
+          const state = pc.connectionState;
+          console.log('[WebRTC] Connection state:', state);
+          setConnectionState(state);
           
           // Update connection phase
-          if (pc.connectionState === 'connecting') {
+          if (state === 'connecting') {
             setConnectionPhase('connecting');
           }
-          if (pc.connectionState === 'connected') {
+          
+          if (state === 'connected') {
             setConnectionPhase('connected');
             clearTimeout(connectionTimeout);
             console.log('[WebRTC] ✓ Connection established - timer will start when remote track received');
+            
+            // Clear connection timeout ref
+            if (connectionTimeoutRef.current) {
+              clearTimeout(connectionTimeoutRef.current);
+              connectionTimeoutRef.current = null;
+            }
           }
           
-          if (pc.connectionState === 'failed') {
+          if (state === 'failed') {
+            console.error('[WebRTC] 🔴 Connection FAILED');
             clearTimeout(connectionTimeout);
+            
+            // CRITICAL: Notify peer immediately (don't wait for timeout!)
+            if (socketRef.current) {
+              const reason = `${peerName}'s connection failed (network/firewall issue)`;
+              console.log('[WebRTC] Notifying peer of connection failure...');
+              socketRef.current.emit('connection:failed', { 
+                roomId, 
+                reason 
+              });
+            }
+            
+            // Clear connection timeout ref
+            if (connectionTimeoutRef.current) {
+              clearTimeout(connectionTimeoutRef.current);
+              connectionTimeoutRef.current = null;
+            }
+            
+            // Try ICE restart (one attempt)
             handleICEFailure();
           }
           
-          if (pc.connectionState === 'disconnected') {
-            console.warn('[WebRTC] Connection disconnected');
-            // Don't immediately fail - might reconnect
+          if (state === 'disconnected') {
+            console.warn('[WebRTC] Connection disconnected - may reconnect');
+            // Don't immediately fail - WebRTC might reconnect automatically
+            // Wait a bit to see if it recovers
+            setTimeout(() => {
+              if (pc.connectionState === 'disconnected') {
+                console.error('[WebRTC] Still disconnected after 5s, treating as failed');
+                
+                // Notify peer
+                if (socketRef.current) {
+                  socketRef.current.emit('connection:failed', { 
+                    roomId, 
+                    reason: `${peerName} lost connection` 
+                  });
+                }
+                
+                setConnectionFailed(true);
+                setConnectionFailureReason('Connection lost - network interruption');
+                setShowPermissionSheet(true);
+                setPermissionError('Connection lost. Please check your internet and try again.');
+              }
+            }, 5000);
           }
         };
 
@@ -453,6 +502,26 @@ export default function RoomPage() {
           handleEndCall();
         });
 
+        // CRITICAL: Peer's connection failed (early notification)
+        socket.on('connection:peer-failed', ({ reason }: { reason: string }) => {
+          console.error('[Room] 🔴 Peer connection failed:', reason);
+          setPeerConnectionFailed(true);
+          setConnectionFailureReason(reason || 'Partner could not establish connection');
+          
+          // Clear our timeout since we know it failed
+          if (connectionTimeoutRef.current) {
+            clearTimeout(connectionTimeoutRef.current);
+            connectionTimeoutRef.current = null;
+          }
+          
+          // Clean up our side
+          cleanupConnections();
+          
+          // Show error immediately
+          setShowPermissionSheet(true);
+          setPermissionError(reason || 'Partner could not connect');
+        });
+
         // Create offer (initiator role only)
         if (isInitiator) {
           console.log('[WebRTC] Creating offer (initiator role)');
@@ -525,8 +594,24 @@ export default function RoomPage() {
 
       } catch (err: any) {
         console.error('[Media] Permission denied:', err);
-        setPermissionError(err.message || 'Camera/microphone access denied');
+        const errorMessage = err.name === 'NotAllowedError' 
+          ? 'Camera/microphone access denied. Please allow access in your browser settings.'
+          : err.message || 'Camera/microphone access denied';
+        
+        setPermissionError(errorMessage);
+        setConnectionFailed(true);
+        setConnectionFailureReason('Permission denied');
         setShowPermissionSheet(true);
+        
+        // CRITICAL: Notify peer that we can't join (don't make them wait!)
+        const socket = connectSocket(currentSession.sessionToken);
+        socket.emit('connection:failed', { 
+          roomId, 
+          reason: 'Partner denied camera/microphone permission' 
+        });
+        
+        // Clean up
+        cleanupConnections();
       }
     }
 
@@ -1091,7 +1176,7 @@ export default function RoomPage() {
         )}
       </AnimatePresence>
 
-      {/* Permission Sheet */}
+      {/* Permission/Connection Error Sheet */}
       {showPermissionSheet && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
           <motion.div
@@ -1099,25 +1184,61 @@ export default function RoomPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="max-w-md rounded-2xl bg-[#0a0a0c] p-8 shadow-2xl border border-white/10"
           >
-            <h3 className="mb-4 font-playfair text-2xl font-bold text-[#eaeaf0]">
-              Camera/Mic Access Needed
+            {/* Icon based on error type */}
+            <div className="mb-4 text-center text-6xl">
+              {peerConnectionFailed ? '🔌' : connectionFailed ? '⚠️' : '📹'}
+            </div>
+            
+            {/* Title based on error type */}
+            <h3 className="mb-4 font-playfair text-2xl font-bold text-[#eaeaf0] text-center">
+              {peerConnectionFailed 
+                ? 'Partner Connection Failed' 
+                : connectionFailed 
+                  ? 'Connection Failed'
+                  : 'Camera/Mic Access Needed'}
             </h3>
-            <p className="mb-6 text-[#eaeaf0]/70">
+            
+            {/* Error message */}
+            <p className="mb-4 text-[#eaeaf0]/70 text-center">
               {permissionError || 'Please allow camera and microphone access to join the call.'}
             </p>
+            
+            {/* Additional context */}
+            {peerConnectionFailed && (
+              <div className="mb-6 rounded-xl bg-yellow-500/10 border border-yellow-500/30 p-4">
+                <p className="text-sm text-yellow-200">
+                  {peerName} could not establish a connection. They may have network issues, firewall restrictions, or denied camera/mic access.
+                </p>
+              </div>
+            )}
+            
+            {connectionFailed && !peerConnectionFailed && (
+              <div className="mb-6 rounded-xl bg-red-500/10 border border-red-500/30 p-4">
+                <p className="text-sm text-red-200">
+                  Your connection could not be established. Please check your internet connection and camera/microphone permissions.
+                </p>
+              </div>
+            )}
+            
+            {/* Action buttons */}
             <div className="flex gap-3">
               <button
-                onClick={() => router.push('/main')}
+                onClick={() => {
+                  cleanupConnections();
+                  router.push('/main');
+                }}
                 className="focus-ring flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
               >
-                Leave
+                {peerConnectionFailed ? 'Back to Main' : 'Leave'}
               </button>
-              <button
-                onClick={retryPermissions}
-                className="focus-ring flex-1 rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
-              >
-                Retry
-              </button>
+              {!peerConnectionFailed && (
+                <button
+                  onClick={retryPermissions}
+                  className="focus-ring flex-1 rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
+                >
+                  Retry
+                </button>
+              )}
             </div>
           </motion.div>
         </div>

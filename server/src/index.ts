@@ -843,6 +843,36 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('room:socialShared', message);
   });
 
+  // Connection failed - notify peer immediately
+  socket.on('connection:failed', ({ roomId, reason }) => {
+    if (!currentUserId) return;
+    
+    console.log(`[Room] User ${currentUserId.substring(0, 8)} connection failed in room ${roomId}: ${reason}`);
+    
+    // Find the room and notify the peer
+    const room = activeRooms.get(roomId);
+    if (room) {
+      const peerId = room.user1 === currentUserId ? room.user2 : room.user1;
+      const peerSocketId = activeSockets.get(peerId);
+      
+      if (peerSocketId) {
+        console.log(`[Room] Notifying peer ${peerId.substring(0, 8)} of connection failure`);
+        io.to(peerSocketId).emit('connection:peer-failed', { 
+          roomId,
+          reason: reason || 'Partner could not establish connection' 
+        });
+      }
+      
+      // Clean up the room since connection failed
+      activeRooms.delete(roomId);
+      console.log(`[Room] Room ${roomId} deleted due to connection failure`);
+      
+      // Mark both users as available again
+      store.updatePresence(room.user1, { available: true });
+      store.updatePresence(room.user2, { available: true });
+    }
+  });
+
   // End call
   socket.on('call:end', async ({ roomId }) => {
     if (!currentUserId) return;
