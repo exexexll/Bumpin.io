@@ -99,23 +99,34 @@ export default function AdminPage() {
   }, [router]);
 
   const loadData = async () => {
-    // FIXED: Use admin token for admin API calls
+    // Use admin token for all admin API calls
     const adminToken = localStorage.getItem('napalmsky_admin_token');
-    const session = getSession();
-    
-    if (!adminToken) return;
+
+    if (!adminToken) {
+      router.push('/admin-login');
+      return;
+    }
 
     try {
       setLoading(true);
       const [pending, reports, statsData, codes, evtSettings] = await Promise.all([
-        // These endpoints use regular session token (user-based auth)
-        session ? getPendingReviews(session.sessionToken).catch(() => ({ pending: [] })) : Promise.resolve({ pending: [] }),
-        session ? getAllReports(session.sessionToken).catch(() => ({ reports: [] })) : Promise.resolve({ reports: [] }),
-        session ? getReportStats(session.sessionToken).catch(() => null) : Promise.resolve(null),
+        // ALL admin endpoints use adminToken (not user session)
+        fetch(`${API_BASE}/report/pending`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` },
+        }).then(r => r.ok ? r.json() : { pending: [] }).catch(() => ({ pending: [] })),
+        
+        fetch(`${API_BASE}/report/all`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` },
+        }).then(r => r.ok ? r.json() : { reports: [] }).catch(() => ({ reports: [] })),
+        
+        fetch(`${API_BASE}/report/stats`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` },
+        }).then(r => r.ok ? r.json() : null).catch(() => null),
+        
         fetch(`${API_BASE}/payment/admin/codes`, {
-          headers: { 'Authorization': `Bearer ${adminToken}` }, // FIXED: Use admin token
-        }).then(r => r.json()).catch(() => ({ codes: [] })),
-        // FIXED: Use admin token for event settings
+          headers: { 'Authorization': `Bearer ${adminToken}` },
+        }).then(r => r.ok ? r.json() : { codes: [] }).catch(() => ({ codes: [] })),
+        
         getAdminEventSettings(adminToken).catch(() => null),
       ]);
 
@@ -151,15 +162,15 @@ export default function AdminPage() {
   };
 
   const handleGenerateQRCode = async () => {
-    const session = getSession();
-    if (!session) return;
+    const adminToken = localStorage.getItem('napalmsky_admin_token');
+    if (!adminToken || !qrLabel.trim()) return;
 
     setGeneratingQR(true);
     try {
       const res = await fetch(`${API_BASE}/payment/admin/generate-code`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.sessionToken}`,
+          'Authorization': `Bearer ${adminToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ label: qrLabel || 'Admin QR Code' }),
@@ -186,8 +197,8 @@ export default function AdminPage() {
   };
 
   const handleDeactivateCode = async (code: string) => {
-    const session = getSession();
-    if (!session) return;
+    const adminToken = localStorage.getItem('napalmsky_admin_token');
+    if (!adminToken) return;
 
     if (!confirm(`Deactivate code ${code}?`)) return;
 
@@ -195,7 +206,7 @@ export default function AdminPage() {
       await fetch(`${API_BASE}/payment/admin/deactivate-code`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.sessionToken}`,
+          'Authorization': `Bearer ${adminToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ code }),
@@ -209,12 +220,25 @@ export default function AdminPage() {
   };
 
   const handleReview = async (userId: string, decision: 'permanent' | 'vindicated') => {
-    const session = getSession();
-    if (!session) return;
+    const adminToken = localStorage.getItem('napalmsky_admin_token');
+    if (!adminToken) return;
 
     try {
       setReviewing(true);
-      await reviewBan(session.sessionToken, userId, decision);
+      
+      // Call review endpoint with adminToken
+      const res = await fetch(`${API_BASE}/report/review/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${adminToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ decision }),
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to review ban');
+      }
       
       // Reload data
       await loadData();

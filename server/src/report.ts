@@ -153,7 +153,7 @@ router.post('/user', requireAuth, async (req: any, res) => {
  * GET /report/pending
  * Get all pending ban reviews (admin)
  */
-router.get('/pending', requireAuth, requireAdmin, async (req: any, res) => {
+router.get('/pending', requireAdmin, async (req: any, res) => {
   const pendingReviews = store.getPendingReviews();
   
   // Include full report details for each
@@ -172,7 +172,7 @@ router.get('/pending', requireAuth, requireAdmin, async (req: any, res) => {
  * GET /report/all
  * Get all reports (admin)
  */
-router.get('/all', requireAuth, requireAdmin, async (req: any, res) => {
+router.get('/all', requireAdmin, async (req: any, res) => {
   const allReports = store.getAllReports();
   res.json({
     reports: allReports,
@@ -274,7 +274,7 @@ router.get('/check-ip/:ip', (req, res) => {
  * GET /report/stats
  * Get reporting statistics (admin)
  */
-router.get('/stats', requireAuth, requireAdmin, async (req: any, res) => {
+router.get('/stats', requireAdmin, async (req: any, res) => {
   const allReports = store.getAllReports();
   const allBans = store.getAllBanRecords();
   const pending = store.getPendingReviews();
