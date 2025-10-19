@@ -36,6 +36,23 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
   const [isRateLimited, setIsRateLimited] = useState(false);
   
   const socketRef = useRef<any>(null);
+  const prevIndexRef = useRef<number>(-1);
+
+  // CRITICAL: Stop previous video immediately when currentIndex changes
+  useEffect(() => {
+    if (prevIndexRef.current !== -1 && prevIndexRef.current !== currentIndex) {
+      // Index changed - immediately stop ALL videos to prevent audio leak
+      console.log('[MatchmakeOverlay] 🎵 Stopping all videos due to navigation');
+      const allVideos = document.querySelectorAll('video');
+      allVideos.forEach((video) => {
+        video.pause();
+        video.muted = true;
+        video.volume = 0;
+        console.log('[MatchmakeOverlay] Stopped video:', video.src?.substring(0, 50));
+      });
+    }
+    prevIndexRef.current = currentIndex;
+  }, [currentIndex]);
 
   // Load rate limit state from sessionStorage on mount (survives overlay close/open)
   useEffect(() => {
