@@ -1006,14 +1006,14 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         </div>
 
         {/* Mobile: Close button only (top right corner) */}
-        <div className="absolute top-6 right-6 z-20 flex md:hidden">
+        <div className="absolute top-6 right-6 z-40 flex md:hidden">
           <button
             onClick={handleClose}
             disabled={!!incomingInvite}
             style={{
               display: Object.values(inviteStatuses).includes('waiting') ? 'none' : 'block'
             }}
-            className="focus-ring rounded-full bg-black/60 p-3 backdrop-blur-md transition-all hover:bg-black/80 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="focus-ring rounded-full bg-black/70 p-3 backdrop-blur-md transition-all hover:bg-black/90 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl border-2 border-white/20"
             aria-label="Close matchmaking"
             title={incomingInvite ? "Cannot close while receiving a call" : "Close matchmaking"}
           >
