@@ -4,6 +4,7 @@ import { Server as SocketServer } from 'socket.io';
 import bcrypt from 'bcrypt';
 import { store } from './store';
 import { User, Session } from './types';
+import { validatePassword, getPasswordErrorMessage } from './password-validator';
 
 /**
  * Create auth routes with Socket.io dependency injection
@@ -211,6 +212,21 @@ router.post('/link', async (req, res) => {
   if (existingUser && existingUser.userId !== user.userId) {
     return res.status(409).json({ error: 'Email already registered' });
   }
+
+  // CRITICAL SECURITY: Validate password strength
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.valid) {
+    console.warn('[Auth] Weak password rejected:', passwordValidation.errors);
+    return res.status(400).json({ 
+      error: getPasswordErrorMessage(passwordValidation),
+      allErrors: passwordValidation.errors,
+      warnings: passwordValidation.warnings,
+      strength: passwordValidation.strength,
+    });
+  }
+
+  // Log password strength for monitoring
+  console.log('[Auth] Password strength:', passwordValidation.strength, 'Score:', passwordValidation.score);
 
   // Hash password with bcrypt (cost factor: 12)
   const password_hash = await bcrypt.hash(password, 12);

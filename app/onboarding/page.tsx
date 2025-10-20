@@ -8,6 +8,7 @@ import { Container } from '@/components/Container';
 import { createGuestAccount, uploadSelfie, uploadVideo, linkAccount, getReferralInfo } from '@/lib/api';
 import { saveSession, getSession } from '@/lib/session';
 import IntroductionComplete from '@/components/IntroductionComplete';
+import { PasswordInput } from '@/components/PasswordInput';
 
 type Step = 'name' | 'selfie' | 'video' | 'permanent' | 'introduction';
 type Gender = 'female' | 'male' | 'nonbinary' | 'unspecified';
@@ -48,6 +49,8 @@ function OnboardingPageContent() {
   // Step 4: Permanent
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordValid, setPasswordValid] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<string>('weak');
 
   // Check for referral code and invite code in URL
   useEffect(() => {
@@ -483,6 +486,12 @@ function OnboardingPageContent() {
       return;
     }
 
+    // CRITICAL SECURITY: Validate password on frontend too
+    if (!passwordValid) {
+      setError('Please fix password errors before continuing');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -831,12 +840,15 @@ function OnboardingPageContent() {
                     <label className="mb-2 block text-sm font-medium text-[#eaeaf0]">
                       Password
                     </label>
-                    <input
-                      type="password"
+                    <PasswordInput
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full rounded-xl bg-white/10 px-4 py-3 text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+                      onChange={setPassword}
+                      onValidationChange={(isValid, strength) => {
+                        setPasswordValid(isValid);
+                        setPasswordStrength(strength);
+                      }}
                       placeholder="Choose a password"
+                      showRequirements={true}
                     />
                   </div>
 

@@ -4,11 +4,25 @@ import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
 
-// Admin credentials (hashed password for security)
-// Username: Hanson
-// Password: 328077
-const ADMIN_USERNAME = 'Hanson';
-const ADMIN_PASSWORD_HASH = '$2b$12$51/ipDaDcOudvkQ8KZBdlOtlieovXEWfQcCW4PMC.ml530T7umAD2'; // bcrypt hash of "328077"
+// Admin credentials from environment variables (SECURITY: Never hardcode!)
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
+
+// CRITICAL: Ensure admin password hash is configured
+if (!ADMIN_PASSWORD_HASH) {
+  console.error('');
+  console.error('🚨 FATAL ERROR: ADMIN_PASSWORD_HASH not configured!');
+  console.error('');
+  console.error('Please set ADMIN_PASSWORD_HASH in your environment variables.');
+  console.error('');
+  console.error('To generate a hash, run:');
+  console.error('  node -e "const bcrypt = require(\'bcrypt\'); bcrypt.hash(\'YOUR_PASSWORD\', 12).then(hash => console.log(hash));"');
+  console.error('');
+  console.error('Then add to Railway/environment:');
+  console.error('  ADMIN_PASSWORD_HASH=$2b$12$...');
+  console.error('');
+  process.exit(1); // Exit if not configured (fail-safe)
+}
 
 // Store admin sessions in memory (cloud: use Redis)
 const adminSessions = new Map<string, { username: string; createdAt: number }>();
