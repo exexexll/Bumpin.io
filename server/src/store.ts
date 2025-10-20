@@ -1433,6 +1433,8 @@ class DataStore {
             eventEndTime: row.event_end_time,
             timezone: row.timezone,
             eventDays: row.event_days || [],
+            eventTitle: row.event_title || 'Event Mode Active',
+            eventBannerText: row.event_banner_text || 'Event Mode',
             createdAt: new Date(row.created_at).getTime(),
             updatedAt: new Date(row.updated_at).getTime(),
           };
