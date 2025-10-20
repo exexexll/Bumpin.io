@@ -111,7 +111,7 @@ export function EmailVerification({ sessionToken, email, onVerified, onSkip }: E
           Verify Your Email
         </h2>
         <p className="text-[#eaeaf0]/70">
-          We'll send a verification code to: <strong>{email}</strong>
+          We&apos;ll send a verification code to: <strong>{email}</strong>
         </p>
       </div>
 
