@@ -25,7 +25,13 @@ router.post('/send', requireAuth, async (req: any, res) => {
   const user = await store.getUser(req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
   
-  if ((user as any).verification_attempts >= 3) {
+  // Reset attempts if last code expired over 1 hour ago
+  const shouldReset = user.verification_code_expires_at && 
+                     (Date.now() - user.verification_code_expires_at) > 3600000;
+  
+  const currentAttempts = shouldReset ? 0 : (user.verification_attempts || 0);
+  
+  if (currentAttempts >= 3) {
     return res.status(429).json({ error: 'Too many attempts. Wait 1 hour.' });
   }
   
@@ -36,8 +42,8 @@ router.post('/send', requireAuth, async (req: any, res) => {
     email,
     verification_code: code,
     verification_code_expires_at: expiresAt,
-    verification_attempts: ((user as any).verification_attempts || 0) + 1,
-  } as any);
+    verification_attempts: currentAttempts + 1,
+  });
   
   const sent = await sendVerificationEmail(email, code, user.name);
   if (!sent) {
@@ -53,11 +59,11 @@ router.post('/verify', requireAuth, async (req: any, res) => {
   const user = await store.getUser(req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
   
-  if ((user as any).verification_code !== code) {
+  if (user.verification_code !== code) {
     return res.status(400).json({ error: 'Invalid code' });
   }
   
-  if (Date.now() > (user as any).verification_code_expires_at) {
+  if (!user.verification_code_expires_at || Date.now() > user.verification_code_expires_at) {
     return res.status(400).json({ error: 'Code expired' });
   }
   
@@ -66,7 +72,7 @@ router.post('/verify', requireAuth, async (req: any, res) => {
     verification_code: null,
     verification_code_expires_at: null,
     verification_attempts: 0,
-  } as any);
+  });
   
   res.json({ success: true });
 });
