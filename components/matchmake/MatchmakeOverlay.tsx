@@ -961,8 +961,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     console.log('[Matchmake] ✅ Rescind sent, cooldown status set');
   };
 
-  // Handle accept incoming
-  const handleAccept = (inviteId: string, requestedSeconds: number) => {
+  // Handle accept incoming - useCallback to prevent recreating on every render
+  const handleAccept = useCallback((inviteId: string, requestedSeconds: number) => {
     if (!socketRef.current) {
       console.error('[Matchmake] ❌ Cannot accept - socket not available');
       return;
@@ -980,10 +980,10 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
 
     setIncomingInvite(null);
     console.log('[Matchmake] ✅ Accept event sent to server');
-  };
+  }, [recordActivity]); // Stable dependencies
 
-  // Handle decline incoming
-  const handleDecline = (inviteId: string) => {
+  // Handle decline incoming - useCallback to prevent recreating on every render
+  const handleDecline = useCallback((inviteId: string) => {
     if (!socketRef.current) return;
 
     // Record activity when declining
@@ -992,7 +992,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     socketRef.current.emit('call:decline', { inviteId });
     setIncomingInvite(null);
     console.log('[Matchmake] Declined invite:', inviteId);
-  };
+  }, [recordActivity]); // Stable dependencies
 
   // Handle location permission allow
   const handleLocationAllow = useCallback(async () => {
