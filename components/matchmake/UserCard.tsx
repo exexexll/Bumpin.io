@@ -32,7 +32,6 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   const [tempSeconds, setTempSeconds] = useState('300');
   const [tempInputValue, setTempInputValue] = useState('300');
   const [waitTime, setWaitTime] = useState(20);
-  const [showWaitOptions, setShowWaitOptions] = useState(false);
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [referralLink, setReferralLink] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
@@ -223,44 +222,34 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     }
   };
 
-  // Wait timer countdown - Auto-cancel after 20 seconds (no "Keep Waiting")
+  // Wait timer countdown - Auto-cancel after 20 seconds
   useEffect(() => {
-    if (inviteStatus === 'waiting') {
-      console.log('[UserCard] Starting wait timer for user (auto-cancel in 20s)');
-      setWaitTime(20);
-      setShowWaitOptions(false);
-      
-      // Client-side countdown timer
-      waitTimerRef.current = setInterval(() => {
-        setWaitTime(prev => {
-          const newTime = prev - 1;
-          
-          if (newTime <= 0) {
-            // Auto-cancel after 20 seconds (no "Keep Waiting" option)
-            console.log('[UserCard] Wait timer expired - auto-canceling');
-            if (waitTimerRef.current) {
-              clearInterval(waitTimerRef.current);
-              waitTimerRef.current = null;
-            }
-            
-            // Auto-rescind the invite
-            if (onRescind) {
-              onRescind(user.userId);
-            }
-            
-            return 0;
-          }
-          return newTime;
-        });
-      }, 1000);
-    } else {
-      // Clear timer when not waiting
+    if (inviteStatus !== 'waiting') {
       if (waitTimerRef.current) {
         clearInterval(waitTimerRef.current);
         waitTimerRef.current = null;
       }
-      setShowWaitOptions(false);
+      return;
     }
+    
+    console.log('[UserCard] Starting 20s wait timer');
+    setWaitTime(20);
+    
+    const interval = setInterval(() => {
+      setWaitTime(prev => {
+        const next = prev - 1;
+        
+        if (next <= 0) {
+          console.log('[UserCard] Wait expired - auto-rescinding');
+          clearInterval(interval);
+          onRescind?.(user.userId);
+          return 0;
+        }
+        return next;
+      });
+    }, 1000);
+    
+    waitTimerRef.current = interval;
 
     return () => {
       if (waitTimerRef.current) {
@@ -268,7 +257,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
         waitTimerRef.current = null;
       }
     };
-  }, [inviteStatus, user.userId, onRescind]); // Added onRescind to dependencies
+  }, [inviteStatus, user.userId, onRescind]);
 
   // Update cooldown timer
   useEffect(() => {
@@ -866,11 +855,11 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
                   Waiting for {user.name}
                 </h3>
                 <p className="text-lg text-white/70">
-                  {showWaitOptions ? 'No response yet...' : 'They have 20 seconds to respond'}
+                  They have 20 seconds to respond
                 </p>
               </div>
 
-              {/* Hint - Timer auto-cancels after 20 seconds */}
+              {/* Hint - Timer countdown */}
               <p className="text-sm text-white/40">
                 {waitTime <= 5 
                   ? `Auto-canceling in ${waitTime}s...`
