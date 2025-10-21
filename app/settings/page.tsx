@@ -366,7 +366,7 @@ export default function SettingsPage() {
                   Enable Location Sharing
                 </button>
                 <p className="mt-2 text-xs text-center text-[#eaeaf0]/40">
-                  You'll be asked for permission when you open matchmaking
+                  You&apos;ll be asked for permission when you open matchmaking
                 </p>
               </div>
             )}
