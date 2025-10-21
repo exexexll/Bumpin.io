@@ -7,6 +7,7 @@ import { io, Socket } from 'socket.io-client';
 import { SOCKET_URL } from './config';
 
 let socket: Socket | null = null;
+let heartbeatInterval: NodeJS.Timeout | null = null;
 
 export function connectSocket(sessionToken: string): Socket {
   // Reuse existing socket if it's connected OR connecting
@@ -48,6 +49,20 @@ export function connectSocket(sessionToken: string): Socket {
     console.log('[Socket] Connected:', socket?.id);
     // Still emit auth for backward compatibility with event handlers
     socket?.emit('auth', { sessionToken });
+    
+    // Start heartbeat to keep presence alive (every 25 seconds)
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+    }
+    
+    heartbeatInterval = setInterval(() => {
+      if (socket?.connected) {
+        socket.emit('heartbeat');
+        console.log('[Socket] 💓 Heartbeat sent');
+      }
+    }, 25000); // 25 seconds - well under the 60s stale threshold
+    
+    console.log('[Socket] Heartbeat started (every 25s)');
   });
 
   socket.on('auth:success', () => {
@@ -61,6 +76,13 @@ export function connectSocket(sessionToken: string): Socket {
 
   socket.on('disconnect', (reason) => {
     console.log('[Socket] Disconnected:', reason);
+    
+    // Stop heartbeat
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      heartbeatInterval = null;
+      console.log('[Socket] Heartbeat stopped');
+    }
   });
 
   socket.on('connect_error', (error) => {
@@ -74,6 +96,12 @@ export function disconnectSocket() {
   if (socket) {
     socket.disconnect();
     socket = null;
+  }
+  
+  // Clean up heartbeat
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
   }
 }
 

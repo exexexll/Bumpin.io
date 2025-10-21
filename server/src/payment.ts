@@ -468,9 +468,11 @@ router.post('/admin/generate-code', requireAdmin, async (req: any, res) => {
     const code = await generateSecureCode();
     console.log('[Admin] Code generated successfully:', code);
     
+    // FIXED: Use special admin UUID (00000000-0000-0000-0000-000000000000) for admin codes
+    // This is a valid UUID that won't conflict with real users
     const inviteCode: InviteCode = {
       code,
-      createdBy: 'admin', // Admin-generated code
+      createdBy: '00000000-0000-0000-0000-000000000000', // Admin sentinel UUID
       createdByName: label || `Admin (${adminUsername})`,
       createdAt: Date.now(),
       type: 'admin',

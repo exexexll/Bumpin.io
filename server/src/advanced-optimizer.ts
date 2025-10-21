@@ -148,7 +148,8 @@ export class AdvancedConnectionManager {
   private globalConnectionCount = 0;
   
   // OPTIMIZED FOR 3000-4000 USERS (4x capacity increase)
-  private readonly MAX_CONNECTIONS_PER_USER = 2; // Keep at 2 (prevent abuse)
+  // FIXED: Increased to 5 to handle refreshes, reconnections, multiple tabs
+  private readonly MAX_CONNECTIONS_PER_USER = 5; // Allow up to 5 connections (handles normal user behavior)
   private readonly MAX_GLOBAL_CONNECTIONS = 5000; // Hard limit for 4000 users × 1.25 buffer
   private readonly WARNING_THRESHOLD = 4000; // Warn at 80% capacity
 

@@ -334,6 +334,7 @@ io.on('connection', (socket) => {
       online: true,
       available: false,
       lastActiveAt: Date.now(),
+      lastHeartbeat: Date.now(), // Initialize heartbeat
     });
     console.log(`[Connection] User ${currentUserId.substring(0, 8)} pre-authenticated and marked online`);
     
@@ -379,6 +380,7 @@ io.on('connection', (socket) => {
           online: true,
           available: false,
           lastActiveAt: Date.now(),
+          lastHeartbeat: Date.now(), // Initialize heartbeat
         });
         
         console.log(`[Connection] User ${session.userId.substring(0, 8)} authenticated via event and marked online`);
@@ -451,6 +453,13 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Heartbeat - keeps connection alive and detects stale users
+  socket.on('heartbeat', () => {
+    if (currentUserId) {
+      store.updateHeartbeat(currentUserId);
+    }
+  });
+
   // Queue: join (mark available for matching)
   socket.on('queue:join', async () => {
     if (!currentUserId) {
@@ -467,12 +476,14 @@ io.on('connection', (socket) => {
         online: true,
         available: true,
         lastActiveAt: Date.now(),
+        lastHeartbeat: Date.now(),
       });
     } else {
-      // Update available flag
+      // Update available flag + heartbeat
       store.updatePresence(currentUserId, {
         available: true,
         lastActiveAt: Date.now(),
+        lastHeartbeat: Date.now(),
       });
     }
 

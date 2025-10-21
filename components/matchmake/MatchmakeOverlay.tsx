@@ -176,20 +176,35 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     }
   };
 
-  // Swipe detection for mobile
+  // Swipe detection for mobile - Improved to prevent conflicts
   const handleTouchStart = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    
+    // Don't capture touch if user is interacting with buttons or inputs
+    if (target.closest('button') || target.closest('input') || target.closest('textarea')) {
+      return;
+    }
+    
     touchStartY.current = e.touches[0].clientY;
     touchStartX.current = e.touches[0].clientX;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    
+    // Don't navigate if touching buttons or inputs
+    if (target.closest('button') || target.closest('input') || target.closest('textarea')) {
+      return;
+    }
+    
     const touchEndY = e.changedTouches[0].clientY;
     const touchEndX = e.changedTouches[0].clientX;
     const deltaY = touchStartY.current - touchEndY;
     const deltaX = Math.abs(touchStartX.current - touchEndX);
     
-    // Only trigger if vertical swipe (not horizontal) and significant distance
-    if (deltaX < 50 && Math.abs(deltaY) > 80) {
+    // IMPROVED: Require more significant swipe to prevent accidental navigation
+    // Vertical swipe must be > 100px and horizontal < 60px
+    if (deltaX < 60 && Math.abs(deltaY) > 100) {
       // Check if waiting
       const currentUserId = users[currentIndex]?.userId;
       const isWaiting = currentUserId && inviteStatuses[currentUserId] === 'waiting';

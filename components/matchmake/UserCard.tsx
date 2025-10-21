@@ -432,22 +432,40 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
               </motion.h3>
               
               {/* Distance Badge (Location-based) - Always visible, wraps on mobile */}
-              {user.hasLocation && user.distance !== null && user.distance !== undefined && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex-shrink-0 rounded-full bg-[#ff9b6b]/20 px-2.5 py-0.5 border border-[#ff9b6b]/40"
-                >
-                  <div className="flex items-center gap-1">
-                    <svg className="h-3 w-3 text-[#ff9b6b]" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-xs font-bold text-[#ff9b6b]">
-                      {formatDistance(user.distance)}
-                    </span>
-                  </div>
-                </motion.div>
-              )}
+              {(() => {
+                // DEBUG: Log badge conditions
+                const shouldShow = !!(user.hasLocation && user.distance !== null && user.distance !== undefined);
+                if (user.distance !== undefined || user.hasLocation) {
+                  console.log('[UserCard] Badge Debug:', {
+                    name: user.name,
+                    hasLocation: user.hasLocation,
+                    distance: user.distance,
+                    distanceType: typeof user.distance,
+                    shouldShow,
+                    formattedDistance: user.distance !== null && user.distance !== undefined ? formatDistance(user.distance) : 'N/A'
+                  });
+                }
+                
+                if (shouldShow && user.distance !== null && user.distance !== undefined) {
+                  return (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex-shrink-0 rounded-full bg-[#ff9b6b]/20 px-2.5 py-0.5 border border-[#ff9b6b]/40"
+                    >
+                      <div className="flex items-center gap-1">
+                        <svg className="h-3 w-3 text-[#ff9b6b]" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-xs font-bold text-[#ff9b6b]">
+                          {formatDistance(user.distance)}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                }
+                return null;
+              })()}
               
               {user.wasIntroducedToMe && isHovered && (
                 <motion.div 

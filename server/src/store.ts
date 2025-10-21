@@ -31,6 +31,7 @@ interface Presence {
   online: boolean;
   available: boolean;
   lastActiveAt: number;
+  lastHeartbeat?: number; // Track last heartbeat for staleness detection
 }
 
 interface ActiveInvite {
@@ -540,22 +541,52 @@ class DataStore {
 
   getAllOnlineAvailable(excludeUserId?: string): string[] {
     const allPresence = Array.from(this.presence.entries());
+    const now = Date.now();
+    const STALE_THRESHOLD = 60000; // 60 seconds without heartbeat = stale
     
     // Debug: Log presence states
     console.log(`[Store] getAllOnlineAvailable called - Total presence entries: ${allPresence.length}`);
     allPresence.forEach(([uid, p]) => {
-      // Note: User lookup removed from debug log (would require async)
       const isExcluded = uid === excludeUserId;
-      const isIncluded = p.online && p.available && !isExcluded;
-      console.log(`[Store]   ${uid.substring(0, 8)}: online=${p.online}, available=${p.available}, excluded=${isExcluded} → ${isIncluded ? '✅ INCLUDED' : '❌ FILTERED'}`);
+      const timeSinceHeartbeat = p.lastHeartbeat ? (now - p.lastHeartbeat) / 1000 : 999;
+      const isStale = p.lastHeartbeat && (now - p.lastHeartbeat) > STALE_THRESHOLD;
+      const isIncluded = p.online && p.available && !isExcluded && !isStale;
+      console.log(`[Store]   ${uid.substring(0, 8)}: online=${p.online}, available=${p.available}, heartbeat=${timeSinceHeartbeat.toFixed(0)}s ago, stale=${isStale} → ${isIncluded ? '✅ INCLUDED' : '❌ FILTERED'}`);
     });
     
+    // Filter: online + available + not excluded + not stale
     const available = allPresence
-      .filter(([uid, p]) => p.online && p.available && uid !== excludeUserId)
+      .filter(([uid, p]) => {
+        if (uid === excludeUserId) return false;
+        if (!p.online || !p.available) return false;
+        
+        // Check staleness: if has heartbeat, must be recent
+        if (p.lastHeartbeat && (now - p.lastHeartbeat) > STALE_THRESHOLD) {
+          console.warn(`[Store] 🚫 Filtering stale user ${uid.substring(0, 8)} (no heartbeat in ${Math.floor((now - p.lastHeartbeat) / 1000)}s)`);
+          return false;
+        }
+        
+        return true;
+      })
       .map(([uid]) => uid);
     
-    console.log(`[Store] getAllOnlineAvailable result: ${available.length} users`);
+    console.log(`[Store] getAllOnlineAvailable result: ${available.length} users (${allPresence.length - available.length} filtered)`);
     return available;
+  }
+  
+  // Update heartbeat for a user
+  updateHeartbeat(userId: string): void {
+    const current = this.presence.get(userId);
+    if (current) {
+      current.lastHeartbeat = Date.now();
+      current.lastActiveAt = Date.now();
+      this.presence.set(userId, current);
+      
+      // Log occasionally to avoid spam
+      if (Math.random() < 0.02) { // 2% of heartbeats
+        console.log(`[Store] 💓 Heartbeat: ${userId.substring(0, 8)} (${current.available ? 'available' : 'unavailable'})`);
+      }
+    }
   }
 
   // Cooldown operations

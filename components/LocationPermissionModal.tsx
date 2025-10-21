@@ -71,6 +71,17 @@ export function LocationPermissionModal({ onAllow, onDeny }: LocationPermissionM
         <p className="mt-4 text-xs text-center text-[#eaeaf0]/40">
           By allowing, you consent to temporary location storage per our Privacy Policy
         </p>
+        
+        {/* Mobile Permission Help */}
+        <div className="mt-4 rounded-lg bg-blue-500/10 border border-blue-500/30 p-3">
+          <p className="text-xs text-blue-200 text-center">
+            💡 <strong>If browser blocks permission:</strong>
+          </p>
+          <p className="text-xs text-blue-200/80 text-center mt-1">
+            iOS: Settings → Safari/Chrome → Location<br/>
+            Android: Settings → Apps → Chrome → Permissions
+          </p>
+        </div>
       </motion.div>
     </div>
   );

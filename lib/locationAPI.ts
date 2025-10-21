@@ -52,7 +52,27 @@ export async function requestAndUpdateLocation(sessionToken: string): Promise<bo
         }
       },
       (error) => {
-        console.log('[Location] Permission denied or error:', error.message);
+        // ENHANCED ERROR LOGGING FOR MOBILE DEBUGGING
+        const errorMessages = {
+          1: 'PERMISSION_DENIED - User or browser blocked location',
+          2: 'POSITION_UNAVAILABLE - GPS/network issue', 
+          3: 'TIMEOUT - Location request timed out'
+        };
+        
+        console.error('[Location] Error:', errorMessages[error.code as keyof typeof errorMessages] || 'Unknown error');
+        console.error('[Location] Full error details:', { 
+          code: error.code, 
+          message: error.message,
+          userAgent: navigator.userAgent.substring(0, 50)
+        });
+        
+        // For mobile, show helpful instructions
+        if (/iPhone|iPad|Android/i.test(navigator.userAgent) && error.code === 1) {
+          console.log('[Location] 📱 Mobile permission denied - user needs to check settings');
+          console.log('[Location] iOS: Settings → Safari/Chrome → Location → Allow');
+          console.log('[Location] Android: Settings → Apps → Chrome → Permissions → Location → Allow');
+        }
+        
         resolve(false);
       },
       {
