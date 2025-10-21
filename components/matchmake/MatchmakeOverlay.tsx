@@ -430,70 +430,53 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       
       setUsers(prevUsers => {
         const currentViewingUserId = prevUsers[currentIndex]?.userId;
-        console.log('[Matchmake] Updating queue - currently viewing:', prevUsers[currentIndex]?.name);
+        console.log('[Matchmake] Background update - currently viewing:', prevUsers[currentIndex]?.name);
         
-        // Create a map of current user IDs to preserve order
-        const prevUserIds = new Set(prevUsers.map(u => u.userId));
-        const queueUserIds = new Set(filteredQueue.map(u => u.userId));
+        // TRUST BACKEND'S ORDER: Backend returns distance-sorted if user has location
+        // filteredQueue is already: closest→farthest if location enabled, random if not
+        let newOrder = [...filteredQueue];
         
-        // Keep existing users that are still in queue (update their data)
-        const updatedExisting = prevUsers
-          .filter(u => queueUserIds.has(u.userId))
-          .map(prevUser => {
-            // Find updated data from queue
-            const queueUser = filteredQueue.find(u => u.userId === prevUser.userId);
-            return queueUser || prevUser; // Use new data if available
-          });
-        
-        // Find genuinely new users not in current reel
-        const newUsers = filteredQueue.filter(u => !prevUserIds.has(u.userId));
-        
-        if (newUsers.length > 0) {
-          console.log('[Matchmake] ✅ Adding', newUsers.length, 'new users at bottom:', newUsers.map(u => u.name));
-        }
-        
-        // Check if any users were removed
-        const removedUsers = prevUsers.filter(u => !queueUserIds.has(u.userId));
-        if (removedUsers.length > 0) {
-          console.log('[Matchmake] 🗑️ Removing', removedUsers.length, 'users who left queue:', removedUsers.map(u => u.name));
-        }
-        
-        // Combine: updated existing + new users
-        let combinedUsers = [...updatedExisting, ...newUsers];
-        
-        // Deduplicate by userId (safety check to prevent React key warnings)
-        const uniqueUserIds = new Set<string>();
-        combinedUsers = combinedUsers.filter(user => {
-          if (uniqueUserIds.has(user.userId)) {
-            console.warn('[Matchmake] ⚠️ Duplicate user detected, removing:', user.name);
-            return false;
-          }
-          uniqueUserIds.add(user.userId);
-          return true;
-        });
-        
-        // Re-apply prioritization: Direct match > Introductions > Others
+        // Only add priority overrides (don't break distance order)
         if (directMatchTarget) {
-          const targetIndex = combinedUsers.findIndex(u => u.userId === directMatchTarget);
-          if (targetIndex > 0) {
-            const target = combinedUsers[targetIndex];
-            combinedUsers.splice(targetIndex, 1);
-            combinedUsers.unshift(target);
-            console.log('[Matchmake] ⭐ Re-prioritized direct match target:', target.name);
+          const idx = newOrder.findIndex(u => u.userId === directMatchTarget);
+          if (idx > 0) {
+            const [target] = newOrder.splice(idx, 1);
+            newOrder.unshift(target);
           }
         } else {
-          // Prioritize introductions
-          const introductions = combinedUsers.filter(u => u.wasIntroducedToMe);
-          const others = combinedUsers.filter(u => !u.wasIntroducedToMe);
-          
-          if (introductions.length > 0 && others.length > 0) {
-            combinedUsers = [...introductions, ...others];
-            console.log('[Matchmake] ⭐ Re-prioritized', introductions.length, 'introductions');
+          // Intros first, but maintain distance order within each group
+          const intros = newOrder.filter(u => u.wasIntroducedToMe);
+          const others = newOrder.filter(u => !u.wasIntroducedToMe);
+          if (intros.length > 0 && others.length > 0) {
+            newOrder = [...intros, ...others];
           }
         }
         
-        console.log('[Matchmake] Updated reel:', combinedUsers.length, 'total users');
-        return combinedUsers;
+        // Log what changed
+        const prevIds = new Set(prevUsers.map(u => u.userId));
+        const newIds = new Set(newOrder.map(u => u.userId));
+        const added = newOrder.filter(u => !prevIds.has(u.userId));
+        const removed = prevUsers.filter(u => !newIds.has(u.userId));
+        
+        if (added.length > 0) console.log('[Matchmake] ➕ Added:', added.map(u => u.name));
+        if (removed.length > 0) console.log('[Matchmake] ➖ Removed:', removed.map(u => u.name));
+        
+        // GRACEFUL: Adjust currentIndex so user still sees same card
+        if (currentViewingUserId) {
+          const newIdx = newOrder.findIndex(u => u.userId === currentViewingUserId);
+          if (newIdx !== -1) {
+            if (newIdx !== currentIndex) {
+              console.log(`[Matchmake] 📍 Reordered: card moved ${currentIndex}→${newIdx} (still showing ${prevUsers[currentIndex]?.name})`);
+              setCurrentIndex(newIdx);
+            }
+          } else {
+            console.log('[Matchmake] Current user left queue');
+            // Stay at same index, will show whoever is there now
+          }
+        }
+        
+        console.log('[Matchmake] Order updated: distance ranking applied (user view preserved)');
+        return newOrder;
       });
     } catch (err: any) {
       console.error('[Matchmake] ❌ Failed to check for new users:', err);
