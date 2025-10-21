@@ -443,12 +443,14 @@ export default function RoomPage() {
 
         // Session finalized
         socket.on('session:finalized', ({ sessionId: sid }: any) => {
-          console.log('[Room] Session finalized:', sid);
+          console.log('[Room] 🎬 SESSION FINALIZED received:', sid);
+          console.log('[Room] Setting viewState to ended...');
           setSessionId(sid);
           
           // CRITICAL: Clean up WebRTC and media when session ends
           cleanupConnections();
           
+          console.log('[Room] ✅ Changing to ended screen NOW');
           setViewState('ended');
         });
 

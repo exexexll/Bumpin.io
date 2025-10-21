@@ -262,6 +262,13 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       const queueData = await getQueue(session.sessionToken);
       console.log('[Matchmake] ✅ Received from API:', queueData.users.length, 'users shown,', queueData.totalAvailable, 'total available');
       
+      // DEBUG: Log location data from API
+      queueData.users.forEach(u => {
+        if (u.distance !== null && u.distance !== undefined) {
+          console.log('[Matchmake] 📍 User', u.name, 'has distance:', u.distance, 'm, hasLocation:', u.hasLocation);
+        }
+      });
+      
       // Extra safety: Filter out current user from client side too
       let filteredUsers = queueData.users.filter(u => u.userId !== session.userId);
       if (filteredUsers.length < queueData.users.length) {
