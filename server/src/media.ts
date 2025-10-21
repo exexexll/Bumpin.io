@@ -18,6 +18,45 @@ cloudinary.config({
 const useCloudinary = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY);
 
 /**
+ * Helper: Delete file from Cloudinary
+ * Extracts public_id from URL and deletes
+ */
+async function deleteFromCloudinary(url: string): Promise<boolean> {
+  if (!useCloudinary) return false;
+  
+  try {
+    // Extract public_id from Cloudinary URL
+    // Format: https://res.cloudinary.com/{cloud}/image/upload/v123/{public_id}.jpg
+    const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.\w+$/);
+    if (!matches) {
+      console.error('[Cloudinary] Could not extract public_id from URL:', url);
+      return false;
+    }
+    
+    const publicId = matches[1];
+    console.log('[Cloudinary] Deleting file:', publicId);
+    
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: url.includes('/video/') ? 'video' : 'image',
+      invalidate: true, // Invalidate CDN cache
+    });
+    
+    if (result.result === 'ok') {
+      console.log('[Cloudinary] ✅ File deleted:', publicId);
+      return true;
+    } else {
+      console.warn('[Cloudinary] Delete failed:', result);
+      return false;
+    }
+  } catch (error) {
+    console.error('[Cloudinary] Error deleting file:', error);
+    return false;
+  }
+}
+
+export { deleteFromCloudinary };
+
+/**
  * Multer configuration for file uploads
  * ⚠️ Stores files locally for demo
  * Cloud-ready seam: Replace with S3/Azure Blob/Cloudinary in production

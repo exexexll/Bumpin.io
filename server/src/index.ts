@@ -13,7 +13,7 @@ import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { store } from './store';
 import { createAuthRoutes } from './auth';
-import mediaRoutes from './media';
+import mediaRoutes, { deleteFromCloudinary } from './media';
 import roomRoutes from './room';
 import userRoutes from './user';
 import referralRoutes from './referral';
@@ -345,6 +345,54 @@ setInterval(() => {
 }, 30000); // Run every 30 seconds
 
 console.log('[Server] Stale user cleanup started (every 30s)');
+
+// Cleanup unpaid user uploads (every 6 hours)
+setInterval(async () => {
+  console.log('[Cleanup] Starting unpaid user upload cleanup...');
+  
+  try {
+    // Find all users with uploads but unpaid status
+    if (store['useDatabase']) {
+      const result = await require('./database').query(
+        `SELECT user_id, selfie_url, video_url, paid_status, created_at 
+         FROM users 
+         WHERE paid_status = 'unpaid' 
+         AND (selfie_url IS NOT NULL OR video_url IS NOT NULL)
+         AND created_at < NOW() - INTERVAL '24 hours'`
+      );
+      
+      for (const row of result.rows) {
+        const userId = row.user_id;
+        console.log(`[Cleanup] Found unpaid user with uploads: ${userId.substring(0, 8)} (${Math.floor((Date.now() - new Date(row.created_at).getTime()) / (1000 * 60 * 60))}h old)`);
+        
+        // Delete from Cloudinary
+        if (row.selfie_url && row.selfie_url.includes('cloudinary')) {
+          const deleted = await deleteFromCloudinary(row.selfie_url);
+          if (deleted) {
+            await store.updateUser(userId, { selfieUrl: null });
+            console.log(`[Cleanup] ✅ Deleted unpaid user selfie: ${userId.substring(0, 8)}`);
+          }
+        }
+        
+        if (row.video_url && row.video_url.includes('cloudinary')) {
+          const deleted = await deleteFromCloudinary(row.video_url);
+          if (deleted) {
+            await store.updateUser(userId, { videoUrl: null });
+            console.log(`[Cleanup] ✅ Deleted unpaid user video: ${userId.substring(0, 8)}`);
+          }
+        }
+      }
+      
+      if (result.rows.length > 0) {
+        console.log(`[Cleanup] 🧹 Cleaned up ${result.rows.length} unpaid user uploads`);
+      }
+    }
+  } catch (error) {
+    console.error('[Cleanup] Error cleaning unpaid uploads:', error);
+  }
+}, 6 * 60 * 60 * 1000); // Every 6 hours
+
+console.log('[Server] Unpaid upload cleanup started (every 6 hours)');
 
 io.on('connection', (socket) => {
   console.log(`Client connected: ${socket.id}`);
