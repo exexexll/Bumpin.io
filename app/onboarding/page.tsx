@@ -252,9 +252,13 @@ function OnboardingPageContent() {
       setSessionToken(response.sessionToken);
       setUserId(response.userId);
       
-      // DON'T save session to localStorage yet - only in memory
-      // Will save after payment/verification complete
-      console.log('[Onboarding] Session created (not cached - awaiting payment/verification)');
+      // ALWAYS save session - needed for navigation
+      saveSession({
+        sessionToken: response.sessionToken,
+        userId: response.userId,
+        accountType: response.accountType,
+      });
+      console.log('[Onboarding] Session saved');
       
       // If was referred, set target user for introduction screen later
       if (response.wasReferred) {
@@ -263,28 +267,16 @@ function OnboardingPageContent() {
         setTargetOnline(response.targetOnline);
       }
       
-      // REVERTED: Payment check BEFORE profile (as originally designed)
       // Check if user needs to pay
       if (response.paidStatus === 'unpaid' && !response.inviteCodeUsed) {
-        console.log('[Onboarding] User needs to pay - redirecting to paywall FIRST');
+        console.log('[Onboarding] User needs to pay - redirecting to paywall');
         sessionStorage.setItem('redirecting_to_paywall', 'true');
-        // Store that we came from onboarding so paywall knows to return here
         sessionStorage.setItem('return_to_onboarding', 'true');
         router.push('/paywall');
         return;
       }
       
-      // User is verified via QR code - save session now
-      if (response.paidStatus === 'qr_verified' || response.paidStatus === 'qr_grace_period') {
-        console.log('[Onboarding] User verified via QR - caching session');
-        saveSession({
-          sessionToken: response.sessionToken,
-          userId: response.userId,
-          accountType: response.accountType,
-        });
-      }
-      
-      // Proceed to profile setup
+      // User is verified (QR code or will pay later) - proceed to profile
       console.log('[Onboarding] Proceeding to profile setup');
       setStep('selfie');
     } catch (err: any) {
