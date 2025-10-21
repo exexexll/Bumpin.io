@@ -28,6 +28,12 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
   const [videoOrientation, setVideoOrientation] = useState<'portrait' | 'landscape' | 'unknown'>('unknown');
   const videoRef = useRef<HTMLVideoElement>(null);
   const firstFocusRef = useRef<HTMLButtonElement>(null);
+  const onDeclineRef = useRef(onDecline);
+  const inviteIdRef = useRef(invite.inviteId);
+  
+  // Keep refs updated
+  onDeclineRef.current = onDecline;
+  inviteIdRef.current = invite.inviteId;
 
   // Detect video orientation
   useEffect(() => {
@@ -60,22 +66,19 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
     };
   }, []);
 
-  // Countdown timer - runs once, stops on unmount (accept/decline)
+  // Countdown timer - NO DEPENDENCIES, only runs ONCE
   useEffect(() => {
-    let isMounted = true;
+    console.log('[CalleeNotification] Timer starting - 20 seconds');
     
     const interval = setInterval(() => {
-      if (!isMounted) {
-        clearInterval(interval);
-        return;
-      }
-      
       setTimeLeft(prev => {
         const next = prev - 1;
+        console.log('[CalleeNotification] ⏱️', next, 's remaining');
         
         if (next <= 0) {
+          console.log('[CalleeNotification] ⏰ Time expired - auto-declining');
           clearInterval(interval);
-          onDecline(invite.inviteId);
+          onDeclineRef.current(inviteIdRef.current); // Use refs - no dependencies needed
           return 0;
         }
         return next;
@@ -83,10 +86,10 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
     }, 1000);
 
     return () => {
-      isMounted = false;
+      console.log('[CalleeNotification] 🛑 Timer stopped (unmounted)');
       clearInterval(interval);
     };
-  }, [invite.inviteId, onDecline]);
+  }, []); // EMPTY - Runs ONCE and ONLY ONCE on mount
 
   // Focus trap - focus first button on mount
   useEffect(() => {
