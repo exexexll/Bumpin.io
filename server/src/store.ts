@@ -1149,8 +1149,9 @@ class DataStore {
   }
 
   // Validate and use an invite code
-  useInviteCode(code: string, userId: string, userName: string): { success: boolean; error?: string } {
-    const inviteCode = this.inviteCodes.get(code);
+  async useInviteCode(code: string, userId: string, userName: string): Promise<{ success: boolean; error?: string }> {
+    // CRITICAL FIX: Use getInviteCode which checks both memory AND database
+    const inviteCode = await this.getInviteCode(code);
     
     if (!inviteCode) {
       return { success: false, error: 'Invalid invite code' };

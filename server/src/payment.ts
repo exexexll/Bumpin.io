@@ -268,7 +268,7 @@ router.post('/apply-code', requireAuth, async (req: any, res) => {
   }
 
   // Use the code
-  const result = store.useInviteCode(inviteCode, req.userId, user.name);
+  const result = await store.useInviteCode(inviteCode, req.userId, user.name);
   
   if (!result.success) {
     return res.status(403).json({ error: result.error });

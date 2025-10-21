@@ -50,7 +50,7 @@ export function createAuthRoutes(
     }
 
     // Use the code (this checks validity, uses remaining, etc.)
-    const result = store.useInviteCode(sanitizedCode, userId, name.trim());
+    const result = await store.useInviteCode(sanitizedCode, userId, name.trim());
     
     if (!result.success) {
       console.warn(`[Auth] Invalid invite code used: ${sanitizedCode} - ${result.error}`);
