@@ -16,6 +16,36 @@ function PaywallPageContent() {
   const [inviteCode, setInviteCode] = useState('');
   const [validating, setValidating] = useState(false);
   const [attemptsRemaining, setAttemptsRemaining] = useState(5);
+  const [paymentComplete, setPaymentComplete] = useState(false);
+
+  // Prevent back button during payment (un-bypassable)
+  useEffect(() => {
+    if (paymentComplete) return; // Allow leaving after payment
+    
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      const message = 'Payment required to continue. Are you sure you want to leave?';
+      e.returnValue = message;
+      return message;
+    };
+    
+    // Prevent back button
+    const handlePopState = () => {
+      window.history.pushState(null, '', window.location.href);
+      alert('Please complete payment or scan a QR code to continue.');
+    };
+    
+    // Add initial history entry
+    window.history.pushState(null, '', window.location.href);
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [paymentComplete]);
 
   // Check if already paid - redirect verified users to main
   useEffect(() => {
@@ -35,6 +65,7 @@ function PaywallPageContent() {
         if (data.paidStatus === 'paid' || data.paidStatus === 'qr_verified' || data.paidStatus === 'qr_grace_period') {
           // Already paid/verified/grace period - redirect to main immediately
           console.log('[Paywall] User already verified - redirecting to main');
+          setPaymentComplete(true); // Mark complete to allow navigation
           router.replace('/main'); // Use replace to prevent back button issues
         } else {
           // Check if we were just redirected here to prevent loop

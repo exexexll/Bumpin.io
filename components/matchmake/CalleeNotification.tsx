@@ -61,36 +61,22 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
     };
   }, []);
 
-  // Countdown for decision timer
+  // Simple countdown timer - decrements every second
   useEffect(() => {
-    console.log('[CalleeNotification] Starting 20-second decision timer');
-    
-    timerRef.current = setInterval(() => {
+    const interval = setInterval(() => {
       setTimeLeft(prev => {
-        const newTime = prev - 1;
-        console.log('[CalleeNotification] Timer countdown:', newTime, 'seconds left');
-        
-        if (newTime <= 0) {
-          console.log('[CalleeNotification] Timer expired - auto-declining');
+        if (prev <= 1) {
+          // Time's up - auto decline
+          clearInterval(interval);
           onDecline(invite.inviteId);
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-          }
           return 0;
         }
-        return newTime;
+        return prev - 1;
       });
     }, 1000);
 
-    return () => {
-      if (timerRef.current) {
-        console.log('[CalleeNotification] Cleaning up timer');
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, []); // EMPTY DEPS - Only run once on mount, never recreate
+    return () => clearInterval(interval);
+  }, [invite.inviteId, onDecline]);
   
   // REMOVED: call:wait-extended listener (feature removed - auto-cancel instead)
 
