@@ -251,11 +251,10 @@ function OnboardingPageContent() {
       );
       setSessionToken(response.sessionToken);
       setUserId(response.userId);
-      saveSession({
-        sessionToken: response.sessionToken,
-        userId: response.userId,
-        accountType: response.accountType,
-      });
+      
+      // DON'T save session to localStorage yet - only in memory
+      // Will save after payment/verification complete
+      console.log('[Onboarding] Session created (not cached - awaiting payment/verification)');
       
       // If was referred, set target user for introduction screen later
       if (response.wasReferred) {
@@ -275,8 +274,18 @@ function OnboardingPageContent() {
         return;
       }
       
-      // User is verified (invite code or will pay later) - proceed to profile
-      console.log('[Onboarding] User verified or has code - proceeding to profile setup');
+      // User is verified via QR code - save session now
+      if (response.paidStatus === 'qr_verified' || response.paidStatus === 'qr_grace_period') {
+        console.log('[Onboarding] User verified via QR - caching session');
+        saveSession({
+          sessionToken: response.sessionToken,
+          userId: response.userId,
+          accountType: response.accountType,
+        });
+      }
+      
+      // Proceed to profile setup
+      console.log('[Onboarding] Proceeding to profile setup');
       setStep('selfie');
     } catch (err: any) {
       // Check if error is USC email requirement
@@ -536,9 +545,16 @@ function OnboardingPageContent() {
    * Step 4: Skip permanent account step - go to main
    */
   const handleSkip = () => {
-    // SIMPLIFIED: All users (referral or normal) go to main
-    // Referral data is tracked in backend, will show "Introduced by X" badge in matchmaking
-    console.log('[Onboarding] Skipping permanent account - going to main');
+    // Save session to localStorage now (profile is complete)
+    if (sessionToken && userId) {
+      console.log('[Onboarding] Saving session - profile complete');
+      saveSession({
+        sessionToken,
+        userId,
+        accountType: 'guest',
+      });
+    }
+    
     setOnboardingComplete(true); // Mark complete to allow navigation
     router.push('/main');
   };
@@ -580,6 +596,15 @@ function OnboardingPageContent() {
 
     try {
       await linkAccount(sessionToken, email, password);
+      
+      // Save session to localStorage (account is now permanent)
+      console.log('[Onboarding] Saving permanent account session');
+      saveSession({
+        sessionToken,
+        userId,
+        accountType: 'permanent',
+      });
+      
       setOnboardingComplete(true); // Mark complete to allow navigation
       router.push('/main');
     } catch (err: any) {
