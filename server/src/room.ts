@@ -178,6 +178,15 @@ router.get('/queue', requireAuth, requirePayment, requireEventAccess, async (req
       
       const withLocation = filteredUsers.filter(u => u.hasLocation).length;
       console.log(`[Queue API] 📍 Sorted by distance: ${withLocation} users with location`);
+      
+      // Debug: Log distance for each user
+      filteredUsers.forEach(u => {
+        if (u.distance !== null && u.distance !== undefined) {
+          const feet = u.distance * 3.28084;
+          const display = feet < 5280 ? `${Math.round(feet)} ft` : `${(feet/5280).toFixed(1)} mi`;
+          console.log(`[Queue API] 📍 ${u.name}: ${display} away (${u.distance}m)`);
+        }
+      });
     }
   } catch (error) {
     console.error('[Queue API] Location sorting failed (non-critical):', error);
