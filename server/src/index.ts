@@ -369,7 +369,7 @@ setInterval(async () => {
         if (row.selfie_url && row.selfie_url.includes('cloudinary')) {
           const deleted = await deleteFromCloudinary(row.selfie_url);
           if (deleted) {
-            await store.updateUser(userId, { selfieUrl: null });
+            await store.updateUser(userId, { selfieUrl: undefined });
             console.log(`[Cleanup] ✅ Deleted unpaid user selfie: ${userId.substring(0, 8)}`);
           }
         }
@@ -377,7 +377,7 @@ setInterval(async () => {
         if (row.video_url && row.video_url.includes('cloudinary')) {
           const deleted = await deleteFromCloudinary(row.video_url);
           if (deleted) {
-            await store.updateUser(userId, { videoUrl: null });
+            await store.updateUser(userId, { videoUrl: undefined });
             console.log(`[Cleanup] ✅ Deleted unpaid user video: ${userId.substring(0, 8)}`);
           }
         }
