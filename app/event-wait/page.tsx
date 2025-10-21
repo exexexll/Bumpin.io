@@ -71,8 +71,19 @@ export default function EventWaitPage() {
       const [settingsData, statusData, rsvpData, attendanceData] = await Promise.all([
         getEventSettings(),
         getEventStatus(session.sessionToken),
-        getUserRSVP(session.sessionToken, today),
-        getEventAttendance(today),
+        getUserRSVP(session.sessionToken, today).catch(err => {
+          // If rate limited on RSVP read, return empty (non-critical)
+          if (err.message?.includes('429') || err.message?.includes('Too many')) {
+            console.warn('[EventWait] RSVP read rate limited - using defaults');
+            return { hasRSVP: false, rsvp: null };
+          }
+          throw err;
+        }),
+        getEventAttendance(today).catch(err => {
+          // Attendance graph is non-critical, don't fail page load
+          console.warn('[EventWait] Failed to load attendance:', err.message);
+          return { attendance: {} };
+        }),
       ]);
 
       setSettings(settingsData);
@@ -93,8 +104,10 @@ export default function EventWaitPage() {
         router.push('/main');
         return;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('[EventWait] Failed to load data:', error);
+      // Don't show error to user for non-critical failures
+      // Page will still render with defaults
     } finally {
       setLoading(false);
     }
@@ -157,12 +170,20 @@ export default function EventWaitPage() {
       await submitEventRSVP(session.sessionToken, selectedTime, today);
       setHasRSVP(true);
       
-      // Reload attendance data
-      const attendanceData = await getEventAttendance(today);
+      // Reload attendance data (non-critical)
+      const attendanceData = await getEventAttendance(today).catch(() => ({ attendance: {} }));
       setAttendance(attendanceData.attendance || {});
-    } catch (error) {
+    } catch (error: any) {
       console.error('[EventWait] Failed to submit RSVP:', error);
-      alert('Failed to save your time preference. Please try again.');
+      
+      // Better error message based on error type
+      if (error.message?.includes('429') || error.message?.includes('Too many')) {
+        alert('Please wait a minute before updating your time preference again.');
+      } else if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        alert('Session expired. Please refresh the page and try again.');
+      } else {
+        alert('Failed to save your time preference. Please try again in a moment.');
+      }
     } finally {
       setSubmitting(false);
     }
