@@ -66,32 +66,21 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
     };
   }, []);
 
-  // Countdown timer - NO DEPENDENCIES, only runs ONCE
+  // Countdown timer - starts on mount, never restarts
   useEffect(() => {
-    const effectRunId = Math.random().toString(36).substring(7);
-    console.log(`[CalleeNotification] 🔵 Timer effect MOUNTING (ID: ${effectRunId})`);
-    console.log('[CalleeNotification] Starting 20-second countdown');
-    
-    const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        const next = prev - 1;
-        console.log(`[CalleeNotification] ⏱️ Tick: ${next}s (effect ID: ${effectRunId})`);
-        
-        if (next <= 0) {
-          console.log('[CalleeNotification] ⏰ Time expired - declining');
-          clearInterval(interval);
-          onDeclineRef.current(inviteIdRef.current);
-          return 0;
-        }
-        return next;
-      });
+    const timer = setInterval(() => {
+      setTimeLeft(t => t > 0 ? t - 1 : 0);
     }, 1000);
-
-    return () => {
-      console.log(`[CalleeNotification] 🔴 Timer effect UNMOUNTING (ID: ${effectRunId})`);
-      clearInterval(interval);
-    };
-  }, []); // ABSOLUTELY NO DEPENDENCIES
+    
+    return () => clearInterval(timer);
+  }, []);
+  
+  // Watch for timer hitting 0 - then decline
+  useEffect(() => {
+    if (timeLeft === 0) {
+      onDecline(invite.inviteId);
+    }
+  }, [timeLeft, invite.inviteId, onDecline]);
 
   // Focus trap - focus first button on mount
   useEffect(() => {
