@@ -93,8 +93,9 @@ export function createAuthRoutes(
       isActive: true,
     };
     
-    store.createInviteCode(newInviteCode);
-    console.log(`[Auth] Generated 4-use invite code for new user ${name}: ${newUserInviteCode}`);
+    // NOTE: Don't create code yet - wait until user is in PostgreSQL
+    // We'll create it AFTER createUser() below
+    console.log(`[Auth] Will generate 4-use invite code for new user ${name}: ${newUserInviteCode}`);
   }
 
   // Check if referral code is valid (matchmaker system)
@@ -148,6 +149,24 @@ export function createAuthRoutes(
 
   await store.createUser(user);
   await store.createSession(session);
+  
+  // NOW create invite code after user is in PostgreSQL (prevents foreign key error)
+  if (codeVerified && newUserInviteCode) {
+    const newInviteCode: import('./types').InviteCode = {
+      code: newUserInviteCode,
+      createdBy: userId,
+      createdByName: name.trim(),
+      createdAt: Date.now(),
+      type: 'user',
+      maxUses: 4,
+      usesRemaining: 4,
+      usedBy: [],
+      isActive: true,
+    };
+    
+    await store.createInviteCode(newInviteCode);
+    console.log(`[Auth] ✅ Generated 4-use invite code for new user ${name}: ${newUserInviteCode}`);
+  }
   
   // Track IP for this user
   store.addUserIp(userId, ip);
