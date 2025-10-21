@@ -777,7 +777,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         // User tabbed out or minimized - leave queue to prevent ghost users
         console.log('[Matchmake] 👻 User tabbed out, leaving queue to prevent ghost users...');
         
-        if (socketRef.current) {
+        if (socketRef.current && socketRef.current.connected) {
           socketRef.current.emit('queue:leave');
           socketRef.current.emit('presence:leave');
           console.log('[Matchmake] ✅ Left queue and presence (tab hidden)');
@@ -787,16 +787,22 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         console.log('[Matchmake] 👋 User tabbed back in, rejoining queue...');
         
         if (socketRef.current) {
-          socketRef.current.emit('presence:join');
-          socketRef.current.emit('queue:join');
-          
-          // Reload queue to get fresh users
-          console.log('[Matchmake] 🔄 Reloading queue after tab return...');
-          setTimeout(() => {
-            loadInitialQueue();
-          }, 500); // Small delay to ensure server state is updated
-          
-          console.log('[Matchmake] ✅ Rejoined queue and presence (tab visible)');
+          // Wait for socket to be connected before emitting
+          if (socketRef.current.connected) {
+            socketRef.current.emit('presence:join');
+            socketRef.current.emit('queue:join');
+            
+            // Reload queue to get fresh users
+            console.log('[Matchmake] 🔄 Reloading queue after tab return...');
+            setTimeout(() => {
+              loadInitialQueue();
+            }, 500); // Small delay to ensure server state is updated
+            
+            console.log('[Matchmake] ✅ Rejoined queue and presence (tab visible)');
+          } else {
+            console.log('[Matchmake] Socket not connected yet, waiting...');
+            // Will rejoin automatically via auth:success listener
+          }
         }
       }
     };

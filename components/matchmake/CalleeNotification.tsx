@@ -63,48 +63,36 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
 
   // Countdown for decision timer
   useEffect(() => {
+    console.log('[CalleeNotification] Starting 20-second decision timer');
+    
     timerRef.current = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 1) {
-          // Auto-decline on timeout
+        const newTime = prev - 1;
+        console.log('[CalleeNotification] Timer countdown:', newTime, 'seconds left');
+        
+        if (newTime <= 0) {
+          console.log('[CalleeNotification] Timer expired - auto-declining');
           onDecline(invite.inviteId);
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
           return 0;
         }
-        return prev - 1;
+        return newTime;
       });
     }, 1000);
 
     return () => {
       if (timerRef.current) {
+        console.log('[CalleeNotification] Cleaning up timer');
         clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     };
-  }, [invite.inviteId, onDecline]);
+  }, []); // EMPTY DEPS - Only run once on mount, never recreate
   
-  // Listen for caller extending wait time
-  useEffect(() => {
-    const { connectSocket } = require('@/lib/socket');
-    const { getSession } = require('@/lib/session');
-    
-    const session = getSession();
-    if (!session) return;
-    
-    const socket = connectSocket(session.sessionToken);
-    
-    const handleWaitExtended = ({ extraSeconds }: { extraSeconds: number }) => {
-      console.log('[CalleeNotification] Caller extended wait by', extraSeconds, 'seconds');
-      setTimeLeft(prev => prev + extraSeconds);
-      
-      // Show brief message
-      console.log('[CalleeNotification] ✅ Timer extended! Now have', timeLeft + extraSeconds, 'seconds');
-    };
-    
-    socket.on('call:wait-extended', handleWaitExtended);
-    
-    return () => {
-      socket.off('call:wait-extended', handleWaitExtended);
-    };
-  }, [timeLeft]);
+  // REMOVED: call:wait-extended listener (feature removed - auto-cancel instead)
 
   // Focus trap - focus first button on mount
   useEffect(() => {
