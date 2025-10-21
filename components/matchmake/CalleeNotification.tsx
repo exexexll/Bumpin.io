@@ -29,6 +29,12 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
   const videoRef = useRef<HTMLVideoElement>(null);
   const firstFocusRef = useRef<HTMLButtonElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const onDeclineRef = useRef(onDecline);
+  
+  // Keep onDecline ref updated without triggering effects
+  useEffect(() => {
+    onDeclineRef.current = onDecline;
+  }, [onDecline]);
 
   // Detect video orientation
   useEffect(() => {
@@ -61,22 +67,32 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
     };
   }, []);
 
-  // Simple countdown timer - decrements every second
+  // Simple countdown timer - ONLY runs once on mount (NEVER restarts)
   useEffect(() => {
+    console.log('[CalleeNotification] Starting 20s countdown (will NOT restart)');
+    
     const interval = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 1) {
-          // Time's up - auto decline
+        const newTime = prev - 1;
+        if (newTime % 5 === 0 || newTime <= 3) {
+          console.log('[CalleeNotification] Countdown:', newTime, 's');
+        }
+        
+        if (newTime <= 0) {
+          console.log('[CalleeNotification] Time expired - declining');
           clearInterval(interval);
-          onDecline(invite.inviteId);
+          onDeclineRef.current(invite.inviteId); // Use ref to avoid dependency
           return 0;
         }
-        return prev - 1;
+        return newTime;
       });
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, [invite.inviteId, onDecline]);
+    return () => {
+      console.log('[CalleeNotification] Cleanup timer');
+      clearInterval(interval);
+    };
+  }, []); // EMPTY - Only runs ONCE on mount, changing duration input will NOT restart timer
   
   // REMOVED: call:wait-extended listener (feature removed - auto-cancel instead)
 
