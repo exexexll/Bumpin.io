@@ -215,13 +215,11 @@ app.use('/turn', turnLimiter, turnRoutes);
 app.use('/admin', authLimiter, adminAuthRoutes);
 app.use('/verification', apiLimiter, verificationRoutes);
 app.use('/location', apiLimiter, locationRoutes);
-// EVENT MODE: RSVP endpoint with strict rate limiting (SECURITY: prevent spam)
-app.use('/event/rsvp', rsvpLimiter);
 // EVENT MODE: Public event endpoints with rate limiting (SECURITY: prevent scraping)
 app.use('/event/attendance', eventPublicLimiter);
 app.use('/event/settings', eventPublicLimiter);
 app.use('/event/status', eventPublicLimiter);
-// EVENT MODE: Event routes for users
+// EVENT MODE: Event routes for users (includes RSVP with proper rate limiting)
 app.use('/event', apiLimiter, eventRoutes);
 // EVENT MODE: Admin event routes (integrated with admin auth)
 app.use('/admin', authLimiter, createEventAdminRoutes(io));

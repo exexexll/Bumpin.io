@@ -1,12 +1,24 @@
 import express from 'express';
 import { store } from './store';
 import { getEventStatus } from './event-guard';
+import rateLimit from 'express-rate-limit';
 
 /**
  * User Event Routes
  * For users to check event status, submit RSVPs, view attendance
  */
 const router = express.Router();
+
+// Reasonable rate limit for RSVP submissions (not reads)
+const rsvpSubmitLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10, // 10 submissions per 5 minutes (allows updates/corrections)
+  message: {
+    error: 'Too many RSVP submissions',
+    message: 'Please wait a few minutes before updating your RSVP again',
+  },
+  standardHeaders: true,
+});
 
 /**
  * GET /event/status
@@ -26,8 +38,9 @@ router.get('/status', async (req, res) => {
  * POST /event/rsvp
  * Submit or update user's RSVP for an event date
  * Body: { preferredTime: '15:00:00', eventDate: '2025-10-20' }
+ * Rate limited: 10 per 5 minutes (allows updates while preventing spam)
  */
-router.post('/rsvp', async (req: any, res) => {
+router.post('/rsvp', rsvpSubmitLimiter, async (req: any, res) => {
   try {
     const { preferredTime, eventDate } = req.body;
     
