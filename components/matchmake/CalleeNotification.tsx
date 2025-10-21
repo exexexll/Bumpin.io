@@ -68,17 +68,19 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
 
   // Countdown timer - NO DEPENDENCIES, only runs ONCE
   useEffect(() => {
-    console.log('[CalleeNotification] Timer starting - 20 seconds');
+    const effectRunId = Math.random().toString(36).substring(7);
+    console.log(`[CalleeNotification] 🔵 Timer effect MOUNTING (ID: ${effectRunId})`);
+    console.log('[CalleeNotification] Starting 20-second countdown');
     
     const interval = setInterval(() => {
       setTimeLeft(prev => {
         const next = prev - 1;
-        console.log('[CalleeNotification] ⏱️', next, 's remaining');
+        console.log(`[CalleeNotification] ⏱️ Tick: ${next}s (effect ID: ${effectRunId})`);
         
         if (next <= 0) {
-          console.log('[CalleeNotification] ⏰ Time expired - auto-declining');
+          console.log('[CalleeNotification] ⏰ Time expired - declining');
           clearInterval(interval);
-          onDeclineRef.current(inviteIdRef.current); // Use refs - no dependencies needed
+          onDeclineRef.current(inviteIdRef.current);
           return 0;
         }
         return next;
@@ -86,10 +88,10 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
     }, 1000);
 
     return () => {
-      console.log('[CalleeNotification] 🛑 Timer stopped (unmounted)');
+      console.log(`[CalleeNotification] 🔴 Timer effect UNMOUNTING (ID: ${effectRunId})`);
       clearInterval(interval);
     };
-  }, []); // EMPTY - Runs ONCE and ONLY ONCE on mount
+  }, []); // ABSOLUTELY NO DEPENDENCIES
 
   // Focus trap - focus first button on mount
   useEffect(() => {
