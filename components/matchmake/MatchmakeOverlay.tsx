@@ -1277,10 +1277,10 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
             >
               <div className="text-6xl mb-4">⏸️</div>
               <h3 className="font-playfair text-2xl font-bold text-[#eaeaf0] mb-3">
-                You're Hidden from Others
+                You&apos;re Hidden from Others
               </h3>
               <p className="text-[#eaeaf0]/80 mb-6">
-                You've been inactive for 45 seconds. Other users can't see you in matchmaking right now.
+                You&apos;ve been inactive for 45 seconds. Other users can&apos;t see you in matchmaking right now.
               </p>
               <div className="rounded-xl bg-orange-500/10 border border-orange-500/30 p-4 mb-6">
                 <p className="text-sm text-orange-200">
