@@ -29,11 +29,9 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
   const videoRef = useRef<HTMLVideoElement>(null);
   const firstFocusRef = useRef<HTMLButtonElement>(null);
   const onDeclineRef = useRef(onDecline);
-  const inviteIdRef = useRef(invite.inviteId);
   
-  // Keep refs updated
+  // Keep ref updated silently (no re-render)
   onDeclineRef.current = onDecline;
-  inviteIdRef.current = invite.inviteId;
 
   // Detect video orientation
   useEffect(() => {
@@ -78,9 +76,9 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
   // Watch for timer hitting 0 - then decline
   useEffect(() => {
     if (timeLeft === 0) {
-      onDecline(invite.inviteId);
+      onDeclineRef.current(invite.inviteId);
     }
-  }, [timeLeft, invite.inviteId, onDecline]);
+  }, [timeLeft, invite.inviteId]); // USE REF, not onDecline prop
 
   // Focus trap - focus first button on mount
   useEffect(() => {
