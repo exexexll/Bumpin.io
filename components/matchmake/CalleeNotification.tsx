@@ -24,17 +24,10 @@ interface CalleeNotificationProps {
 export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotificationProps) {
   const [seconds, setSeconds] = useState(invite.requestedSeconds);
   const [inputValue, setInputValue] = useState(invite.requestedSeconds.toString());
-  const [timeLeft, setTimeLeft] = useState(20); // Changed to 20s to respond
+  const [timeLeft, setTimeLeft] = useState(20);
   const [videoOrientation, setVideoOrientation] = useState<'portrait' | 'landscape' | 'unknown'>('unknown');
   const videoRef = useRef<HTMLVideoElement>(null);
   const firstFocusRef = useRef<HTMLButtonElement>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const onDeclineRef = useRef(onDecline);
-  
-  // Keep onDecline ref updated without triggering effects
-  useEffect(() => {
-    onDeclineRef.current = onDecline;
-  }, [onDecline]);
 
   // Detect video orientation
   useEffect(() => {
@@ -67,34 +60,33 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
     };
   }, []);
 
-  // Simple countdown timer - ONLY runs once on mount (NEVER restarts)
+  // Countdown timer - runs once, stops on unmount (accept/decline)
   useEffect(() => {
-    console.log('[CalleeNotification] Starting 20s countdown (will NOT restart)');
+    let isMounted = true;
     
     const interval = setInterval(() => {
+      if (!isMounted) {
+        clearInterval(interval);
+        return;
+      }
+      
       setTimeLeft(prev => {
-        const newTime = prev - 1;
-        if (newTime % 5 === 0 || newTime <= 3) {
-          console.log('[CalleeNotification] Countdown:', newTime, 's');
-        }
+        const next = prev - 1;
         
-        if (newTime <= 0) {
-          console.log('[CalleeNotification] Time expired - declining');
+        if (next <= 0) {
           clearInterval(interval);
-          onDeclineRef.current(invite.inviteId); // Use ref to avoid dependency
+          onDecline(invite.inviteId);
           return 0;
         }
-        return newTime;
+        return next;
       });
     }, 1000);
 
     return () => {
-      console.log('[CalleeNotification] Cleanup timer');
+      isMounted = false;
       clearInterval(interval);
     };
-  }, []); // EMPTY - Only runs ONCE on mount, changing duration input will NOT restart timer
-  
-  // REMOVED: call:wait-extended listener (feature removed - auto-cancel instead)
+  }, [invite.inviteId, onDecline]);
 
   // Focus trap - focus first button on mount
   useEffect(() => {
