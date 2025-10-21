@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Container } from '@/components/Container';
 import { getSession, clearSession } from '@/lib/session';
 import { API_BASE } from '@/lib/config';
+import { clearLocation, checkLocationStatus } from '@/lib/locationAPI';
 import Link from 'next/link';
 
 export default function SettingsPage() {
@@ -21,6 +22,8 @@ export default function SettingsPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [makingPermanent, setMakingPermanent] = useState(false);
+  const [locationEnabled, setLocationEnabled] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   useEffect(() => {
     const sessionData = getSession();
@@ -45,6 +48,12 @@ export default function SettingsPage() {
       })
       .catch(err => console.error('Failed to fetch payment status:', err))
       .finally(() => setLoadingPayment(false));
+
+    // Check location status
+    checkLocationStatus(sessionData.sessionToken).then(status => {
+      setLocationEnabled(status.active);
+      console.log('[Settings] Location active:', status.active);
+    });
   }, [router]);
 
   const handleLogout = () => {
@@ -304,6 +313,52 @@ export default function SettingsPage() {
               </button>
             </div>
           )}
+
+          {/* Location Sharing Toggle */}
+          <div className="rounded-2xl bg-white/5 p-6 shadow-inner border border-white/10">
+            <h2 className="font-playfair text-2xl font-bold text-[#eaeaf0] mb-4">
+              Location Sharing
+            </h2>
+            <p className="text-sm text-[#eaeaf0]/70 mb-4">
+              Show people nearby in matchmaking. Your exact location is never shared—only approximate distance.
+            </p>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-[#eaeaf0]">
+                  {locationEnabled ? 'Location Enabled' : 'Location Disabled'}
+                </p>
+                <p className="text-xs text-[#eaeaf0]/50">
+                  {locationEnabled ? 'Auto-deletes after 24 hours' : 'Grant permission in matchmaking to enable'}
+                </p>
+              </div>
+              
+              {locationEnabled && (
+                <button
+                  onClick={async () => {
+                    setLocationLoading(true);
+                    const success = await clearLocation(session.sessionToken);
+                    if (success) {
+                      setLocationEnabled(false);
+                      localStorage.setItem('napalmsky_location_consent', 'false');
+                      alert('Location sharing disabled');
+                    }
+                    setLocationLoading(false);
+                  }}
+                  disabled={locationLoading}
+                  className="rounded-xl bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/30 disabled:opacity-50"
+                >
+                  {locationLoading ? 'Clearing...' : 'Disable'}
+                </button>
+              )}
+            </div>
+            
+            {!locationEnabled && (
+              <p className="mt-3 text-xs text-[#eaeaf0]/40">
+                To enable: Open matchmaking and grant location permission when prompted
+              </p>
+            )}
+          </div>
 
           {/* Actions */}
           <div className="space-y-4">
