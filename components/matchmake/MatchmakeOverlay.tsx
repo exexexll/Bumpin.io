@@ -1304,7 +1304,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={recordActivity}
-            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm cursor-pointer"
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 backdrop-blur-md cursor-pointer"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
