@@ -667,13 +667,21 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     });
 
     // Listen for call start (matched!)
-    socket.on('call:start', ({ roomId, agreedSeconds, isInitiator, peerUser }: any) => {
-      console.log('[Matchmake] Call starting:', { roomId, agreedSeconds, isInitiator, peerUser });
+    socket.on('call:start', ({ roomId, agreedSeconds, isInitiator, chatMode, peerUser }: any) => {
+      console.log('[Matchmake] Call starting:', { roomId, agreedSeconds, isInitiator, chatMode, peerUser });
       
-      // Navigate to room
-      router.push(
-        `/room/${roomId}?duration=${agreedSeconds}&peerId=${peerUser.userId}&peerName=${encodeURIComponent(peerUser.name)}&initiator=${isInitiator}`
-      );
+      const mode = chatMode || 'video'; // Default to video
+      
+      // Route to appropriate room based on mode
+      if (mode === 'text') {
+        router.push(
+          `/text-room/${roomId}?duration=${agreedSeconds}&peerId=${peerUser.userId}&peerName=${encodeURIComponent(peerUser.name)}&peerSelfie=${encodeURIComponent(peerUser.selfieUrl || '')}`
+        );
+      } else {
+        router.push(
+          `/room/${roomId}?duration=${agreedSeconds}&peerId=${peerUser.userId}&peerName=${encodeURIComponent(peerUser.name)}&initiator=${isInitiator}`
+        );
+      }
     });
 
     // Cleanup

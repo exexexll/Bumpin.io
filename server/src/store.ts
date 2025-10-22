@@ -40,6 +40,7 @@ interface ActiveInvite {
   toUserId: string;
   createdAt: number;
   callerSeconds: number;
+  chatMode?: 'video' | 'text'; // Optional: Default to video for backwards compatibility
 }
 
 interface ReferralMapping {

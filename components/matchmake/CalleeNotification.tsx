@@ -15,6 +15,7 @@ interface CalleeNotificationProps {
       videoUrl?: string;
     };
     requestedSeconds: number;
+    chatMode?: 'video' | 'text';
     ttlMs: number;
   };
   onAccept: (inviteId: string, requestedSeconds: number) => void;
@@ -144,10 +145,10 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
         {/* Title */}
         <div className="text-center">
           <h2 id="callee-title" className="font-playfair text-3xl font-bold text-[#eaeaf0]">
-            Incoming Call
+            Incoming {invite.chatMode === 'text' ? 'Text Chat' : 'Video Call'}
           </h2>
           <p id="callee-description" className="mt-2 text-[#eaeaf0]/70">
-            {invite.fromUser.name} wants to connect
+            {invite.fromUser.name} wants to {invite.chatMode === 'text' ? 'text chat' : 'video call'}
           </p>
         </div>
 

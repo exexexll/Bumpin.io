@@ -612,14 +612,15 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Call: invite
-  socket.on('call:invite', async ({ toUserId, requestedSeconds }: { toUserId: string; requestedSeconds: number }) => {
+  // Call: invite  
+  socket.on('call:invite', async ({ toUserId, requestedSeconds, chatMode }: { toUserId: string; requestedSeconds: number; chatMode?: 'video' | 'text' }) => {
     if (!currentUserId) {
       console.error('[Invite] ❌ call:invite received but currentUserId is null - user not authenticated yet');
       return socket.emit('error', { message: 'Please wait for authentication to complete' });
     }
 
-    console.log(`[Invite] 📞 Received invite request from ${currentUserId.substring(0, 8)} to ${toUserId.substring(0, 8)} for ${requestedSeconds}s`);
+    const mode = chatMode || 'video'; // Default to video if not specified
+    console.log(`[Invite] 📞 Received ${mode} invite request from ${currentUserId.substring(0, 8)} to ${toUserId.substring(0, 8)} for ${requestedSeconds}s`);
 
     // Validate toUserId
     if (!toUserId || typeof toUserId !== 'string') {
@@ -678,13 +679,14 @@ io.on('connection', (socket) => {
       });
     }
 
-    // Create invite
+    // Create invite with chat mode
     store.createInvite({
       inviteId,
       fromUserId: currentUserId,
       toUserId,
       createdAt: Date.now(),
       callerSeconds: requestedSeconds,
+      chatMode: mode,
     });
 
     const fromUser = await store.getUser(currentUserId);
@@ -701,7 +703,8 @@ io.on('connection', (socket) => {
           videoUrl: fromUser?.videoUrl,
         },
         requestedSeconds,
-        ttlMs: 20000, // Changed to 20 seconds
+        chatMode: mode, // Include mode in notification
+        ttlMs: 20000,
       };
       
       io.to(targetSocket).emit('call:notify', notificationPayload);
@@ -772,16 +775,20 @@ io.on('connection', (socket) => {
 
     const callerSocket = activeSockets.get(invite.fromUserId);
     const calleeSocket = activeSockets.get(invite.toUserId);
+    
+    const chatMode = invite.chatMode || 'video'; // Default to video
 
-    // Notify both users
+    // Notify both users with chatMode
     if (callerSocket) {
       io.to(callerSocket).emit('call:start', {
         roomId,
         agreedSeconds,
         isInitiator: true, // Caller creates offer
+        chatMode, // Include chat mode
         peerUser: {
           userId: user2?.userId,
           name: user2?.name,
+          selfieUrl: user2?.selfieUrl, // For text chat UI
         },
       });
     }
@@ -791,15 +798,17 @@ io.on('connection', (socket) => {
         roomId,
         agreedSeconds,
         isInitiator: false, // Callee waits for offer
+        chatMode, // Include chat mode
         peerUser: {
           userId: user1?.userId,
           name: user1?.name,
+          selfieUrl: user1?.selfieUrl, // For text chat UI
         },
       });
     }
 
     store.deleteInvite(inviteId);
-    console.log(`[Call] Started room ${roomId} with ${agreedSeconds}s`);
+    console.log(`[Call] Started ${chatMode} room ${roomId} with ${agreedSeconds}s`);
   });
 
   // Call: decline
