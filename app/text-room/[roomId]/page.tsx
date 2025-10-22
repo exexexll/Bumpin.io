@@ -45,7 +45,6 @@ export default function TextChatRoom() {
   const [showVideoRequest, setShowVideoRequest] = useState(false);
   const [videoRequested, setVideoRequested] = useState(false);
   const [incomingVideoRequest, setIncomingVideoRequest] = useState(false);
-  const [sessionId, setSessionId] = useState('');
   const [currentUserId, setCurrentUserId] = useState('');
 
   const socketRef = useRef<any>(null);
@@ -151,9 +150,8 @@ export default function TextChatRoom() {
     });
 
     // Listen for session end
-    socket.on('session:finalized', ({ sessionId: sid }: any) => {
-      console.log('[TextChat] Session ended:', sid);
-      setSessionId(sid);
+    socket.on('session:finalized', () => {
+      console.log('[TextChat] Session ended');
       router.push('/history');
     });
 

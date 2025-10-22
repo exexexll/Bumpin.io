@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { Container } from '@/components/Container';
 import { createGuestAccount, uploadSelfie, uploadVideo, linkAccount, getReferralInfo } from '@/lib/api';
 import { saveSession, getSession } from '@/lib/session';
-import IntroductionComplete from '@/components/IntroductionComplete';
 import { PasswordInput } from '@/components/PasswordInput';
 import { compressImage } from '@/lib/imageCompression';
 
