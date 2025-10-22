@@ -564,13 +564,49 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
                 objectPosition: 'center'
               }}
             />
-            {/* Pause indicator */}
+            
+            {/* Video progress bar - bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 group cursor-pointer" onClick={(e) => {
+              e.stopPropagation();
+              if (!videoRef.current) return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const percent = x / rect.width;
+              videoRef.current.currentTime = videoRef.current.duration * percent;
+            }}>
+              <div 
+                className="h-full bg-[#ff9b6b] transition-all"
+                style={{ 
+                  width: videoRef.current ? `${(videoRef.current.currentTime / videoRef.current.duration) * 100}%` : '0%' 
+                }}
+              />
+              {/* Hover indicator */}
+              <div className="absolute -top-1 left-0 w-full h-3 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/20" />
+            </div>
+            {/* Pause indicator with desktop click zones guide */}
             {isVideoPaused && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-                <svg className="h-16 w-16 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg className="h-20 w-20 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
                 </svg>
+              </div>
+            )}
+            
+            {/* Desktop: Click zone hints (fade in on hover, hidden on mobile) */}
+            {!isMobile && (
+              <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+                {/* Left zone hint */}
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
+                  <p className="text-xs text-white/80">Double-tap: ⏪ -10s</p>
+                </div>
+                {/* Center hint */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
+                  <p className="text-xs text-white/80">Double-tap: ⏸/▶</p>
+                </div>
+                {/* Right zone hint */}
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
+                  <p className="text-xs text-white/80">Double-tap: +10s ⏩</p>
+                </div>
               </div>
             )}
           </div>

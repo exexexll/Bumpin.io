@@ -1013,15 +1013,23 @@ export default function RoomPage() {
             </svg>
           </button>
 
-          {/* Chat */}
+          {/* Chat with notification badge */}
           <button
             onClick={() => setChatOpen(!chatOpen)}
             aria-label="Toggle chat"
-            className="focus-ring rounded-xl bg-white/10 p-4 transition-all hover:bg-white/20 active:scale-95"
+            className="focus-ring relative rounded-xl bg-white/10 p-4 transition-all hover:bg-white/20 active:scale-95"
           >
             <svg className="h-6 w-6 text-[#eaeaf0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
+            {/* Notification badge - show if has unread messages and chat closed */}
+            {!chatOpen && messages.some(m => m.from !== getSession()?.userId) && (
+              <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#ff9b6b] border-2 border-black flex items-center justify-center">
+                <span className="text-xs font-bold text-[#0a0a0c]">
+                  {messages.filter(m => m.from !== getSession()?.userId).length}
+                </span>
+              </div>
+            )}
           </button>
 
           {/* Give Social */}
@@ -1048,7 +1056,7 @@ export default function RoomPage() {
         </div>
       </div>
 
-      {/* Chat Drawer */}
+      {/* Chat Drawer - Fixed Position */}
       <AnimatePresence>
         {chatOpen && (
           <motion.div
@@ -1056,7 +1064,7 @@ export default function RoomPage() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25 }}
-            className="absolute right-0 top-0 z-30 flex h-full w-full flex-col bg-black/90 backdrop-blur-md sm:w-96"
+            className="fixed right-0 top-0 bottom-0 z-40 flex w-full flex-col bg-black/95 backdrop-blur-md sm:w-96 border-l border-white/10"
           >
             <div className="flex items-center justify-between border-b border-white/10 p-4">
               <h3 className="font-playfair text-xl font-bold text-[#eaeaf0]">Chat</h3>
