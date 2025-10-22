@@ -243,8 +243,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     const deltaY = touchStartY.current - touchEndY;
     const deltaX = Math.abs(touchStartX.current - touchEndX);
     
-    // Ultra-sensitive swipe for mobile (30px like TikTok)
-    if (deltaX < 50 && Math.abs(deltaY) > 30) {
+    // Super sensitive swipe (20px - easier than TikTok)
+    if (deltaX < 60 && Math.abs(deltaY) > 20) {
       // Check if waiting
       const currentUserId = users[currentIndex]?.userId;
       const isWaiting = currentUserId && inviteStatuses[currentUserId] === 'waiting';

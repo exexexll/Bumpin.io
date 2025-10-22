@@ -565,23 +565,32 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
               }}
             />
             
-            {/* Video progress bar - bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 group cursor-pointer" onClick={(e) => {
-              e.stopPropagation();
-              if (!videoRef.current) return;
-              const rect = e.currentTarget.getBoundingClientRect();
-              const x = e.clientX - rect.left;
-              const percent = x / rect.width;
-              videoRef.current.currentTime = videoRef.current.duration * percent;
-            }}>
+            {/* Video progress bar - ABOVE bottom UI, thin, always visible */}
+            <div 
+              className="absolute bottom-32 left-0 right-0 h-0.5 sm:h-1 bg-white/20 z-50 cursor-pointer" 
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation();
+                if (!videoRef.current) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const percent = x / rect.width;
+                videoRef.current.currentTime = videoRef.current.duration * percent;
+              }}
+              onTouchEnd={(e: React.TouchEvent) => {
+                e.stopPropagation();
+                if (!videoRef.current || !e.changedTouches[0]) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.changedTouches[0].clientX - rect.left;
+                const percent = x / rect.width;
+                videoRef.current.currentTime = videoRef.current.duration * percent;
+              }}
+            >
               <div 
-                className="h-full bg-[#ff9b6b] transition-all"
+                className="h-full bg-[#ff9b6b]"
                 style={{ 
                   width: videoRef.current ? `${(videoRef.current.currentTime / videoRef.current.duration) * 100}%` : '0%' 
                 }}
               />
-              {/* Hover indicator */}
-              <div className="absolute -top-1 left-0 w-full h-3 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/20" />
             </div>
             {/* Pause indicator with desktop click zones guide */}
             {isVideoPaused && (
