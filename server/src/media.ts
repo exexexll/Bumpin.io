@@ -296,5 +296,88 @@ async function processVideoInBackground(
   }
 }
 
+/**
+ * POST /media/upload-recording
+ * Upload chat recording (for reports)
+ * SECURITY: Only works if linked to valid report
+ */
+router.post('/upload-recording', requireAuth, (req: any, res) => {
+  upload.single('recording')(req, res, async (err) => {
+    if (err) {
+      console.error('[Recording] Upload error:', err);
+      return res.status(500).json({ error: 'Upload failed: ' + err.message });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No recording file uploaded' });
+    }
+
+    const { roomId, reportId } = req.body;
+    
+    if (!roomId || !reportId) {
+      // Clean up uploaded file
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'roomId and reportId required' });
+    }
+
+    try {
+      let recordingUrl: string;
+      let recordingPublicId: string = '';
+
+      if (useCloudinary) {
+        console.log('[Recording] Uploading to Cloudinary...');
+        
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'napalmsky/recordings',
+          resource_type: 'video',
+          format: 'webm',
+        });
+        
+        recordingUrl = result.secure_url;
+        recordingPublicId = result.public_id;
+        
+        // Delete local file
+        fs.unlinkSync(req.file.path);
+        console.log('[Recording] ✅ Uploaded to Cloudinary');
+      } else {
+        const apiBase = process.env.API_BASE || `${req.protocol}://${req.get('host')}`;
+        recordingUrl = `${apiBase}/uploads/${req.file.filename}`;
+        recordingPublicId = req.file.filename;
+        console.log('[Recording] ⚠️ Using local storage (Cloudinary not configured)');
+      }
+
+      // Save recording metadata to database (linked to report)
+      const { saveChatRecording } = require('./text-chat');
+      
+      const recordingId = await saveChatRecording({
+        sessionId: roomId,
+        roomId,
+        recordingUrl,
+        recordingPublicId,
+        fileSizeBytes: req.file.size,
+        durationSeconds: parseInt(req.body.durationSeconds) || 0,
+        chatMode: req.body.chatMode || 'video',
+        startedAt: new Date(req.body.startedAt || Date.now()),
+        endedAt: new Date(),
+        reportId,
+      });
+
+      res.json({ 
+        recordingUrl, 
+        recordingPublicId,
+        recordingId,
+      });
+      
+      console.log(`[Recording] ✅ Recording saved for report ${reportId}`);
+    } catch (error: any) {
+      console.error('[Recording] Failed:', error);
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      res.status(500).json({ error: 'Failed to save recording' });
+    }
+  });
+});
+
 export default router;
 
