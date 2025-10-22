@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { store } from './store';
 import { createAuthRoutes } from './auth';
 import mediaRoutes, { deleteFromCloudinary } from './media';
+import chatFileUploadRoutes from './chat-file-upload';
 import roomRoutes from './room';
 import userRoutes from './user';
 import referralRoutes from './referral';
@@ -217,6 +218,7 @@ const activeRooms = new Map<string, {
 // Routes with rate limiting and dependency injection
 app.use('/auth', authLimiter, createAuthRoutes(io, activeSockets));
 app.use('/media', apiLimiter, mediaRoutes);
+app.use('/chat', apiLimiter, chatFileUploadRoutes);
 // IMPORTANT: Do NOT apply event guard to /room routes
 // Video chat rooms must always work (only block queue/matchmaking)
 // Event guard is selectively applied in room.ts to specific routes

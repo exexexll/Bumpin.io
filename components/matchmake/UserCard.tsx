@@ -565,33 +565,6 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
               }}
             />
             
-            {/* Video progress bar - ABOVE bottom UI, thin, always visible */}
-            <div 
-              className="absolute bottom-32 left-0 right-0 h-0.5 sm:h-1 bg-white/20 z-50 cursor-pointer" 
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation();
-                if (!videoRef.current) return;
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const percent = x / rect.width;
-                videoRef.current.currentTime = videoRef.current.duration * percent;
-              }}
-              onTouchEnd={(e: React.TouchEvent) => {
-                e.stopPropagation();
-                if (!videoRef.current || !e.changedTouches[0]) return;
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.changedTouches[0].clientX - rect.left;
-                const percent = x / rect.width;
-                videoRef.current.currentTime = videoRef.current.duration * percent;
-              }}
-            >
-              <div 
-                className="h-full bg-[#ff9b6b]"
-                style={{ 
-                  width: videoRef.current ? `${(videoRef.current.currentTime / videoRef.current.duration) * 100}%` : '0%' 
-                }}
-              />
-            </div>
             {/* Pause indicator with desktop click zones guide */}
             {isVideoPaused && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
@@ -625,6 +598,36 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
           </div>
         )}
       </div>
+
+      {/* Video Progress Bar - Bottom Edge of Screen */}
+      {user.videoUrl && videoRef.current && (
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-50 cursor-pointer"
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation();
+            if (!videoRef.current) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percent = x / rect.width;
+            videoRef.current.currentTime = videoRef.current.duration * percent;
+          }}
+          onTouchEnd={(e: React.TouchEvent) => {
+            e.stopPropagation();
+            if (!videoRef.current || !e.changedTouches[0]) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.changedTouches[0].clientX - rect.left;
+            const percent = x / rect.width;
+            videoRef.current.currentTime = videoRef.current.duration * percent;
+          }}
+        >
+          <div 
+            className="h-full bg-[#ff9b6b]"
+            style={{ 
+              width: `${(videoRef.current.currentTime / videoRef.current.duration) * 100 || 0}%`
+            }}
+          />
+        </div>
+      )}
 
       {/* Status Banner - Removed for minimal UI */}
 

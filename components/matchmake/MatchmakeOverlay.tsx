@@ -1601,6 +1601,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         )}
       </AnimatePresence>
 
+
       {/* Toast Notifications */}
       <AnimatePresence>
         {toast && (

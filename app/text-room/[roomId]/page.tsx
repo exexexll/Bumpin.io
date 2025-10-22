@@ -325,9 +325,42 @@ export default function TextChatRoom() {
       <div className="border-t border-white/10 p-4 bg-black/40">
         <ChatInput
           onSendMessage={handleSendMessage}
-          onSendFile={() => {
-            // TODO: Implement file upload
-            alert('File upload coming soon!');
+          onSendFile={async () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*,.pdf,.doc,.docx,.txt';
+            input.onchange = async (e: any) => {
+              const file = e.target?.files?.[0];
+              if (!file) return;
+              
+              // Check size (5MB)
+              if (file.size > 5 * 1024 * 1024) {
+                alert('File too large (max 5MB)');
+                return;
+              }
+              
+              try {
+                const session = getSession();
+                if (!session) return;
+                
+                const { uploadChatFile } = await import('@/lib/chatFileUpload');
+                const result = await uploadChatFile(file, session.sessionToken);
+                
+                // Send as message
+                if (socketRef.current) {
+                  socketRef.current.emit('textchat:send', {
+                    roomId,
+                    messageType: file.type.startsWith('image/') ? 'image' : 'file',
+                    fileUrl: result.fileUrl,
+                    fileName: result.fileName,
+                    fileSizeBytes: result.fileSizeBytes,
+                  });
+                }
+              } catch (error: any) {
+                alert(error.message || 'Upload failed');
+              }
+            };
+            input.click();
           }}
           onSendGIF={() => setShowGIFPicker(true)}
           rateLimited={rateLimited}
