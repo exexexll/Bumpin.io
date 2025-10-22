@@ -41,6 +41,14 @@ import {
 } from './advanced-optimizer';
 import { userCache, sessionCache } from './lru-cache';
 import { queryCache } from './query-cache';
+import { 
+  checkMessageRateLimit, 
+  sanitizeMessageContent, 
+  validateMessage, 
+  saveChatMessage,
+  getRoomMessages,
+  markMessageRead 
+} from './text-chat';
 
 const app = express();
 const server = http.createServer(app);
@@ -934,6 +942,133 @@ io.on('connection', (socket) => {
 
     // Broadcast to room
     io.to(roomId).emit('room:socialShared', message);
+  });
+
+  // TEXT CHAT: Send message (text/image/file/GIF)
+  socket.on('textchat:send', async ({ roomId, messageType, content, fileUrl, fileName, fileSizeBytes, gifUrl, gifId }) => {
+    if (!currentUserId) return;
+    
+    // Rate limit check (1.5s between messages)
+    const rateCheck = checkMessageRateLimit(currentUserId);
+    if (!rateCheck.allowed) {
+      socket.emit('textchat:rate-limited', { retryAfter: rateCheck.retryAfter });
+      console.log(`[TextChat] Rate limited: ${currentUserId.substring(0, 8)} - wait ${rateCheck.retryAfter}s`);
+      return;
+    }
+    
+    // Sanitize content if text message
+    let sanitizedContent = content;
+    if (messageType === 'text' && content) {
+      sanitizedContent = sanitizeMessageContent(content);
+    }
+    
+    // Validate message
+    const validation = validateMessage(messageType, sanitizedContent, fileUrl, gifUrl);
+    if (!validation.valid) {
+      socket.emit('textchat:error', { error: validation.error });
+      console.warn(`[TextChat] Invalid message: ${validation.error}`);
+      return;
+    }
+    
+    // Get room to find receiver
+    const room = activeRooms.get(roomId);
+    if (!room) {
+      socket.emit('textchat:error', { error: 'Room not found' });
+      return;
+    }
+    
+    const receiverId = room.user1 === currentUserId ? room.user2 : room.user1;
+    
+    // Save to database
+    try {
+      const saved = await saveChatMessage({
+        sessionId: `session-${Date.now()}`,
+        roomId,
+        senderUserId: currentUserId,
+        receiverUserId: receiverId,
+        messageType,
+        content: sanitizedContent,
+        fileUrl,
+        fileName,
+        fileSizeBytes,
+        gifUrl,
+        gifId,
+      });
+      
+      // Broadcast to room
+      const messagePayload = {
+        messageId: saved.messageId,
+        from: currentUserId,
+        messageType,
+        content: sanitizedContent,
+        fileUrl,
+        fileName,
+        gifUrl,
+        timestamp: saved.sentAt,
+      };
+      
+      io.to(roomId).emit('textchat:message', messagePayload);
+      console.log(`[TextChat] Message sent: ${messageType} in room ${roomId.substring(0, 8)}`);
+      
+    } catch (error) {
+      socket.emit('textchat:error', { error: 'Failed to send message' });
+      console.error('[TextChat] Failed to save message:', error);
+    }
+  });
+  
+  // TEXT CHAT: Mark message as read
+  socket.on('textchat:mark-read', async ({ messageId }) => {
+    if (!currentUserId) return;
+    await markMessageRead(messageId);
+  });
+  
+  // TEXT CHAT: Get message history for room
+  socket.on('textchat:get-history', async ({ roomId }, callback) => {
+    if (!currentUserId) return;
+    
+    try {
+      const messages = await getRoomMessages(roomId, 100);
+      callback({ success: true, messages });
+    } catch (error) {
+      callback({ success: false, error: 'Failed to load messages' });
+    }
+  });
+  
+  // TEXT CHAT: Request video upgrade
+  socket.on('textchat:request-video', async ({ roomId }) => {
+    if (!currentUserId) return;
+    
+    console.log(`[TextChat] ${currentUserId.substring(0, 8)} requesting video upgrade in ${roomId.substring(0, 8)}`);
+    
+    // Notify other user
+    socket.to(roomId).emit('textchat:video-requested', {
+      fromUserId: currentUserId,
+    });
+  });
+  
+  // TEXT CHAT: Accept video upgrade
+  socket.on('textchat:accept-video', async ({ roomId }) => {
+    if (!currentUserId) return;
+    
+    console.log(`[TextChat] ${currentUserId.substring(0, 8)} accepted video upgrade in ${roomId.substring(0, 8)}`);
+    
+    // Notify both users to switch to video mode
+    io.to(roomId).emit('textchat:upgrade-to-video', {
+      roomId,
+      message: 'Switching to video mode...',
+    });
+  });
+  
+  // TEXT CHAT: Decline video upgrade
+  socket.on('textchat:decline-video', async ({ roomId }) => {
+    if (!currentUserId) return;
+    
+    console.log(`[TextChat] ${currentUserId.substring(0, 8)} declined video upgrade in ${roomId.substring(0, 8)}`);
+    
+    // Notify requester
+    socket.to(roomId).emit('textchat:video-declined', {
+      message: 'Video request declined',
+    });
   });
 
   // Connection failed - notify peer immediately
