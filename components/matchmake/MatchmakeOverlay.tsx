@@ -1098,28 +1098,29 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0a0a0c] p-4"
           >
-            <div className="max-w-2xl w-full text-center space-y-8">
+            <div className="max-w-2xl w-full text-center space-y-6 sm:space-y-8 px-4 sm:px-0">
               <motion.div
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.1 }}
+                className="pt-4 sm:pt-0"
               >
-                <h2 className="font-playfair text-4xl sm:text-5xl font-bold text-[#eaeaf0] mb-3">
+                <h2 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-bold text-[#eaeaf0] mb-2 sm:mb-3">
                   Choose Your Chat Mode
                 </h2>
-                <p className="text-[#eaeaf0]/70 text-lg">
+                <p className="text-[#eaeaf0]/70 text-base sm:text-lg px-4">
                   Select how you&apos;d like to connect with people
                 </p>
               </motion.div>
 
-              <div className="grid sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-xl sm:max-w-2xl mx-auto">
                 {/* Video Mode */}
                 <motion.button
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                   onClick={() => setChatMode('video')}
-                  className={`group relative rounded-2xl p-8 transition-all ${
+                  className={`group relative rounded-2xl p-6 sm:p-8 transition-all ${
                     chatMode === 'video'
                       ? 'bg-[#ff9b6b] shadow-2xl shadow-[#ff9b6b]/20'
                       : 'bg-white/5 hover:bg-white/10'
@@ -1154,7 +1155,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3 }}
                   onClick={() => setChatMode('text')}
-                  className={`group relative rounded-2xl p-8 transition-all ${
+                  className={`group relative rounded-2xl p-6 sm:p-8 transition-all ${
                     chatMode === 'text'
                       ? 'bg-[#ff9b6b] shadow-2xl shadow-[#ff9b6b]/20'
                       : 'bg-white/5 hover:bg-white/10'
@@ -1184,22 +1185,24 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                 </motion.button>
               </div>
 
-              <motion.button
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                onClick={handleStartBrowsing}
-                className="w-full sm:w-auto mx-auto rounded-xl bg-[#ff9b6b] px-12 py-4 text-lg font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity shadow-xl"
-              >
-                Continue with {chatMode === 'video' ? 'Video' : 'Text'} Mode
-              </motion.button>
-              
-              <button
-                onClick={handleClose}
-                className="text-sm text-[#eaeaf0]/50 hover:text-[#eaeaf0]/80 transition-colors"
-              >
-                Cancel
-              </button>
+              <div className="space-y-4 pt-2">
+                <motion.button
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  onClick={handleStartBrowsing}
+                  className="w-full sm:w-auto mx-auto block rounded-xl bg-[#ff9b6b] px-8 sm:px-12 py-3 sm:py-4 text-base sm:text-lg font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity shadow-xl"
+                >
+                  Continue with {chatMode === 'video' ? 'Video' : 'Text'} Mode
+                </motion.button>
+                
+                <button
+                  onClick={handleClose}
+                  className="w-full sm:w-auto block mx-auto text-sm text-[#eaeaf0]/50 hover:text-[#eaeaf0]/80 transition-colors py-2"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
