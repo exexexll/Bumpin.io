@@ -243,9 +243,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     const deltaY = touchStartY.current - touchEndY;
     const deltaX = Math.abs(touchStartX.current - touchEndX);
     
-    // IMPROVED: Require more significant swipe to prevent accidental navigation
-    // Vertical swipe must be > 100px and horizontal < 60px
-    if (deltaX < 60 && Math.abs(deltaY) > 100) {
+    // TikTok-style: Sensitive swipe (just 50px)
+    if (deltaX < 40 && Math.abs(deltaY) > 50) {
       // Check if waiting
       const currentUserId = users[currentIndex]?.userId;
       const isWaiting = currentUserId && inviteStatuses[currentUserId] === 'waiting';

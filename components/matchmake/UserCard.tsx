@@ -46,6 +46,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   const waitTimerRef = useRef<NodeJS.Timeout | null>(null);
   const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const autoMinimizeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTapTime = useRef<number>(0);
   
   // Detect mobile Safari for compact UI
   const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -191,18 +192,54 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     };
   }, [isActive, isVideoPaused, user.name]);
 
-  // TikTok-style: Simple tap anywhere to pause/play
+  // TikTok-style controls: Double-tap zones
   const handleVideoTap = (e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation(); // Don't trigger navigation
+    e.stopPropagation();
     
-    if (videoRef.current) {
-      if (videoRef.current.paused || isVideoPaused) {
-        videoRef.current.play();
-        setIsVideoPaused(false);
+    if (!videoRef.current) return;
+    
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTime.current;
+    const isDoubleTap = timeSinceLastTap < 300 && timeSinceLastTap > 0;
+    
+    // Get tap position
+    let x = 0;
+    const rect = e.currentTarget.getBoundingClientRect();
+    
+    if ('clientX' in e) {
+      x = e.clientX - rect.left;
+    } else if (e.changedTouches && e.changedTouches[0]) {
+      x = e.changedTouches[0].clientX - rect.left;
+    }
+    
+    const width = rect.width;
+    const leftThird = width / 3;
+    const rightThird = (width / 3) * 2;
+    
+    if (isDoubleTap) {
+      // Double-tap actions
+      if (x < leftThird) {
+        // Left side - rewind 10s
+        videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
+        console.log('[UserCard] ⏪ Rewind 10s');
+      } else if (x > rightThird) {
+        // Right side - forward 10s
+        videoRef.current.currentTime = Math.min(videoRef.current.duration, videoRef.current.currentTime + 10);
+        console.log('[UserCard] ⏩ Forward 10s');
       } else {
-        videoRef.current.pause();
-        setIsVideoPaused(true);
+        // Center - pause/play
+        if (videoRef.current.paused || isVideoPaused) {
+          videoRef.current.play();
+          setIsVideoPaused(false);
+        } else {
+          videoRef.current.pause();
+          setIsVideoPaused(true);
+        }
       }
+      lastTapTime.current = 0;
+    } else {
+      // Single tap - just record time for double-tap detection
+      lastTapTime.current = now;
     }
   };
 
