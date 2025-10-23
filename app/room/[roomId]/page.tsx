@@ -368,7 +368,24 @@ export default function RoomPage() {
         const socket = connectSocket(currentSession.sessionToken);
         socketRef.current = socket;
 
+        // Store roomId for reconnection
+        sessionStorage.setItem('current_room_id', roomId);
+        
         socket.emit('room:join', { roomId });
+        
+        // Handle socket reconnection (network switch, connection loss)
+        socket.on('connect', () => {
+          console.log('[Room] Socket reconnected - rejoining room');
+          const savedRoomId = sessionStorage.getItem('current_room_id');
+          if (savedRoomId === roomId) {
+            socket.emit('room:join', { roomId });
+          }
+        });
+        
+        socket.on('reconnect', () => {
+          console.log('[Room] Socket reconnected after failure - rejoining room');
+          socket.emit('room:join', { roomId });
+        });
         
         // Listen for room security events
         socket.on('room:invalid', () => {
@@ -1023,9 +1040,9 @@ export default function RoomPage() {
           </div>
         </div>
 
-        {/* Local Preview (bottom-right on desktop, bottom-left on mobile for thumb zone) */}
-        <div className="absolute bottom-8 left-8 z-10 sm:left-auto sm:right-8">
-          <div className="h-32 w-44 overflow-hidden rounded-2xl bg-black shadow-lg sm:h-40 sm:w-56">
+        {/* Local Preview (far left on mobile to avoid button overlap, bottom-right on desktop) */}
+        <div className="absolute bottom-24 left-2 z-10 sm:bottom-8 sm:left-auto sm:right-8">
+          <div className="h-28 w-36 overflow-hidden rounded-xl bg-black shadow-lg sm:h-40 sm:w-56 sm:rounded-2xl border border-white/10">
             <video
               ref={localVideoRef}
               autoPlay
@@ -1037,11 +1054,11 @@ export default function RoomPage() {
         </div>
       </div>
 
-      {/* Controls Footer - Buttons Only, No Background */}
-      <div className="absolute bottom-0 left-0 right-0 z-30" style={{
+      {/* Controls Footer - Centered, Not Blocking Cams */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-30" style={{
         paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
       }}>
-        <div className="mx-auto flex max-w-md items-center justify-center gap-2 sm:gap-3 px-4 pb-4">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 px-4 pb-4">
           {/* Mic Toggle */}
           <button
             onClick={toggleMute}

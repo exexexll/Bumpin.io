@@ -71,8 +71,25 @@ export default function TextChatRoom() {
     const socket = connectSocket(session.sessionToken);
     socketRef.current = socket;
 
+    // Store roomId for reconnection
+    sessionStorage.setItem('current_room_id', roomId);
+
     // Join room
     socket.emit('room:join', { roomId });
+    
+    // Handle socket reconnection (network switch, connection loss)
+    socket.on('connect', () => {
+      console.log('[TextRoom] Socket reconnected - rejoining room');
+      const savedRoomId = sessionStorage.getItem('current_room_id');
+      if (savedRoomId === roomId) {
+        socket.emit('room:join', { roomId });
+      }
+    });
+    
+    socket.on('reconnect', () => {
+      console.log('[TextRoom] Socket reconnected after failure - rejoining room');
+      socket.emit('room:join', { roomId });
+    });
     
     // Listen for room security events
     socket.on('room:invalid', () => {

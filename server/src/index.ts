@@ -1371,10 +1371,54 @@ io.on('connection', (socket) => {
 
   // Disconnect
   socket.on('disconnect', async (reason) => {
-    console.log(`Client disconnected: ${socket.id}, reason: ${reason}`);
+    console.log(`Client disconnected: ${socket.id}, reason: ${reason}, user: ${currentUserId?.substring(0, 8) || 'unknown'}`);
+    
+    // Check if user is in active room FIRST
+    let userRoom: any = null;
+    let roomId: string | null = null;
+    
+    for (const [rid, room] of activeRooms.entries()) {
+      if (room.user1 === currentUserId || room.user2 === currentUserId) {
+        userRoom = room;
+        roomId = rid;
+        break;
+      }
+    }
+    
+    if (userRoom && roomId) {
+      // User disconnected from active room - start 10s grace period
+      console.log(`[Room] User ${currentUserId?.substring(0, 8)} disconnected from room ${roomId.substring(0, 8)} - starting grace period`);
+      
+      // Mark user as disconnected
+      if (userRoom.user1 === currentUserId) userRoom.user1Connected = false;
+      if (userRoom.user2 === currentUserId) userRoom.user2Connected = false;
+      
+      // Start grace period
+      userRoom.status = 'grace_period';
+      userRoom.gracePeriodExpires = Date.now() + 10000; // 10 seconds
+      
+      // Notify partner
+      io.to(roomId).emit('room:partner-disconnected', {
+        gracePeriodSeconds: 10,
+        userId: currentUserId,
+      });
+      
+      // Schedule room end if no reconnection
+      setTimeout(() => {
+        const room = activeRooms.get(roomId!);
+        if (room && room.status === 'grace_period') {
+          console.log(`[Room] Grace period expired - ending room ${roomId!.substring(0, 8)}`);
+          room.status = 'ended';
+          io.to(roomId!).emit('room:ended-by-disconnect');
+          
+          // Clean up after notifying
+          setTimeout(() => activeRooms.delete(roomId!), 2000);
+        }
+      }, 10000);
+    }
     
     // Don't immediately mark offline for temporary disconnects
-    const temporaryReasons = ['transport close', 'ping timeout', 'transport error'];
+    const temporaryReasons = ['transport close', 'ping timeout', 'transport error', 'client namespace disconnect'];
     const isTemporary = temporaryReasons.includes(reason);
     
     if (isTemporary) {
