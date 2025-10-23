@@ -12,7 +12,8 @@ export function VideoProgressBar({ currentIndex, users }: VideoProgressBarProps)
   const animationFrameRef = useRef<number>();
   
   useEffect(() => {
-    // Find current video element
+    let lastTime = 0;
+    
     const updateProgress = () => {
       const videoElements = document.querySelectorAll('video');
       const currentVideo = Array.from(videoElements).find(v => 
@@ -20,8 +21,12 @@ export function VideoProgressBar({ currentIndex, users }: VideoProgressBarProps)
       );
       
       if (currentVideo && currentVideo.duration) {
-        const percent = (currentVideo.currentTime / currentVideo.duration) * 100;
-        setProgress(percent);
+        // Only update if time actually changed (reduce reflows)
+        if (Math.abs(currentVideo.currentTime - lastTime) > 0.1) {
+          const percent = (currentVideo.currentTime / currentVideo.duration) * 100;
+          setProgress(percent);
+          lastTime = currentVideo.currentTime;
+        }
       }
       
       animationFrameRef.current = requestAnimationFrame(updateProgress);

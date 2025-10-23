@@ -1208,10 +1208,12 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         )}
       </AnimatePresence>
     
-      {/* Mobile Mode Indicator - Top Edge (Always Visible on Mobile) */}
+      {/* Mobile Mode Indicator - Top with safe area */}
       {!showModeSelection && (
-        <div className="fixed top-0 left-0 right-0 z-[60] md:hidden">
-          <div className="bg-black/90 backdrop-blur-md px-4 py-2.5 border-b border-white/10">
+        <div className="fixed top-0 left-0 right-0 z-[60] md:hidden" style={{
+          paddingTop: 'env(safe-area-inset-top)',
+        }}>
+          <div className="bg-black/90 backdrop-blur-md px-4 py-3 border-b border-white/10">
             <div className="flex items-center justify-center gap-3">
               {chatMode === 'video' ? (
                 <>

@@ -1037,9 +1037,11 @@ export default function RoomPage() {
         </div>
       </div>
 
-      {/* Controls Footer - Always Visible, Floating Above Video */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/90 via-black/70 to-transparent backdrop-blur-sm p-4 sm:p-6 pt-8">
-        <div className="mx-auto flex max-w-md items-center justify-center gap-2 sm:gap-3">
+      {/* Controls Footer - Floating, Safe Area Aware */}
+      <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/95 via-black/80 to-transparent backdrop-blur-sm pt-8" style={{
+        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))', // iOS safe area
+      }}>
+        <div className="mx-auto flex max-w-md items-center justify-center gap-2 sm:gap-3 px-4 pb-4">
           {/* Mic Toggle */}
           <button
             onClick={toggleMute}
