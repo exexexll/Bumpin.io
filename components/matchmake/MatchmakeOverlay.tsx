@@ -1208,12 +1208,12 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         )}
       </AnimatePresence>
     
-      {/* Mobile Mode Indicator - Top with safe area */}
-      {!showModeSelection && (
-        <div className="fixed top-0 left-0 right-0 z-[60] md:hidden" style={{
+      {/* Mobile Mode Indicator - Positioned OUTSIDE matchmake overlay */}
+      {!showModeSelection && isOpen && (
+        <div className="fixed top-0 left-0 right-0 z-[100] md:hidden pointer-events-none" style={{
           paddingTop: 'env(safe-area-inset-top)',
         }}>
-          <div className="bg-black/90 backdrop-blur-md px-4 py-3 border-b border-white/10">
+          <div className="bg-black/95 backdrop-blur-md px-4 py-2 border-b border-white/20 shadow-lg pointer-events-auto">
             <div className="flex items-center justify-center gap-3">
               {chatMode === 'video' ? (
                 <>
@@ -1239,9 +1239,12 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         </div>
       )}
     
-      {/* Transparent Overlay - Only Card Visible */}
+      {/* Transparent Overlay - Padded top on mobile for status bar */}
       <div 
         className={`fixed inset-0 z-50 flex flex-col md:cursor-none ${showModeSelection ? 'hidden' : ''}`}
+        style={{
+          paddingTop: typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? '3.5rem' : '0',
+        }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onClick={handleCardClick}
