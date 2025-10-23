@@ -1387,7 +1387,7 @@ io.on('connection', (socket) => {
     
     if (userRoom && roomId) {
       // User disconnected from active room - start 10s grace period
-      console.log(`[Room] User ${currentUserId?.substring(0, 8)} disconnected from room ${roomId.substring(0, 8)} - starting grace period`);
+      console.log(`[Room] User ${currentUserId?.substring(0, 8)} disconnected from room ${roomId.substring(0, 8)} - GRACE PERIOD STARTING`);
       
       // Mark user as disconnected
       if (userRoom.user1 === currentUserId) userRoom.user1Connected = false;
@@ -1398,23 +1398,74 @@ io.on('connection', (socket) => {
       userRoom.gracePeriodExpires = Date.now() + 10000; // 10 seconds
       
       // Notify partner
-      io.to(roomId).emit('room:partner-disconnected', {
-        gracePeriodSeconds: 10,
-        userId: currentUserId,
-      });
+      const partnerSocketId = activeSockets.get(
+        userRoom.user1 === currentUserId ? userRoom.user2 : userRoom.user1
+      );
+      if (partnerSocketId) {
+        io.to(partnerSocketId).emit('room:partner-disconnected', {
+          gracePeriodSeconds: 10,
+          userId: currentUserId,
+        });
+        console.log(`[Room] Notified partner of disconnect`);
+      }
       
       // Schedule room end if no reconnection
-      setTimeout(() => {
+      setTimeout(async () => {
         const room = activeRooms.get(roomId!);
         if (room && room.status === 'grace_period') {
-          console.log(`[Room] Grace period expired - ending room ${roomId!.substring(0, 8)}`);
+          console.log(`[Room] ⏰ Grace period expired - ENDING room ${roomId!.substring(0, 8)}`);
           room.status = 'ended';
-          io.to(roomId!).emit('room:ended-by-disconnect');
           
-          // Clean up after notifying
-          setTimeout(() => activeRooms.delete(roomId!), 2000);
+          // End the session properly
+          const sessionId = `session-${Date.now()}`;
+          const user1 = await store.getUser(room.user1);
+          const user2 = await store.getUser(room.user2);
+          
+          if (user1 && user2) {
+            const actualDuration = Math.floor((Date.now() - room.startedAt) / 1000);
+            
+            // Save history
+            const history1 = {
+              sessionId,
+              roomId: roomId!,
+              partnerId: user2.userId,
+              partnerName: user2.name,
+              startedAt: room.startedAt,
+              duration: actualDuration,
+              messages: room.messages || [],
+              chatMode: room.chatMode || 'video',
+            };
+            
+            const history2 = {
+              sessionId,
+              roomId: roomId!,
+              partnerId: user1.userId,
+              partnerName: user1.name,
+              startedAt: room.startedAt,
+              duration: actualDuration,
+              messages: room.messages || [],
+              chatMode: room.chatMode || 'video',
+            };
+            
+            await store.addHistory(room.user1, history1);
+            await store.addHistory(room.user2, history2);
+          }
+          
+          // Emit to both users
+          io.to(roomId!).emit('session:finalized', { sessionId });
+          
+          // Mark both available again
+          store.updatePresence(room.user1, { available: true });
+          store.updatePresence(room.user2, { available: true });
+          
+          // Clean up
+          activeRooms.delete(roomId!);
+          console.log(`[Room] ✅ Room cleaned up after grace period`);
         }
       }, 10000);
+      
+      // DON'T continue with normal disconnect cleanup - room is in grace period
+      return;
     }
     
     // Don't immediately mark offline for temporary disconnects

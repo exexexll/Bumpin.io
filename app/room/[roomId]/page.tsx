@@ -1040,9 +1040,9 @@ export default function RoomPage() {
           </div>
         </div>
 
-        {/* Local Preview (far left on mobile to avoid button overlap, bottom-right on desktop) */}
-        <div className="absolute bottom-24 left-2 z-10 sm:bottom-8 sm:left-auto sm:right-8">
-          <div className="h-28 w-36 overflow-hidden rounded-xl bg-black shadow-lg sm:h-40 sm:w-56 sm:rounded-2xl border border-white/10">
+        {/* Local Preview - Top left on mobile (buttons at bottom), bottom-right on desktop */}
+        <div className="absolute top-20 left-2 z-10 sm:top-auto sm:bottom-8 sm:left-auto sm:right-8">
+          <div className="h-32 w-24 overflow-hidden rounded-lg bg-black shadow-xl sm:h-40 sm:w-56 sm:rounded-2xl border-2 border-white/20">
             <video
               ref={localVideoRef}
               autoPlay
