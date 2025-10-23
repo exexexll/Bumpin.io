@@ -1037,9 +1037,9 @@ export default function RoomPage() {
         </div>
       </div>
 
-      {/* Controls Footer - Floating, Safe Area Aware */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/95 via-black/80 to-transparent backdrop-blur-sm pt-8" style={{
-        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))', // iOS safe area
+      {/* Controls Footer - Buttons Only, No Background */}
+      <div className="absolute bottom-0 left-0 right-0 z-30" style={{
+        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
       }}>
         <div className="mx-auto flex max-w-md items-center justify-center gap-2 sm:gap-3 px-4 pb-4">
           {/* Mic Toggle */}
@@ -1047,7 +1047,7 @@ export default function RoomPage() {
             onClick={toggleMute}
             aria-pressed={isMuted}
             aria-label={isMuted ? 'Unmute' : 'Mute'}
-            className="focus-ring rounded-xl bg-white/10 p-4 transition-all hover:bg-white/20 active:scale-95"
+            className="focus-ring rounded-full bg-black/80 backdrop-blur-md p-4 transition-all hover:bg-black/90 active:scale-95 border border-white/20"
           >
             <svg className="h-6 w-6 text-[#eaeaf0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {isMuted ? (
@@ -1062,7 +1062,7 @@ export default function RoomPage() {
           <button
             onClick={() => setChatOpen(!chatOpen)}
             aria-label="Toggle chat"
-            className="focus-ring relative rounded-xl bg-white/10 p-4 transition-all hover:bg-white/20 active:scale-95"
+            className="focus-ring relative rounded-full bg-black/80 backdrop-blur-md p-4 transition-all hover:bg-black/90 active:scale-95 border border-white/20"
           >
             <svg className="h-6 w-6 text-[#eaeaf0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -1081,7 +1081,7 @@ export default function RoomPage() {
           <button
             onClick={handleGiveSocial}
             aria-label="Share socials"
-            className="focus-ring rounded-xl bg-[#ff9b6b]/20 p-4 transition-all hover:bg-[#ff9b6b]/30 active:scale-95"
+            className="focus-ring rounded-full bg-black/80 backdrop-blur-md p-4 transition-all hover:bg-black/90 active:scale-95 border border-[#ff9b6b]/40"
           >
             <svg className="h-6 w-6 text-[#ff9b6b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -1092,7 +1092,7 @@ export default function RoomPage() {
           <button
             onClick={() => setShowLeaveConfirm(true)}
             aria-label="End call"
-            className="focus-ring rounded-xl bg-red-500/20 p-4 transition-all hover:bg-red-500/30 active:scale-95"
+            className="focus-ring rounded-full bg-black/80 backdrop-blur-md p-4 transition-all hover:bg-black/90 active:scale-95 border border-red-500/40"
           >
             <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
