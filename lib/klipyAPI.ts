@@ -9,7 +9,9 @@
  */
 
 const KLIPY_API_KEY = process.env.NEXT_PUBLIC_KLIPY_API_KEY || '6vXxnAAWsFE2MkGlOlVVozkhPI8BAEKubYjLBAqGSAWIDF6MKGMCP1QbjYTxnYUc';
-const KLIPY_BASE_URL = 'https://api.klipy.com/v1'; // Base URL for Klipy API
+// Use RapidAPI endpoint (more reliable than direct API)
+const KLIPY_BASE_URL = 'https://klipy-gif-api.p.rapidapi.com';
+const RAPID_API_HOST = 'klipy-gif-api.p.rapidapi.com';
 
 export interface KlipyGIF {
   id: string;
@@ -33,7 +35,13 @@ export async function searchGIFs(query: string, limit: number = 20): Promise<Kli
 
   try {
     const response = await fetch(
-      `${KLIPY_BASE_URL}/gifs/search?q=${encodeURIComponent(query)}&key=${KLIPY_API_KEY}&limit=${limit}`
+      `${KLIPY_BASE_URL}/gifs/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+      {
+        headers: {
+          'X-RapidAPI-Key': KLIPY_API_KEY,
+          'X-RapidAPI-Host': RAPID_API_HOST,
+        }
+      }
     );
     
     if (!response.ok) {
@@ -72,7 +80,13 @@ export async function getTrendingGIFs(limit: number = 20): Promise<KlipyGIF[]> {
 
   try {
     const response = await fetch(
-      `${KLIPY_BASE_URL}/gifs/trending?key=${KLIPY_API_KEY}&limit=${limit}`
+      `${KLIPY_BASE_URL}/gifs/trending?limit=${limit}`,
+      {
+        headers: {
+          'X-RapidAPI-Key': KLIPY_API_KEY,
+          'X-RapidAPI-Host': RAPID_API_HOST,
+        }
+      }
     );
     
     if (!response.ok) {
