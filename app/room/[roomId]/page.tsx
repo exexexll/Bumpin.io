@@ -478,11 +478,7 @@ export default function RoomPage() {
           sessionStorage.removeItem('current_room_id');
         }
         
-        // Store current room info for future reconnection detection
-        sessionStorage.setItem('current_room_id', roomId);
-        sessionStorage.setItem('room_join_time', Date.now().toString());
-        sessionStorage.setItem('room_connection_active', 'true');
-        
+        // Join room FIRST, then store info only if successful
         socket.emit('room:join', { roomId });
         
         // Socket reconnection handler (for ephemeral disconnects)
@@ -494,8 +490,19 @@ export default function RoomPage() {
         
         // Listen for room security events
         socket.on('room:invalid', () => {
+          // Clear any stored room data since this room is invalid
+          sessionStorage.removeItem('room_connection_active');
+          sessionStorage.removeItem('room_join_time');
+          sessionStorage.removeItem('current_room_id');
           alert('This room does not exist');
           router.push('/main');
+        });
+        
+        // Store room info ONLY after successful join
+        socket.once('room:joined', () => {
+          sessionStorage.setItem('current_room_id', roomId);
+          sessionStorage.setItem('room_join_time', Date.now().toString());
+          sessionStorage.setItem('room_connection_active', 'true');
         });
         
         socket.on('room:unauthorized', () => {
