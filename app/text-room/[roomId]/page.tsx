@@ -416,24 +416,6 @@ export default function TextChatRoom() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* End Call Button */}
-          <button
-            onClick={() => {
-              if (confirm('End this chat?')) {
-                if (socketRef.current) {
-                  socketRef.current.emit('call:end', { roomId });
-                }
-                router.push('/history');
-              }
-            }}
-            className="rounded-full bg-red-500/20 p-2 hover:bg-red-500/30 transition-all"
-            aria-label="End chat"
-          >
-            <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          
           {/* TORCH RULE: Activity indicator instead of timer */}
           <div className="flex items-center gap-2">
             {inactivityWarning ? (
@@ -451,7 +433,7 @@ export default function TextChatRoom() {
             )}
           </div>
 
-          {/* Video Request Button (appears after 60s) - More visible */}
+          {/* Video Upgrade Button - Hidden on mobile (shown at bottom), visible on desktop */}
           <AnimatePresence>
             {showVideoRequest && !videoRequested && (
               <motion.button
@@ -459,7 +441,7 @@ export default function TextChatRoom() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0, opacity: 0 }}
                 onClick={handleRequestVideo}
-                className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#ff9b6b] to-[#ff7a3d] px-5 py-2.5 text-sm font-bold text-[#0a0a0c] hover:shadow-lg hover:shadow-[#ff9b6b]/50 transition-all shadow-md animate-pulse"
+                className="hidden sm:flex items-center gap-2 rounded-full bg-gradient-to-r from-[#ff9b6b] to-[#ff7a3d] px-5 py-2.5 text-sm font-bold text-[#0a0a0c] hover:shadow-lg hover:shadow-[#ff9b6b]/50 transition-all shadow-md animate-pulse"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -472,7 +454,7 @@ export default function TextChatRoom() {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="rounded-full bg-yellow-500/20 px-4 py-2 border border-yellow-500/30"
+                className="hidden sm:block rounded-full bg-yellow-500/20 px-4 py-2 border border-yellow-500/30"
               >
                 <p className="text-xs font-medium text-yellow-300">Waiting for {peerName}...</p>
               </motion.div>
@@ -489,52 +471,117 @@ export default function TextChatRoom() {
           partnerName={peerName}
           onMessageRead={handleMessageRead}
         />
+        
+        {/* Typing Indicator - In message area where text will appear */}
+        <AnimatePresence>
+          {partnerTyping && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="px-4 py-2"
+            >
+              <div className="flex items-start gap-2">
+                {/* Partner's profile pic (small) */}
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/10 overflow-hidden">
+                  {peerSelfie && (
+                    <Image src={peerSelfie} alt={peerName} width={32} height={32} className="object-cover" />
+                  )}
+                </div>
+                {/* Typing bubble */}
+                <div className="rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+                  <div className="flex gap-1">
+                    <motion.div
+                      className="w-2 h-2 rounded-full bg-[#eaeaf0]/60"
+                      animate={{ scale: [1, 1.3, 1] }}
+                      transition={{ repeat: Infinity, duration: 1, delay: 0 }}
+                    />
+                    <motion.div
+                      className="w-2 h-2 rounded-full bg-[#eaeaf0]/60"
+                      animate={{ scale: [1, 1.3, 1] }}
+                      transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
+                    />
+                    <motion.div
+                      className="w-2 h-2 rounded-full bg-[#eaeaf0]/60"
+                      animate={{ scale: [1, 1.3, 1] }}
+                      transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Typing Indicator - Instagram style */}
-      {partnerTyping && (
-        <div className="fixed bottom-20 left-4 z-30">
+      {/* Mobile-only Video Upgrade Button - Above input */}
+      <AnimatePresence>
+        {showVideoRequest && !videoRequested && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-4 py-2 border border-white/20"
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="sm:hidden fixed bottom-20 left-0 right-0 px-4 z-30"
           >
-            <div className="flex gap-1">
-              <motion.div
-                className="w-2 h-2 rounded-full bg-[#ff9b6b]"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1, delay: 0 }}
-              />
-              <motion.div
-                className="w-2 h-2 rounded-full bg-[#ff9b6b]"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
-              />
-              <motion.div
-                className="w-2 h-2 rounded-full bg-[#ff9b6b]"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
-              />
-            </div>
-            <span className="text-xs text-[#eaeaf0]/70">{peerName} is typing...</span>
+            <button
+              onClick={handleRequestVideo}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff9b6b] to-[#ff7a3d] px-5 py-3 text-sm font-bold text-[#0a0a0c] shadow-lg shadow-[#ff9b6b]/30"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Upgrade to Video
+            </button>
           </motion.div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Input Area - Fixed at bottom, keyboard-aware */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-white/10 p-4 bg-black/95 backdrop-blur-md z-30" style={{
+      <div className="fixed bottom-0 left-0 right-0 border-t border-white/10 bg-black/95 backdrop-blur-md z-30" style={{
         paddingBottom: 'max(1rem, env(safe-area-inset-bottom))', // iOS safe area
       }}>
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          onTyping={() => {
-            // Emit typing event (throttled by ChatInput component)
-            if (socketRef.current) {
-              socketRef.current.emit('textchat:typing', { roomId, userId: currentUserId });
-            }
-          }}
-          onSendFile={async () => {
+        {/* Action Buttons Row - Social, File, GIF */}
+        <div className="flex items-center gap-2 px-4 pt-2 pb-1 border-b border-white/5">
+          {/* Share Social Button */}
+          <button
+            onClick={() => {
+              const session = getSession();
+              if (!session || !socketRef.current) return;
+              
+              // Get user's socials
+              import('@/lib/api').then(async ({ getMyProfile }) => {
+                const profile = await getMyProfile(session.sessionToken);
+                if (profile?.socials) {
+                  socketRef.current.emit('room:giveSocial', {
+                    roomId,
+                    socials: profile.socials,
+                  });
+                } else {
+                  alert('No socials set. Add them in Settings first.');
+                }
+              });
+            }}
+            className="flex-shrink-0 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-all"
+            aria-label="Share socials"
+          >
+            <svg className="w-5 h-5 text-[#ff9b6b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </button>
+          <span className="text-xs text-[#eaeaf0]/40">Share socials</span>
+        </div>
+
+        {/* Message Input */}
+        <div className="px-4 py-2">
+          <ChatInput
+            onSendMessage={handleSendMessage}
+            onTyping={() => {
+              // Emit typing event (throttled by ChatInput component)
+              if (socketRef.current) {
+                socketRef.current.emit('textchat:typing', { roomId, userId: currentUserId });
+              }
+            }}
+            onSendFile={async () => {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*,.pdf,.doc,.docx,.txt';
@@ -571,10 +618,11 @@ export default function TextChatRoom() {
             };
             input.click();
           }}
-          onSendGIF={() => setShowGIFPicker(true)}
-          rateLimited={rateLimited}
-          cooldownRemaining={cooldownRemaining}
-        />
+            onSendGIF={() => setShowGIFPicker(true)}
+            rateLimited={rateLimited}
+            cooldownRemaining={cooldownRemaining}
+          />
+        </div>
       </div>
 
       {/* GIF Picker Modal */}
