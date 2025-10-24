@@ -103,15 +103,17 @@ export default function TextChatRoom() {
       sessionStorage.removeItem('current_text_room_id');
     }
     
-    // Store current room info for future reconnection detection
-    sessionStorage.setItem('current_text_room_id', roomId);
-    sessionStorage.setItem('text_room_join_time', Date.now().toString());
-    sessionStorage.setItem('text_room_active', 'true');
-
-    // Join room
+    // Join room FIRST
     socket.emit('room:join', { roomId });
     
-    // Handle socket reconnection (network switch, connection loss)
+    // Store room info after successful join
+    socket.on('room:joined', () => {
+      sessionStorage.setItem('current_text_room_id', roomId);
+      sessionStorage.setItem('text_room_join_time', Date.now().toString());
+      sessionStorage.setItem('text_room_active', 'true');
+    });
+    
+    // Handle socket reconnection
     socket.on('connect', () => {
       setShowReconnecting(false);
       socket.emit('room:join', { roomId });
@@ -122,8 +124,10 @@ export default function TextChatRoom() {
       socket.emit('room:join', { roomId });
     });
     
-    // Listen for room security events
     socket.on('room:invalid', () => {
+      sessionStorage.removeItem('text_room_active');
+      sessionStorage.removeItem('text_room_join_time');
+      sessionStorage.removeItem('current_text_room_id');
       alert('This room does not exist');
       router.push('/main');
     });

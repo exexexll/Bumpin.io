@@ -498,8 +498,8 @@ export default function RoomPage() {
           router.push('/main');
         });
         
-        // Store room info ONLY after successful join
-        socket.once('room:joined', () => {
+        // Store room info after successful join (use 'on' not 'once' for reconnections)
+        socket.on('room:joined', () => {
           sessionStorage.setItem('current_room_id', roomId);
           sessionStorage.setItem('room_join_time', Date.now().toString());
           sessionStorage.setItem('room_connection_active', 'true');
