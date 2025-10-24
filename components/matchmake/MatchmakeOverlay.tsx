@@ -1450,7 +1450,6 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                         onInvite={handleInvite}
                         onRescind={handleRescind}
                         inviteStatus={
-                          // Priority: local socket state > server API data
                           inviteStatuses[users[currentIndex].userId] === 'cooldown' || users[currentIndex].hasCooldown
                             ? 'cooldown'
                             : inviteStatuses[users[currentIndex].userId] || 'idle'
@@ -1458,6 +1457,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                         cooldownExpiry={users[currentIndex].cooldownExpiry}
                         isActive={true}
                         chatMode={chatMode}
+                        overlayOpen={isOpen}
                       />
                     </motion.div>
                   </AnimatePresence>

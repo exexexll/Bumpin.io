@@ -16,7 +16,7 @@ interface UserCardProps {
     videoUrl?: string;
     wasIntroducedToMe?: boolean;
     introducedBy?: string | null;
-    distance?: number | null; // meters
+    distance?: number | null;
     hasLocation?: boolean;
   };
   onInvite: (userId: string, seconds: number, mode: 'video' | 'text') => void;
@@ -24,10 +24,11 @@ interface UserCardProps {
   inviteStatus?: 'idle' | 'waiting' | 'declined' | 'timeout' | 'cooldown';
   cooldownExpiry?: number | null;
   isActive: boolean;
-  chatMode?: 'video' | 'text'; // Selected chat mode
+  chatMode?: 'video' | 'text';
+  overlayOpen?: boolean;
 }
 
-export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', cooldownExpiry, isActive, chatMode = 'video' }: UserCardProps) {
+export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', cooldownExpiry, isActive, chatMode = 'video', overlayOpen = true }: UserCardProps) {
   const [seconds, setSeconds] = useState(300);
   const [showTimerModal, setShowTimerModal] = useState(false);
   const [tempSeconds, setTempSeconds] = useState('300');
@@ -159,22 +160,16 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
       videoSrc: video.src?.substring(video.src.lastIndexOf('/') + 1)
     });
     
-    if (isActive && !isVideoPaused) {
-      // Unmute and play when card becomes active
-      console.log('[UserCard] ▶️ UNMUTING and PLAYING video for:', user.name);
+    if (isActive && !isVideoPaused && overlayOpen) {
       video.muted = false;
       video.volume = 1.0;
-      video.play().catch((err) => {
-        console.log('[UserCard] Video autoplay blocked, trying muted:', err);
-        // Fallback: play muted if autoplay blocked
+      video.play().catch(() => {
         if (video) {
           video.muted = true;
           video.play().catch(() => {});
         }
       });
     } else {
-      // CRITICAL: Immediately pause and mute when card becomes inactive
-      console.log('[UserCard] ⏸️ PAUSING and MUTING video for:', user.name);
       video.pause();
       video.muted = true;
       video.volume = 0;
