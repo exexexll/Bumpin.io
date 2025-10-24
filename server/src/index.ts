@@ -1070,6 +1070,9 @@ io.on('connection', (socket) => {
     
     socket.join(roomId);
     console.log(`[Room] User ${currentUserId.substring(0, 8)} joined room ${roomId.substring(0, 8)}`);
+    
+    // Emit confirmation so client knows join was successful
+    socket.emit('room:joined', { roomId });
   });
 
   // WebRTC signaling
