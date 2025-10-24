@@ -130,14 +130,18 @@ router.get('/verify', (req, res) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
 
   if (!token) {
-    return res.status(401).json({ valid: false });
+    return res.status(401).json({ valid: false, error: 'No token provided' });
   }
 
   const session = adminSessions.get(token);
 
-  if (!session || Date.now() - session.createdAt > ADMIN_SESSION_EXPIRY) {
-    if (session) adminSessions.delete(token);
-    return res.status(401).json({ valid: false });
+  if (!session) {
+    return res.status(401).json({ valid: false, error: 'Invalid session' });
+  }
+
+  if (Date.now() - session.createdAt > ADMIN_SESSION_EXPIRY) {
+    adminSessions.delete(token);
+    return res.status(401).json({ valid: false, error: 'Session expired' });
   }
 
   res.json({ 
