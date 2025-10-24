@@ -562,7 +562,7 @@ export default function TextChatRoom() {
                 Upgrade to Video?
               </h3>
               <p className="text-[#eaeaf0]/80 mb-6">
-                {peerName} wants to switch to video chat. You'll start a 5-minute video call.
+                {peerName} wants to switch to video chat. You&apos;ll start a 5-minute video call.
               </p>
               <div className="flex gap-3">
                 <button
