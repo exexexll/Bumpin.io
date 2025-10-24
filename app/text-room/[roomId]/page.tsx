@@ -57,6 +57,7 @@ export default function TextChatRoom() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   // Initialize socket and load message history
   useEffect(() => {
@@ -71,7 +72,16 @@ export default function TextChatRoom() {
       return;
     }
 
-    setCurrentUserId(session.userId); // Store userId once
+    setCurrentUserId(session.userId);
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        setNotificationsEnabled(permission === 'granted');
+      });
+    } else if ('Notification' in window && Notification.permission === 'granted') {
+      setNotificationsEnabled(true);
+    }
 
     const socket = connectSocket(session.sessionToken);
     socketRef.current = socket;
@@ -200,7 +210,6 @@ export default function TextChatRoom() {
       }
     });
 
-    // Listen for new messages
     socket.on('textchat:message', (msg: any) => {
       const newMessage: Message = {
         messageId: msg.messageId,
@@ -216,6 +225,21 @@ export default function TextChatRoom() {
       };
       
       setMessages(prev => [...prev, newMessage]);
+      
+      // Show notification if page not in focus
+      if (notificationsEnabled && document.hidden && msg.from !== session.userId) {
+        const notifContent = msg.messageType === 'text' ? msg.content : 
+                            msg.messageType === 'gif' ? '📷 Sent a GIF' :
+                            msg.messageType === 'image' ? '🖼️ Sent an image' : '📎 Sent a file';
+        
+        new Notification(msg.fromName || peerName, {
+          body: notifContent,
+          icon: msg.fromSelfie || '/logo.svg',
+          badge: '/logo.svg',
+          tag: 'text-chat',
+          renotify: true,
+        });
+      }
     });
 
     // Listen for rate limiting
