@@ -340,7 +340,7 @@ export default function TextChatRoom() {
     }, 1000);
 
     return () => {
-      if (interval) clearInterval(interval);
+      clearInterval(interval);
     };
   }, []);
 
@@ -412,13 +412,12 @@ export default function TextChatRoom() {
     socketRef.current.emit('textchat:mark-read', { messageId });
   };
 
-  // Auto-scroll to bottom when messages update
   useEffect(() => {
     const messagesDiv = document.querySelector('.messages-area');
     if (messagesDiv) {
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
-  }, [messages.length]);
+  }, [messages.length, notificationsEnabled]);
 
   // Hide global layout elements (header, footer)
   useEffect(() => {

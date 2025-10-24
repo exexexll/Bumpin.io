@@ -120,9 +120,9 @@ export function Hero() {
           animate="visible"
           className="motion-reduce:opacity-100 motion-reduce:translate-y-0"
         >
-          {/* H1 - BUMPIN.I with original Playfair font, white solid */}
+          {/* H1 - BUMPIN.IO with original Playfair font, white solid */}
           <h1 className="mb-4 font-playfair text-7xl font-bold text-white sm:text-8xl lg:text-9xl drop-shadow-2xl">
-            BUMPIN.I
+            BUMPIN.IO
           </h1>
 
           {/* Subtitle */}
