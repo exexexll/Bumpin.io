@@ -103,8 +103,8 @@ export function validateMessage(messageType: string, content?: string, fileUrl?:
     if (!gifUrl) {
       return { valid: false, error: 'GIF URL required' };
     }
-    // Allow Klipy OR Tenor URLs (during migration period)
-    const validGifUrl = /^https:\/\/(media\.tenor\.com|tenor\.com|media\.klipy\.com|klipy\.com|api\.klipy\.com)\/.+/i;
+    // Allow Klipy (static.klipy.com where files are hosted) OR Tenor URLs
+    const validGifUrl = /^https:\/\/(media\.tenor\.com|tenor\.com|tenor\.googleapis\.com|static\.klipy\.com|media\.klipy\.com)\/.+/i;
     if (!validGifUrl.test(gifUrl)) {
       return { valid: false, error: 'Invalid GIF URL (must be from Klipy or Tenor)' };
     }

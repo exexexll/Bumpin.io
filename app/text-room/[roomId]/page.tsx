@@ -84,6 +84,7 @@ export default function TextChatRoom() {
     // Handle socket reconnection (network switch, connection loss)
     socket.on('connect', () => {
       console.log('[TextRoom] Socket reconnected - rejoining room');
+      setShowReconnecting(false); // Hide reconnecting banner
       const savedRoomId = sessionStorage.getItem('current_room_id');
       if (savedRoomId === roomId) {
         socket.emit('room:join', { roomId });
@@ -92,6 +93,7 @@ export default function TextChatRoom() {
     
     socket.on('reconnect', () => {
       console.log('[TextRoom] Socket reconnected after failure - rejoining room');
+      setShowReconnecting(false); // Hide reconnecting banner
       socket.emit('room:join', { roomId });
     });
     
