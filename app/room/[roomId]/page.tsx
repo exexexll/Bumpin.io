@@ -462,7 +462,7 @@ export default function RoomPage() {
         // 2. Was active in last 30 seconds
         // 3. Had an active connection flag
         const isSameRoom = storedRoomId === roomId;
-        const isRecentReload = lastJoinTime > 0 && timeSinceJoin > 0 && timeSinceJoin < 30000;
+        const isRecentReload = lastJoinTime > 0 && timeSinceJoin > 0 && timeSinceJoin < 10000; // 10s grace period
         
         if (isSameRoom && wasActiveCall && isRecentReload) {
           // User reloaded the SAME room within 30 seconds - this is a reconnection attempt

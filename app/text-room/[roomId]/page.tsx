@@ -93,11 +93,18 @@ export default function TextChatRoom() {
     const timeSinceJoin = Date.now() - lastJoinTime;
     
     const isSameRoom = storedRoomId === roomId;
-    const isRecentReload = timeSinceJoin > 0 && timeSinceJoin < 30000; // 30 seconds
+    const isRecentReload = timeSinceJoin > 0 && timeSinceJoin < 10000; // 10 seconds (grace period)
     
     if (isSameRoom && wasActive && isRecentReload) {
+      // Only show reconnecting if reload was quick enough for grace period
       setShowReconnecting(true);
     } else if (!isSameRoom && wasActive) {
+      // Different room - clear old data
+      sessionStorage.removeItem('text_room_active');
+      sessionStorage.removeItem('text_room_join_time');
+      sessionStorage.removeItem('current_text_room_id');
+    } else if (isSameRoom && wasActive && !isRecentReload) {
+      // Same room but too long ago - room likely deleted, clear data
       sessionStorage.removeItem('text_room_active');
       sessionStorage.removeItem('text_room_join_time');
       sessionStorage.removeItem('current_text_room_id');
