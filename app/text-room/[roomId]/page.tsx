@@ -399,7 +399,15 @@ export default function TextChatRoom() {
     <main className="fixed inset-0 flex flex-col bg-[#0a0a0c] overflow-hidden z-50" style={{ 
       height: '100dvh', // Dynamic viewport height (accounts for mobile keyboard)
       maxHeight: '-webkit-fill-available',
-    }}>
+    }}
+    // Prevent viewport zoom on input focus (iOS Safari)
+    onTouchStart={(e) => {
+      // Prevent page from jumping when keyboard appears
+      if ((e.target as HTMLElement).tagName === 'INPUT') {
+        (e.target as HTMLInputElement).style.fontSize = '16px';
+      }
+    }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/40">
         <div className="flex items-center gap-3">
@@ -419,7 +427,7 @@ export default function TextChatRoom() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* End Call Button */}
+          {/* End Call Button - Always visible */}
           <button
             onClick={() => {
               if (confirm('End this chat?')) {
@@ -429,7 +437,7 @@ export default function TextChatRoom() {
                 router.push('/history');
               }
             }}
-            className="rounded-full bg-red-500/20 p-2 hover:bg-red-500/30 transition-all sm:hidden"
+            className="rounded-full bg-red-500/20 p-2 hover:bg-red-500/30 transition-all"
             aria-label="End chat"
           >
             <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

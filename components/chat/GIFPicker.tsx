@@ -124,9 +124,12 @@ export function GIFPicker({ onSelectGIF, onClose }: GIFPickerProps) {
           </div>
         </div>
 
-        {/* GIF Grid */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {loading ? (
+      {/* GIF Grid - Force scrollable with visible scrollbar */}
+      <div className="flex-1 overflow-y-scroll p-4" style={{
+        WebkitOverflowScrolling: 'touch',
+        maxHeight: 'calc(100% - 200px)',
+      }}>
+        {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#ff9b6b] border-t-transparent" />
             </div>
