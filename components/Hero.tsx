@@ -121,8 +121,17 @@ export function Hero() {
           animate="visible"
           className="motion-reduce:opacity-100 motion-reduce:translate-y-0"
         >
-          {/* H1 */}
-          <h1 className="mb-4 font-playfair text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
+          {/* H1 - Nok-style bubble font with gritty gradient */}
+          <h1 
+            className="mb-4 font-bumpin text-7xl sm:text-8xl lg:text-9xl"
+            style={{
+              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #eab308 50%, #ca8a04 75%, #a16207 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              filter: 'drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5))',
+            }}
+          >
             BUMPIn
           </h1>
 
@@ -143,9 +152,17 @@ export function Hero() {
             ) : (
               <button
                 onClick={handleConnect}
-                className="rounded-xl bg-[#fbbf24] px-8 py-3 font-medium text-[#0a0a0c] shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 focus-ring"
+                className="rounded-xl px-8 py-3 font-bold text-[#0a0a0c] shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 focus-ring relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #eab308 50%, #ca8a04 75%, #a16207 100%)',
+                  boxShadow: '0 10px 40px rgba(251, 191, 36, 0.5), inset 0 -3px 10px rgba(0, 0, 0, 0.4), inset 0 3px 10px rgba(255, 255, 255, 0.4)',
+                }}
               >
-                {isVerified ? 'Continue to App' : 'Start connecting'}
+                <span className="relative z-10">{isVerified ? 'Continue to App' : 'Start connecting'}</span>
+                {/* Gritty texture overlay */}
+                <div className="absolute inset-0 opacity-25 pointer-events-none" style={{
+                  backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
+                }} />
               </button>
             )}
             <Button variant="ghost" href="/manifesto">
