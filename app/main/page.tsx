@@ -104,9 +104,9 @@ function MainPageContent() {
   }
 
   return (
-    <main id="main" className="relative min-h-screen overflow-hidden" style={{ backgroundColor: 'white' }}>
+    <main id="main" className="fixed inset-0 overflow-hidden" style={{ backgroundColor: 'white' }}>
       {/* Grid background */}
-      <div className="fixed inset-0" style={{
+      <div className="absolute inset-0" style={{
         backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 40px, #ffc46a 40px, #ffc46a 41px), repeating-linear-gradient(90deg, transparent, transparent 40px, #ffc46a 40px, #ffc46a 41px)`,
         zIndex: 0,
       }} />
@@ -115,109 +115,114 @@ function MainPageContent() {
       <MainPageIcons />
 
       {/* Button Layout */}
-      <div className={`relative transition-opacity duration-300 ${showMatchmake ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} style={{ zIndex: 10 }}>
+      <div className={`absolute inset-0 transition-opacity duration-300 ${showMatchmake ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} style={{ zIndex: 10 }}>
         {/* Desktop Layout */}
-        <div className="hidden md:flex min-h-screen items-center justify-center p-8">
-          <div className="relative w-full max-w-7xl">
-            {/* Top Left - Intro Code */}
-            <div className="absolute top-0 left-0">
-              <div className="bg-white px-6 py-3 rounded-lg border-2 border-[#ffc46a] shadow-md">
-                <DirectMatchInput onMatch={handleDirectMatch} />
-              </div>
+        <div className="hidden md:block h-full">
+          {/* Top Left - Intro Code */}
+          <div className="absolute top-8 left-8">
+            <div className="bg-white px-6 py-3 rounded-lg border-2 border-[#ffc46a] shadow-md">
+              <DirectMatchInput onMatch={handleDirectMatch} />
             </div>
+          </div>
 
-            {/* Top Right - Profile */}
-            <Link
-              href="/refilm"
-              className="absolute top-0 right-0 px-8 py-4 rounded-2xl font-bold text-black border-2 border-black hover:scale-105 transition-all"
-              style={{ backgroundColor: '#ffc46a' }}
+          {/* Top Right - Profile */}
+          <Link
+            href="/refilm"
+            className="absolute top-8 right-8 px-8 py-4 rounded-2xl font-bold text-black border-2 border-black hover:scale-105 transition-all"
+            style={{ backgroundColor: '#ffc46a', boxShadow: '5px 5px 0px #000000' }}
+          >
+            Profile
+          </Link>
+
+          {/* Center - Matchmake Button */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6">
+            <button
+              onClick={() => setShowMatchmake(true)}
+              className="px-20 py-10 rounded-3xl font-playfair text-6xl font-bold text-black border-4 border-black hover:scale-105 active:scale-95 transition-all"
+              style={{
+                backgroundColor: '#ffc46a',
+                boxShadow: '10px 10px 0px #000000',
+              }}
             >
-              Profile
-            </Link>
-
-            {/* Center - Matchmake Button (minimalist with pop) */}
-            <div className="flex flex-col items-center gap-6">
-              <button
-                onClick={() => setShowMatchmake(true)}
-                className="px-20 py-10 rounded-3xl font-playfair text-6xl font-bold text-black border-4 border-black shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all"
-                style={{
-                  backgroundColor: '#ffc46a',
-                  boxShadow: '8px 8px 0px #000000',
-                }}
-              >
-                Matchmake Now
-              </button>
-              
-              {/* Socials - Below center */}
-              <Link
-                href="/socials"
-                className="px-6 py-2 rounded-lg text-sm font-bold text-black border-2 border-black hover:scale-105 transition-all"
-                style={{ backgroundColor: '#ffc46a', boxShadow: '3px 3px 0px #000000' }}
-              >
-                Socials
-              </Link>
-            </div>
-
-            {/* Bottom Left - Past Chats */}
+              Matchmake Now
+            </button>
+            
+            {/* Socials - Below center */}
             <Link
-              href="/history"
-              className="absolute bottom-0 left-0 px-8 py-4 rounded-2xl font-bold text-black border-2 border-black hover:scale-105 transition-all"
-              style={{ backgroundColor: '#ffc46a', boxShadow: '5px 5px 0px #000000' }}
+              href="/socials"
+              className="px-6 py-2 rounded-lg text-sm font-bold text-black border-2 border-black hover:scale-105 transition-all"
+              style={{ backgroundColor: '#ffc46a', boxShadow: '4px 4px 0px #000000' }}
             >
-              Past Chats
-            </Link>
-
-            {/* Bottom Right - Settings */}
-            <Link
-              href="/settings"
-              className="absolute bottom-0 right-0 px-8 py-4 rounded-2xl font-bold text-black border-2 border-black hover:scale-105 transition-all"
-              style={{ backgroundColor: '#ffc46a', boxShadow: '5px 5px 0px #000000' }}
-            >
-              Settings
+              Socials
             </Link>
           </div>
+
+          {/* Bottom Left - Past Chats */}
+          <Link
+            href="/history"
+            className="absolute bottom-8 left-8 px-8 py-4 rounded-2xl font-bold text-black border-2 border-black hover:scale-105 transition-all"
+            style={{ backgroundColor: '#ffc46a', boxShadow: '5px 5px 0px #000000' }}
+          >
+            Past Chats
+          </Link>
+
+          {/* Bottom Right - Settings */}
+          <Link
+            href="/settings"
+            className="absolute bottom-8 right-8 px-8 py-4 rounded-2xl font-bold text-black border-2 border-black hover:scale-105 transition-all"
+            style={{ backgroundColor: '#ffc46a', boxShadow: '5px 5px 0px #000000' }}
+          >
+            Settings
+          </Link>
         </div>
 
-        {/* Mobile Layout */}
-        <div className="md:hidden flex flex-col min-h-screen justify-center items-center p-6 gap-6">
-          <div className="flex justify-between w-full max-w-md gap-4">
-            <DirectMatchInput onMatch={handleDirectMatch} />
+        {/* Mobile Layout - Fixed viewport, no scrolling */}
+        <div className="md:hidden h-full flex flex-col justify-between p-6">
+          {/* Top Row */}
+          <div className="flex justify-between items-start gap-4">
+            <div className="flex-1">
+              <DirectMatchInput onMatch={handleDirectMatch} />
+            </div>
             <Link
               href="/refilm"
-              className="px-4 py-2 rounded-lg font-semibold text-black shadow"
-              style={{ backgroundColor: '#ffc46a' }}
+              className="px-6 py-3 rounded-lg font-bold text-black border-2 border-black"
+              style={{ backgroundColor: '#ffc46a', boxShadow: '3px 3px 0px #000000' }}
             >
               Profile
             </Link>
           </div>
           
-          <button
-            onClick={() => setShowMatchmake(true)}
-            className="w-full max-w-md px-10 py-8 rounded-2xl font-playfair text-4xl font-bold text-black border-4 border-black shadow-xl"
-            style={{ backgroundColor: '#ffc46a', boxShadow: '6px 6px 0px #000000' }}
-          >
-            Matchmake Now
-          </button>
+          {/* Center - Matchmake button */}
+          <div className="flex flex-col items-center gap-4">
+            <button
+              onClick={() => setShowMatchmake(true)}
+              className="px-12 py-8 rounded-2xl font-playfair text-4xl font-bold text-black border-4 border-black"
+              style={{ backgroundColor: '#ffc46a', boxShadow: '8px 8px 0px #000000' }}
+            >
+              Matchmake Now
+            </button>
+            
+            <Link
+              href="/socials"
+              className="px-6 py-2 rounded-lg text-sm font-bold text-black border-2 border-black"
+              style={{ backgroundColor: '#ffc46a', boxShadow: '3px 3px 0px #000000' }}
+            >
+              Socials
+            </Link>
+          </div>
           
-          <Link
-            href="/socials"
-            className="px-6 py-2 rounded-lg text-sm font-bold text-black border-2 border-black"
-            style={{ backgroundColor: '#ffc46a', boxShadow: '3px 3px 0px #000000' }}
-          >
-            Socials
-          </Link>
-          
-          <div className="flex gap-4 w-full max-w-md">
+          {/* Bottom Row */}
+          <div className="flex justify-between gap-4">
             <Link
               href="/history"
-              className="flex-1 px-4 py-3 rounded-lg font-bold text-black border-2 border-black text-center"
+              className="flex-1 px-6 py-3 rounded-lg font-bold text-black border-2 border-black text-center"
               style={{ backgroundColor: '#ffc46a', boxShadow: '4px 4px 0px #000000' }}
             >
               Past Chats
             </Link>
             <Link
               href="/settings"
-              className="flex-1 px-4 py-3 rounded-lg font-bold text-black border-2 border-black text-center"
+              className="flex-1 px-6 py-3 rounded-lg font-bold text-black border-2 border-black text-center"
               style={{ backgroundColor: '#ffc46a', boxShadow: '4px 4px 0px #000000' }}
             >
               Settings
