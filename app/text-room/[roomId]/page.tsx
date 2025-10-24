@@ -159,17 +159,18 @@ export default function TextChatRoom() {
     
     // Typing indicator
     socket.on('textchat:typing', ({ userId }: { userId: string }) => {
-      if (userId === peerUserId) {
-        setPartnerTyping(true);
-        
-        // Clear existing timeout
-        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-        
-        // Hide typing indicator after 3 seconds of no typing events
-        typingTimeoutRef.current = setTimeout(() => {
-          setPartnerTyping(false);
-        }, 3000);
-      }
+      console.log('[TextRoom] Typing event received from:', userId, 'peerUserId:', peerUserId);
+      // Show typing indicator (userId is the sender's ID from server)
+      setPartnerTyping(true);
+      
+      // Clear existing timeout
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      
+      // Hide typing indicator after 2 seconds of no typing events (Instagram style)
+      typingTimeoutRef.current = setTimeout(() => {
+        console.log('[TextRoom] Hiding typing indicator');
+        setPartnerTyping(false);
+      }, 2000);
     });
     
     socket.on('disconnect', (reason) => {
@@ -451,7 +452,7 @@ export default function TextChatRoom() {
             )}
           </div>
 
-          {/* Video Upgrade Button - Hidden on mobile (shown at bottom), visible on desktop */}
+          {/* Video Upgrade Button - Desktop only (mobile version below messages) */}
           <AnimatePresence>
             {showVideoRequest && !videoRequested && (
               <motion.button
@@ -459,12 +460,12 @@ export default function TextChatRoom() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0, opacity: 0 }}
                 onClick={handleRequestVideo}
-                className="hidden sm:flex items-center gap-2 rounded-full bg-gradient-to-r from-[#ff9b6b] to-[#ff7a3d] px-5 py-2.5 text-sm font-bold text-[#0a0a0c] hover:shadow-lg hover:shadow-[#ff9b6b]/50 transition-all shadow-md animate-pulse"
+                className="hidden sm:flex items-center gap-2 rounded-full bg-gradient-to-r from-[#ff9b6b] to-[#ff7a3d] px-4 py-2 text-sm font-bold text-[#0a0a0c] hover:shadow-lg hover:shadow-[#ff9b6b]/50 transition-all shadow-md"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-                Upgrade to Video
+                Video
               </motion.button>
             )}
 
@@ -472,14 +473,36 @@ export default function TextChatRoom() {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="hidden sm:block rounded-full bg-yellow-500/20 px-4 py-2 border border-yellow-500/30"
+                className="hidden sm:block rounded-full bg-yellow-500/20 px-3 py-1.5 border border-yellow-500/30"
               >
-                <p className="text-xs font-medium text-yellow-300">Waiting for {peerName}...</p>
+                <p className="text-xs font-medium text-yellow-300">Waiting...</p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Mobile Video Upgrade Button - Floating above messages */}
+      <AnimatePresence>
+        {showVideoRequest && !videoRequested && (
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            className="sm:hidden mx-4 mt-2"
+          >
+            <button
+              onClick={handleRequestVideo}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff9b6b] to-[#ff7a3d] px-4 py-3 text-sm font-bold text-[#0a0a0c] shadow-lg"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Upgrade to Video Call
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Messages Area - Padded at bottom for fixed input */}
       <div className="flex-1 overflow-hidden pb-24">
