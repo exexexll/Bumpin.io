@@ -1153,8 +1153,9 @@ io.on('connection', (socket) => {
             console.log(`[Session] Ended session ${sessionId} due to disconnection timeout`);
           }
           
-          // Clean up room
+          // Clean up room and activity tracking
           activeRooms.delete(roomId);
+          textRoomActivity.delete(roomId); // Clean up torch rule tracking
         }
       }, 10000); // 10 seconds grace period
     }
@@ -1436,8 +1437,9 @@ io.on('connection', (socket) => {
         });
       }
       
-      // Clean up the room since connection failed
+      // Clean up the room and activity tracking since connection failed
       activeRooms.delete(roomId);
+      textRoomActivity.delete(roomId); // Clean up torch rule tracking
       console.log(`[Room] Room ${roomId} deleted due to connection failure`);
       
       // Mark both users as available again
@@ -1597,8 +1599,9 @@ io.on('connection', (socket) => {
         console.log(`[Room] Direct emit to user2 socket: ${user2Socket}`);
       }
 
-      // Cleanup
+      // Cleanup room and activity tracking
       activeRooms.delete(roomId);
+      textRoomActivity.delete(roomId); // Clean up torch rule tracking
     }
   });
 
@@ -1701,8 +1704,9 @@ io.on('connection', (socket) => {
           store.updatePresence(room.user1, { available: true });
           store.updatePresence(room.user2, { available: true });
           
-          // Clean up
+          // Clean up room and activity tracking
           activeRooms.delete(roomId!);
+          textRoomActivity.delete(roomId!); // Clean up torch rule tracking
           console.log(`[Room] ✅ Room cleaned up after grace period`);
         }
       }, 10000);
@@ -1850,8 +1854,9 @@ io.on('connection', (socket) => {
           io.emit('queue:update', { userId: room.user1, available: true });
           io.emit('queue:update', { userId: room.user2, available: true });
           
-          // Clean up room from memory (critical fix for memory leak)
+          // Clean up room and activity tracking from memory (critical fix for memory leak)
           activeRooms.delete(roomId);
+          textRoomActivity.delete(roomId); // Clean up torch rule tracking
           
           console.log(`[Disconnect] ✅ Cleaned up room ${roomId} and marked users available`);
         }
