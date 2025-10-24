@@ -95,6 +95,9 @@ export function Hero() {
       className="relative flex min-h-[620px] h-[100dvh] w-full items-center justify-center overflow-hidden"
       style={{ backgroundColor: '#ebd463' }}
     >
+      {/* Dim overlay for atmospheric lighting */}
+      <div className="absolute inset-0 pointer-events-none bg-black/30" />
+      
       {/* Pixelized edge vignette - gradient to white */}
       <div className="absolute inset-0 pointer-events-none" style={{
         background: 'radial-gradient(circle at center, transparent 0%, transparent 60%, rgba(255,255,255,0.3) 75%, rgba(255,255,255,0.6) 85%, rgba(255,255,255,0.9) 95%, white 100%)',
