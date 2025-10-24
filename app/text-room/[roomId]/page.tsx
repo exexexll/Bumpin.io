@@ -152,6 +152,7 @@ export default function TextChatRoom() {
     });
     
     socket.on('textroom:ended-inactivity', () => {
+      console.log('[TorchRule] Session ended by server due to inactivity');
       alert('Session ended due to inactivity');
       router.push('/history');
     });
@@ -279,27 +280,42 @@ export default function TextChatRoom() {
 
   // TORCH RULE: No fixed timer - show video request button after 60s of chat
   useEffect(() => {
-    if (timerRef.current) return; // Already started
-    
     let elapsed = 0;
     
+    console.log('[TorchRule] Starting elapsed time counter for video upgrade button');
+    
     // Simple elapsed time counter (not a countdown)
-    timerRef.current = setInterval(() => {
+    const interval = setInterval(() => {
       elapsed++;
+      
+      // Log every 10 seconds for debugging
+      if (elapsed % 10 === 0) {
+        console.log(`[TorchRule] Elapsed: ${elapsed}s, showVideoRequest: ${showVideoRequest}`);
+      }
         
       // Show video request button after 60 seconds elapsed
-      // Removed message count requirement to make button always visible after 60s
-      if (elapsed >= 60 && !showVideoRequest) {
+      if (elapsed >= 60) {
+        console.log('[TorchRule] 60 seconds reached - enabling video upgrade button');
         setShowVideoRequest(true);
-        console.log('[TorchRule] Video upgrade button now available after 60s');
+        clearInterval(interval); // Stop checking once button shown
       }
     }, 1000);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      console.log('[TorchRule] Cleaning up elapsed timer');
+      clearInterval(interval);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showVideoRequest]); // Only depend on showVideoRequest to avoid re-creating interval
+  }, []); // Empty deps - run once on mount
+
+  // CRITICAL: End session client-side when countdown reaches 0
+  // Don't wait for server (which checks every 30s) - more responsive UX
+  useEffect(() => {
+    if (inactivityWarning && inactivityCountdown <= 0) {
+      console.log('[TorchRule] Countdown reached 0 - ending session client-side');
+      alert('Session ended due to inactivity');
+      router.push('/history');
+    }
+  }, [inactivityCountdown, inactivityWarning, router]);
 
   // Format time mm:ss
   const formatTime = (seconds: number) => {
