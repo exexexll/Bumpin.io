@@ -9,6 +9,7 @@ import { Button } from './Button';
 import { ScrollHint } from './ScrollHint';
 import { API_BASE } from '@/lib/config';
 import { getSession } from '@/lib/session';
+import { AnimatedHearts } from './AnimatedHearts';
 
 export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
@@ -92,26 +93,24 @@ export function Hero() {
     <section
       ref={ref}
       className="relative flex min-h-[620px] h-[100dvh] w-full items-center justify-center overflow-hidden"
+      style={{ backgroundColor: '#ebd463' }}
     >
-      {/* Background Image with Parallax */}
-      <motion.div
-        style={{ y }}
-        className="absolute inset-0 -z-10 motion-reduce:transform-none"
-      >
-        <Image
-          src="/image.jpg"
-          alt="Cinematic dusk sky over a sketched city, plane and stars"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-          quality={90}
-        />
-      </motion.div>
+      {/* Pixelized edge vignette - gradient to white */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(circle at center, transparent 0%, transparent 60%, rgba(255,255,255,0.3) 75%, rgba(255,255,255,0.6) 85%, rgba(255,255,255,0.9) 95%, white 100%)',
+      }} />
+      
+      {/* Pixelized scaffold border */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        backgroundImage: `
+          repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 11px),
+          repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 11px)
+        `,
+        imageRendering: 'pixelated',
+      }} />
 
-      {/* Gradient Overlays for Readability */}
-      <div className="absolute inset-0 -z-[5] bg-gradient-to-b from-black/20 via-black/40 to-black/60" />
-      <div className="absolute inset-0 -z-[5] bg-[radial-gradient(circle_at_center,transparent_0%,black/30_100%)]" />
+      {/* Animated Hearts */}
+      <AnimatedHearts />
 
       {/* Content */}
       <div className="relative z-10 mx-auto w-full max-w-4xl px-4 text-center sm:px-6 lg:px-8">
@@ -121,18 +120,9 @@ export function Hero() {
           animate="visible"
           className="motion-reduce:opacity-100 motion-reduce:translate-y-0"
         >
-          {/* H1 - Nok-style bubble font with gritty gradient */}
-          <h1 
-            className="mb-4 font-bumpin text-7xl sm:text-8xl lg:text-9xl"
-            style={{
-              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #eab308 50%, #ca8a04 75%, #a16207 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              filter: 'drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5))',
-            }}
-          >
-            BUMPIn
+          {/* H1 - BUMPIN.I with original Playfair font, white solid */}
+          <h1 className="mb-4 font-playfair text-7xl font-bold text-white sm:text-8xl lg:text-9xl drop-shadow-2xl">
+            BUMPIN.I
           </h1>
 
           {/* Subtitle */}
@@ -145,24 +135,20 @@ export function Hero() {
             {checkingSession ? (
               <button
                 disabled
-                className="rounded-xl bg-[#fbbf24]/50 px-8 py-3 font-medium text-[#0a0a0c] cursor-wait"
+                className="rounded-xl bg-[#ebd463]/50 px-8 py-3 font-medium text-[#0a0a0c] cursor-wait"
               >
                 Loading...
               </button>
             ) : (
               <button
                 onClick={handleConnect}
-                className="rounded-xl px-8 py-3 font-bold text-[#0a0a0c] shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 focus-ring relative overflow-hidden"
+                className="rounded-xl px-8 py-3 font-bold text-black shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 focus-ring"
                 style={{
-                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #eab308 50%, #ca8a04 75%, #a16207 100%)',
-                  boxShadow: '0 10px 40px rgba(251, 191, 36, 0.5), inset 0 -3px 10px rgba(0, 0, 0, 0.4), inset 0 3px 10px rgba(255, 255, 255, 0.4)',
+                  backgroundColor: '#ebd463',
+                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3)',
                 }}
               >
-                <span className="relative z-10">{isVerified ? 'Continue to App' : 'Start connecting'}</span>
-                {/* Gritty texture overlay */}
-                <div className="absolute inset-0 opacity-25 pointer-events-none" style={{
-                  backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-                }} />
+                {isVerified ? 'Continue to App' : 'Start connecting'}
               </button>
             )}
             <Button variant="ghost" href="/manifesto">
@@ -176,7 +162,7 @@ export function Hero() {
               Already have an account?{' '}
               <Link 
                 href="/login"
-                className="font-medium text-[#fbbf24] hover:underline focus-ring rounded"
+                className="font-medium text-[#ebd463] hover:underline focus-ring rounded"
               >
                 Login
               </Link>

@@ -148,7 +148,7 @@ export default function BlacklistPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name..."
-            className="w-full rounded-xl bg-white/10 px-6 py-4 text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
+            className="w-full rounded-xl bg-white/10 px-6 py-4 text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-[#ebd463]"
           />
         </div>
 
@@ -238,7 +238,7 @@ export default function BlacklistPage() {
           <div className="mt-6">
             <Link
               href="/"
-              className="text-sm font-medium text-[#fbbf24] hover:text-[#fbbf24]/80"
+              className="text-sm font-medium text-[#ebd463] hover:text-[#ebd463]/80"
             >
               Return to BUMPIn
             </Link>

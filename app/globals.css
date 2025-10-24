@@ -1,6 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Chewy&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* BUMPIn bubble/rounded font style */
+.font-bumpin {
+  font-family: 'Fredoka One', 'Chewy', cursive;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
 
 @layer base {
   :root {
