@@ -14,7 +14,7 @@ export function SessionInvalidatedModal() {
     // Listen for BOTH socket events AND custom window events (from API 401 responses)
     
     // Method 1: Socket events (real-time, if connected)
-    const sessionData = localStorage.getItem('napalmsky_session');
+    const sessionData = localStorage.getItem('bumpin_session');
     let socket: any = null;
     
     if (sessionData) {
@@ -29,7 +29,7 @@ export function SessionInvalidatedModal() {
               console.log('[SessionInvalidated] Socket event received:', reason);
               setMessage(message);
               setShow(true);
-              localStorage.removeItem('napalmsky_session');
+              localStorage.removeItem('bumpin_session');
               setTimeout(() => router.push('/login'), 5000);
             };
             
@@ -47,7 +47,7 @@ export function SessionInvalidatedModal() {
       console.log('[SessionInvalidated] Window event received:', customEvent.detail);
       setMessage(customEvent.detail.message);
       setShow(true);
-      localStorage.removeItem('napalmsky_session');
+      localStorage.removeItem('bumpin_session');
       setTimeout(() => router.push('/login'), 5000);
     };
     
@@ -63,7 +63,7 @@ export function SessionInvalidatedModal() {
 
   const handleOk = () => {
     setShow(false);
-    localStorage.removeItem('napalmsky_session');
+    localStorage.removeItem('bumpin_session');
     router.push('/login');
   };
 
@@ -75,7 +75,7 @@ export function SessionInvalidatedModal() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="max-w-md w-full bg-[#0a0a0c] rounded-2xl border-2 border-[#ff9b6b]/30 p-8 text-center space-y-6"
+            className="max-w-md w-full bg-[#0a0a0c] rounded-2xl border-2 border-[#fbbf24]/30 p-8 text-center space-y-6"
           >
             {/* Icon */}
             <div className="mx-auto w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center">
@@ -104,7 +104,7 @@ export function SessionInvalidatedModal() {
             {/* Button */}
             <button
               onClick={handleOk}
-              className="w-full rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] 
+              className="w-full rounded-xl bg-[#fbbf24] px-6 py-3 font-medium text-[#0a0a0c] 
                        shadow-lg transition-all hover:opacity-90"
             >
               OK, Go to Login

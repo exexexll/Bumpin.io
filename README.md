@@ -1,4 +1,4 @@
-# 🌆 Napalm Sky - Speed-Dating Platform
+# 🌆 BUMPIn - Speed-Dating Platform
 
 > *"Speed-dating platform made by 500 D.O.S Addict"*
 

@@ -43,12 +43,12 @@ export default function BanNotification() {
         if (error.message?.includes('Session invalidated')) {
           // Session was invalidated by new login - clear and stay silent
           console.log('[Ban] Session invalidated (logged in elsewhere) - clearing silently');
-          localStorage.removeItem('napalmsky_session');
+          localStorage.removeItem('bumpin_session');
           // SessionInvalidatedModal will handle the notification
         } else if (error.message?.includes('Invalid or expired session')) {
           // Session expired - clear it and let user re-login
           console.log('[Ban] Session expired, clearing...');
-          localStorage.removeItem('napalmsky_session');
+          localStorage.removeItem('bumpin_session');
         } else if (error.message?.includes('suspended') || error.message?.includes('banned')) {
           // User is actually banned
           setIsBanned(true);
@@ -89,7 +89,7 @@ export default function BanNotification() {
     } else if (banRecord?.banStatus === 'permanent') {
       return {
         title: 'Account Permanently Banned',
-        message: 'Your account has been permanently banned from Napalm Sky. Your information has been added to the public blacklist.',
+        message: 'Your account has been permanently banned from BUMPIn. Your information has been added to the public blacklist.',
         status: 'permanent',
         color: 'red',
       };
@@ -114,7 +114,7 @@ export default function BanNotification() {
       >
         {/* Logo */}
         <div className="mb-6 flex justify-center">
-          <Image src="/logo.svg" alt="Napalm Sky" width={120} height={24} priority />
+          <Image src="/logo.svg" alt="BUMPIn" width={120} height={24} priority />
         </div>
 
         {/* Icon */}
@@ -209,7 +209,7 @@ export default function BanNotification() {
 
         {/* Footer */}
         <p className="mt-6 text-center text-xs text-[#eaeaf0]/30">
-          Napalm Sky enforces strict community guidelines to maintain a safe environment for all users.
+          BUMPIn enforces strict community guidelines to maintain a safe environment for all users.
         </p>
       </motion.div>
     </div>

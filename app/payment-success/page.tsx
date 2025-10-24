@@ -48,7 +48,7 @@ function PaymentSuccessPageContent() {
         .then(data => {
           if (data.paidStatus === 'paid' || data.paidStatus === 'qr_verified' || data.paidStatus === 'qr_grace_period') {
             setMyInviteCode(data.myInviteCode || '');
-            const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://napalmsky-production.up.railway.app';
+            const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://bumpin-production.up.railway.app';
             setQrCodeUrl(`${apiBase}/payment/qr/${data.myInviteCode}`);
             console.log('[Payment] ✅ Payment verified, code:', data.myInviteCode);
             setLoading(false);
@@ -73,7 +73,7 @@ function PaymentSuccessPageContent() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#0a0a0c]">
         <div className="text-center">
-          <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-[#ff9b6b] border-t-transparent" />
+          <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-[#fbbf24] border-t-transparent" />
           <p className="text-[#eaeaf0]">Processing your payment...</p>
           {retryCount > 2 && (
             <div className="mt-6 space-y-3">
@@ -84,7 +84,7 @@ function PaymentSuccessPageContent() {
                   // Redirect to onboarding, NOT main (unpaid users shouldn't bypass)
                   router.push('/onboarding');
                 }}
-                className="rounded-xl bg-[#ff9b6b]/20 px-6 py-2 text-sm text-[#ff9b6b] hover:bg-[#ff9b6b]/30"
+                className="rounded-xl bg-[#fbbf24]/20 px-6 py-2 text-sm text-[#fbbf24] hover:bg-[#fbbf24]/30"
               >
                 Continue to Onboarding
               </button>
@@ -110,7 +110,7 @@ function PaymentSuccessPageContent() {
                 Payment Successful
               </h1>
               <p className="text-sm text-[#eaeaf0]/60">
-                Welcome to Napalm Sky
+                Welcome to BUMPIn
               </p>
             </div>
 
@@ -173,7 +173,7 @@ function PaymentSuccessPageContent() {
                   router.push('/main');
                 }
               }}
-              className="focus-ring w-full rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
+              className="focus-ring w-full rounded-xl bg-[#fbbf24] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
             >
               Continue to Profile Setup →
             </button>

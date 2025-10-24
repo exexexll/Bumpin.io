@@ -50,7 +50,7 @@ export function getMediaConstraints() {
  */
 export async function prefetchTurnCredentials(sessionToken: string): Promise<void> {
   try {
-    const cached = sessionStorage.getItem('napalmsky_turn_cache');
+    const cached = sessionStorage.getItem('bumpin_turn_cache');
     if (cached) {
       const { fetchedAt } = JSON.parse(cached);
       // Skip if less than 45 min old (creds valid 1 hour)
@@ -70,7 +70,7 @@ export async function prefetchTurnCredentials(sessionToken: string): Promise<voi
     
     const data = await response.json();
     
-    sessionStorage.setItem('napalmsky_turn_cache', JSON.stringify({
+    sessionStorage.setItem('bumpin_turn_cache', JSON.stringify({
       iceServers: data.iceServers,
       fetchedAt: Date.now(),
     }));
@@ -86,7 +86,7 @@ export async function prefetchTurnCredentials(sessionToken: string): Promise<voi
  */
 export async function getIceServers(sessionToken: string): Promise<RTCIceServer[]> {
   // Try cache first
-  const cached = sessionStorage.getItem('napalmsky_turn_cache');
+  const cached = sessionStorage.getItem('bumpin_turn_cache');
   if (cached) {
     const { iceServers, fetchedAt } = JSON.parse(cached);
     if (Date.now() - fetchedAt < 3300000) { // < 55 min old
@@ -103,7 +103,7 @@ export async function getIceServers(sessionToken: string): Promise<RTCIceServer[
     
     const data = await response.json();
     
-    sessionStorage.setItem('napalmsky_turn_cache', JSON.stringify({
+    sessionStorage.setItem('bumpin_turn_cache', JSON.stringify({
       iceServers: data.iceServers,
       fetchedAt: Date.now(),
     }));

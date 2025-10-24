@@ -7,7 +7,7 @@
 
 **PLEASE READ THESE TERMS OF SERVICE CAREFULLY BEFORE USING NAPALM SKY.**
 
-By accessing or using Napalm Sky ("the Service," "Platform," "we," "us," or "our"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you must not access or use the Service.
+By accessing or using BUMPIn ("the Service," "Platform," "we," "us," or "our"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you must not access or use the Service.
 
 **DISCLAIMER: This document is a template and does not constitute legal advice. This should be reviewed and customized by a licensed attorney before use.**
 
@@ -15,7 +15,7 @@ By accessing or using Napalm Sky ("the Service," "Platform," "we," "us," or "our
 
 ## 1. ACCEPTANCE OF TERMS
 
-By creating an account, accessing, or using Napalm Sky, you acknowledge that you have read, understood, and agree to be bound by:
+By creating an account, accessing, or using BUMPIn, you acknowledge that you have read, understood, and agree to be bound by:
 
 - These Terms of Service
 - Our Privacy Policy
@@ -23,14 +23,14 @@ By creating an account, accessing, or using Napalm Sky, you acknowledge that you
 - Our Community Guidelines
 - Our Content Policy and Consent Agreement
 
-These documents collectively constitute the entire agreement between you and Napalm Sky.
+These documents collectively constitute the entire agreement between you and BUMPIn.
 
 ---
 
 ## 2. ELIGIBILITY AND AGE REQUIREMENTS
 
 ### 2.1 Minimum Age
-You must be **at least 18 years of age** to use this Service. By using Napalm Sky, you represent and warrant that:
+You must be **at least 18 years of age** to use this Service. By using BUMPIn, you represent and warrant that:
 
 - You are at least 18 years old
 - You have the legal capacity to enter into these Terms
@@ -46,7 +46,7 @@ We reserve the right to request proof of age at any time. Failure to provide suc
 
 ## 3. SERVICE DESCRIPTION
 
-Napalm Sky is a speed-dating platform that provides:
+BUMPIn is a speed-dating platform that provides:
 
 - **User Profiles**: Upload of selfie photographs and introduction videos
 - **Real-Time Matchmaking**: Discovery of other users seeking connections
@@ -86,7 +86,7 @@ You may only maintain one (1) active account. Creating multiple accounts to evad
 ## 5. PAYMENT AND ACCESS VERIFICATION
 
 ### 5.1 One-Time Payment
-Access to Napalm Sky requires a **one-time payment of $0.50 USD** to verify account legitimacy and prevent bot activity.
+Access to BUMPIn requires a **one-time payment of $0.50 USD** to verify account legitimacy and prevent bot activity.
 
 ### 5.2 Alternative Access
 You may gain free access by:
@@ -121,7 +121,7 @@ To use the Service, you must provide:
 - **Introduction Video**: A video recording of yourself (5-60 seconds) taken via webcam with audio
 
 ### 6.2 Content Ownership
-You retain ownership of all content you upload. By uploading content, you grant Napalm Sky a **non-exclusive, worldwide, royalty-free license** to:
+You retain ownership of all content you upload. By uploading content, you grant BUMPIn a **non-exclusive, worldwide, royalty-free license** to:
 - Store and display your content on the platform
 - Show your content to other users for matchmaking purposes
 - Use your content for platform operation and improvement
@@ -306,10 +306,10 @@ You may request a copy of your data by contacting us at everything@napalmsky.com
 All aspects of the Service, including but not limited to:
 - Website design and layout
 - Source code and software
-- Napalm Sky name, logo, and branding
+- BUMPIn name, logo, and branding
 - Features and functionality
 
-...are owned by Napalm Sky and protected by copyright, trademark, and other intellectual property laws.
+...are owned by BUMPIn and protected by copyright, trademark, and other intellectual property laws.
 
 ### 14.2 Limited License
 We grant you a limited, non-exclusive, non-transferable, revocable license to access and use the Service for personal, non-commercial purposes.
@@ -400,7 +400,7 @@ Some jurisdictions do not allow limitation of liability, so these limitations ma
 
 ## 19. INDEMNIFICATION
 
-You agree to indemnify, defend, and hold harmless Napalm Sky, its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from:
+You agree to indemnify, defend, and hold harmless BUMPIn, its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from:
 - Your use of the Service
 - Your violation of these Terms
 - Your violation of any rights of another
@@ -471,7 +471,7 @@ Upon termination:
 ## 23. GENERAL PROVISIONS
 
 ### 23.1 Entire Agreement
-These Terms, together with the Privacy Policy and other incorporated documents, constitute the entire agreement between you and Napalm Sky.
+These Terms, together with the Privacy Policy and other incorporated documents, constitute the entire agreement between you and BUMPIn.
 
 ### 23.2 Severability
 If any provision is found unenforceable, the remaining provisions shall remain in full effect.
@@ -494,7 +494,7 @@ We are not liable for failures or delays due to circumstances beyond our reasona
 
 If you have questions about these Terms, please contact us:
 
-**Napalm Sky**  
+**BUMPIn**  
 Email: everything@napalmsky.com  
 Website: napalmsky.com  
 Address: 1506 Nolita, Los Angeles, CA 90026
@@ -516,5 +516,5 @@ BY CLICKING "I AGREE," CREATING AN ACCOUNT, OR USING THE SERVICE, YOU ACKNOWLEDG
 
 **Last Updated: October 16, 2025**
 
-© 2025 Napalm Sky. All rights reserved.
+© 2025 BUMPIn. All rights reserved.
 

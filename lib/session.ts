@@ -28,7 +28,7 @@
  * ```
  */
 
-const SESSION_KEY = 'napalmsky_session';
+const SESSION_KEY = 'bumpin_session';
 
 export interface SessionData {
   sessionToken: string;

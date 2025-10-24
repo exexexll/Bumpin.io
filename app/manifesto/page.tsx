@@ -155,7 +155,7 @@ export default function ManifestoPage() {
     <main id="main" className="relative min-h-screen bg-[#0a0a0c] overflow-hidden">
       {/* Top Right Spotlight Effect */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] z-0">
-        <div className="w-full h-full bg-gradient-radial from-[#ff9b6b]/15 via-[#ff9b6b]/5 to-transparent blur-3xl" />
+        <div className="w-full h-full bg-gradient-radial from-[#fbbf24]/15 via-[#fbbf24]/5 to-transparent blur-3xl" />
       </div>
 
       {/* Animated Slang Background - Full Page Coverage (Optimized for mobile) */}
@@ -409,7 +409,7 @@ export default function ManifestoPage() {
               ease: [0.22, 1, 0.36, 1],
             }}
             className="font-playfair text-4xl sm:text-5xl md:text-6xl lg:text-7xl 
-                       font-bold text-[#ff9b6b] leading-tight pt-2 sm:pt-3"
+                       font-bold text-[#fbbf24] leading-tight pt-2 sm:pt-3"
           >
             Meet People:
           </motion.h2>

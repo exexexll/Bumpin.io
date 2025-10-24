@@ -7,9 +7,9 @@
 
 ## INTRODUCTION
 
-This Privacy Policy describes how Napalm Sky ("we," "us," "our," or "the Service") collects, uses, stores, and shares your personal information when you use our speed-dating platform.
+This Privacy Policy describes how BUMPIn ("we," "us," "our," or "the Service") collects, uses, stores, and shares your personal information when you use our speed-dating platform.
 
-**By using Napalm Sky, you consent to the data practices described in this Privacy Policy.**
+**By using BUMPIn, you consent to the data practices described in this Privacy Policy.**
 
 **DISCLAIMER: This document is a template and does not constitute legal advice. This should be reviewed and customized by a licensed attorney licensed in your jurisdiction before use.**
 
@@ -211,7 +211,7 @@ We may disclose your information if required by law or in good faith belief that
 
 ### 4.5 Business Transfers
 
-If Napalm Sky is involved in a merger, acquisition, sale of assets, or bankruptcy, your information may be transferred. We will notify you of any change in ownership or use of your data.
+If BUMPIn is involved in a merger, acquisition, sale of assets, or bankruptcy, your information may be transferred. We will notify you of any change in ownership or use of your data.
 
 ### 4.6 With Your Consent
 
@@ -311,7 +311,7 @@ If you are in the EEA, you have the right to lodge a complaint with your local d
 ## 8. CHILDREN'S PRIVACY
 
 ### 8.1 Age Restriction
-Napalm Sky is **strictly for users 18 years of age and older.** We do not knowingly collect information from anyone under 18.
+BUMPIn is **strictly for users 18 years of age and older.** We do not knowingly collect information from anyone under 18.
 
 ### 8.2 COPPA Compliance
 We comply with the Children's Online Privacy Protection Act (COPPA). If we discover that a user is under 18, we will immediately:
@@ -408,7 +408,7 @@ If you are in the EEA, you have the rights described in Section 7, including:
 - Right to lodge a complaint
 
 ### 12.2 Data Controller
-Napalm Sky is the data controller for your personal information.
+BUMPIn is the data controller for your personal information.
 
 Contact: everything@napalmsky.com
 
@@ -443,7 +443,7 @@ Your continued use of the Service after changes constitutes acceptance of the up
 
 If you have questions, concerns, or requests regarding this Privacy Policy or your personal information:
 
-**Napalm Sky**  
+**BUMPIn**  
 Email: everything@napalmsky.com  
 Website: napalmsky.com  
 Address: 1506 Nolita, Los Angeles, CA 90026
@@ -486,11 +486,11 @@ For enterprise clients or users requiring a Data Processing Agreement (DPA), ple
 
 ## ACKNOWLEDGMENT
 
-By using Napalm Sky, you acknowledge that you have read and understand this Privacy Policy and agree to its terms.
+By using BUMPIn, you acknowledge that you have read and understand this Privacy Policy and agree to its terms.
 
 ---
 
 **Last Updated: October 16, 2025**
 
-© 2025 Napalm Sky. All rights reserved.
+© 2025 BUMPIn. All rights reserved.
 

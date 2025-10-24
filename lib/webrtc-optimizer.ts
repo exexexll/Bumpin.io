@@ -37,7 +37,7 @@ export async function shouldUseTurn(localCandidates: RTCIceCandidate[]): Promise
   const hasSrflx = localCandidates.some(c => c.type === 'srflx');
   
   // Check previous call success with STUN-only
-  const lastCallMethod = sessionStorage.getItem('napalmsky_last_call_method');
+  const lastCallMethod = sessionStorage.getItem('bumpin_last_call_method');
   const stunOnlySuccess = lastCallMethod === 'stun';
   
   // If STUN worked before and we have srflx candidates, try STUN first
@@ -55,7 +55,7 @@ export async function shouldUseTurn(localCandidates: RTCIceCandidate[]): Promise
  */
 export function trackCallSuccess(usedTurn: boolean): void {
   const method = usedTurn ? 'turn' : 'stun';
-  sessionStorage.setItem('napalmsky_last_call_method', method);
+  sessionStorage.setItem('bumpin_last_call_method', method);
   console.log('[Optimizer] Call succeeded with:', method);
 }
 

@@ -65,9 +65,9 @@ export default function SettingsPage() {
     if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
       // Clear local data
       clearSession();
-      localStorage.removeItem('napalmsky_history');
-      localStorage.removeItem('napalmsky_socials');
-      localStorage.removeItem('napalmsky_timer_total');
+      localStorage.removeItem('bumpin_history');
+      localStorage.removeItem('bumpin_socials');
+      localStorage.removeItem('bumpin_timer_total');
       
       // In production: call DELETE /user/me to clear server data
       router.push('/');
@@ -101,7 +101,7 @@ export default function SettingsPage() {
 
       // Update local session
       const updatedSession = { ...session, accountType: 'permanent' };
-      localStorage.setItem('napalmsky_session', JSON.stringify(updatedSession));
+      localStorage.setItem('bumpin_session', JSON.stringify(updatedSession));
       setSession(updatedSession);
       setShowMakePermanent(false);
       setEmail('');
@@ -341,7 +341,7 @@ export default function SettingsPage() {
                     const success = await clearLocation(session.sessionToken);
                     if (success) {
                       setLocationEnabled(false);
-                      localStorage.setItem('napalmsky_location_consent', 'false');
+                      localStorage.setItem('bumpin_location_consent', 'false');
                       alert('Location sharing disabled');
                     }
                     setLocationLoading(false);
@@ -359,10 +359,10 @@ export default function SettingsPage() {
                 <button
                   onClick={() => {
                     // Clear localStorage to allow modal to show again
-                    localStorage.removeItem('napalmsky_location_consent');
+                    localStorage.removeItem('bumpin_location_consent');
                     alert('Location permission reset. Open matchmaking to grant permission again.');
                   }}
-                  className="w-full rounded-xl bg-[#ff9b6b] px-4 py-2.5 text-sm font-medium text-[#0a0a0c] hover:opacity-90"
+                  className="w-full rounded-xl bg-[#fbbf24] px-4 py-2.5 text-sm font-medium text-[#0a0a0c] hover:opacity-90"
                 >
                   Enable Location Sharing
                 </button>
@@ -411,14 +411,14 @@ export default function SettingsPage() {
                 </h3>
                 <p className="mb-6 text-[#eaeaf0]/70">
                   This feature will be available in a future update. For now, please email{' '}
-                  <a href="mailto:support@napalmsky.app" className="text-[#ff9b6b] hover:underline">
-                    support@napalmsky.app
+                  <a href="mailto:support@bumpin.app" className="text-[#fbbf24] hover:underline">
+                    support@bumpin.app
                   </a>{' '}
                   to report a concern.
                 </p>
                 <button
                   onClick={() => setShowReportStub(false)}
-                  className="focus-ring w-full rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
+                  className="focus-ring w-full rounded-xl bg-[#fbbf24] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
                 >
                   Got it
                 </button>
@@ -446,7 +446,7 @@ export default function SettingsPage() {
                 </p>
                 <button
                   onClick={() => setShowBlockStub(false)}
-                  className="focus-ring w-full rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
+                  className="focus-ring w-full rounded-xl bg-[#fbbf24] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
                 >
                   Got it
                 </button>

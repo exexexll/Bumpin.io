@@ -84,7 +84,7 @@ router.post('/upload-file', requireAuth, (req: any, res) => {
         const isImage = /image\/(jpeg|jpg|png|gif)/.test(req.file.mimetype);
         
         const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'napalmsky/chat-files',
+          folder: 'bumpin/chat-files',
           resource_type: isImage ? 'image' : 'raw', // 'raw' for documents
         });
         

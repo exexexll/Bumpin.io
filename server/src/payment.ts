@@ -66,7 +66,7 @@ router.post('/create-checkout', requireAuth, async (req: any, res) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Napalm Sky Access',
+              name: 'BUMPIn Access',
               description: 'One-time payment for platform access + 4 friend invites',
             },
             unit_amount: PRICE_AMOUNT,
@@ -567,9 +567,9 @@ router.get('/qr/:code', async (req: any, res) => {
     const QRCode = await import('qrcode');
     
     // Generate QR code containing the signup URL with code
-    // Priority: FRONTEND_URL (env) > napalmsky.com (production default) > derived from request (dev)
+    // Priority: FRONTEND_URL (env) > bumpin.com (production default) > derived from request (dev)
     const frontendUrl = process.env.FRONTEND_URL || 
-                        (process.env.NODE_ENV === 'production' ? 'https://napalmsky.com' : null) ||
+                        (process.env.NODE_ENV === 'production' ? 'https://bumpin.com' : null) ||
                         (req.headers.origin || `${req.protocol}://${req.get('host')}`).replace(':3001', ':3000');
     const signupUrl = `${frontendUrl}/onboarding?inviteCode=${code}`;
     console.log(`[QR] Generating QR for URL: ${signupUrl}`);

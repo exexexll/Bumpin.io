@@ -151,7 +151,7 @@ router.post('/selfie', requireAuth, (req: any, res) => {
         // Upload to Cloudinary
         console.log('[Upload] Uploading selfie to Cloudinary...');
         const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'napalmsky/selfies',
+          folder: 'bumpin/selfies',
           resource_type: 'image',
           format: 'jpg',
           transformation: [
@@ -265,7 +265,7 @@ async function processVideoInBackground(
     
     // Upload to Cloudinary with optimized settings
     const result = await cloudinary.uploader.upload(localPath, {
-      folder: 'napalmsky/videos',
+      folder: 'bumpin/videos',
       resource_type: 'video',
       format: 'mp4',
       // OPTIMIZED: Faster processing with eager transformation
@@ -328,7 +328,7 @@ router.post('/upload-recording', requireAuth, (req: any, res) => {
         console.log('[Recording] Uploading to Cloudinary...');
         
         const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'napalmsky/recordings',
+          folder: 'bumpin/recordings',
           resource_type: 'video',
           format: 'webm',
         });

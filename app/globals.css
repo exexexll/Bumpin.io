@@ -6,7 +6,7 @@
   :root {
     --color-bg-base: #0a0a0c;
     --color-text-ink: #e6e6e9;
-    --color-accent: #ff9b6b;
+    --color-accent: #fbbf24;
   }
 
   html {
@@ -35,12 +35,12 @@
 
   /* Skip link styles */
   .skip-link {
-    @apply absolute left-4 top-4 z-[100] -translate-y-20 rounded-md bg-[#ff9b6b] px-4 py-2 text-sm font-medium text-[#0a0a0c] transition-transform focus:translate-y-0;
+    @apply absolute left-4 top-4 z-[100] -translate-y-20 rounded-md bg-[#fbbf24] px-4 py-2 text-sm font-medium text-[#0a0a0c] transition-transform focus:translate-y-0;
   }
 
   /* Focus ring utility */
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff9b6b] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0c];
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fbbf24] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0c];
   }
 }
 

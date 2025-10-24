@@ -82,7 +82,7 @@ export default function BlacklistPage() {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Image src="/logo.svg" alt="Napalm Sky" width={120} height={24} priority />
+              <Image src="/logo.svg" alt="BUMPIn" width={120} height={24} priority />
               <span className="text-[#eaeaf0]/50">|</span>
               <h1 className="font-playfair text-2xl font-bold text-[#eaeaf0]">
                 Blacklist
@@ -118,7 +118,7 @@ export default function BlacklistPage() {
             </h2>
             
             <p className="mx-auto max-w-2xl text-lg text-[#eaeaf0]/70">
-              This is a public record of users who have been permanently banned from Napalm Sky due to
+              This is a public record of users who have been permanently banned from BUMPIn due to
               multiple reports of inappropriate behavior. This blacklist exists to maintain community safety
               and enforce real-world consequences for malicious actors.
             </p>
@@ -148,7 +148,7 @@ export default function BlacklistPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name..."
-            className="w-full rounded-xl bg-white/10 px-6 py-4 text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+            className="w-full rounded-xl bg-white/10 px-6 py-4 text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
           />
         </div>
 
@@ -229,7 +229,7 @@ export default function BlacklistPage() {
       <footer className="border-t border-white/10 bg-black/40 py-12">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
           <p className="text-sm text-[#eaeaf0]/50">
-            This blacklist is maintained by Napalm Sky to ensure community safety.
+            This blacklist is maintained by BUMPIn to ensure community safety.
             All bans are reviewed by administrators before being made permanent.
           </p>
           <p className="mt-2 text-xs text-[#eaeaf0]/30">
@@ -238,9 +238,9 @@ export default function BlacklistPage() {
           <div className="mt-6">
             <Link
               href="/"
-              className="text-sm font-medium text-[#ff9b6b] hover:text-[#ff9b6b]/80"
+              className="text-sm font-medium text-[#fbbf24] hover:text-[#fbbf24]/80"
             >
-              Return to Napalm Sky
+              Return to BUMPIn
             </Link>
           </div>
         </div>

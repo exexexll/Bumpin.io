@@ -3,7 +3,7 @@
  * 
  * Special layout for blacklist page to:
  * 1. Hide the global Header component
- * 2. Use standalone design for napalmskyblacklist.com
+ * 2. Use standalone design for bumpinblacklist.com
  * 3. Provide clean, public-facing interface
  */
 

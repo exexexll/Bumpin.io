@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
       const data = await res.json();
       
       // Store admin session
-      localStorage.setItem('napalmsky_admin_token', data.adminToken);
+      localStorage.setItem('bumpin_admin_token', data.adminToken);
       
       // Redirect to admin panel
       router.push('/admin');
@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full rounded-xl bg-white/10 px-4 py-3 text-[#eaeaf0] placeholder-[#eaeaf0]/30 focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+                  className="w-full rounded-xl bg-white/10 px-4 py-3 text-[#eaeaf0] placeholder-[#eaeaf0]/30 focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
                   placeholder="Enter username"
                   required
                   autoComplete="username"
@@ -82,7 +82,7 @@ export default function AdminLoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl bg-white/10 px-4 py-3 text-[#eaeaf0] placeholder-[#eaeaf0]/30 focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+                  className="w-full rounded-xl bg-white/10 px-4 py-3 text-[#eaeaf0] placeholder-[#eaeaf0]/30 focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
                   placeholder="Enter password"
                   required
                   autoComplete="current-password"
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-xl bg-[#ff9b6b] px-6 py-3 font-semibold text-[#0a0a0c] transition-all hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-xl bg-[#fbbf24] px-6 py-3 font-semibold text-[#0a0a0c] transition-all hover:opacity-90 disabled:opacity-50"
               >
                 {loading ? 'Verifying...' : 'Login'}
               </button>

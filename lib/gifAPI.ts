@@ -5,7 +5,7 @@
  */
 
 const TENOR_API_KEY = process.env.NEXT_PUBLIC_TENOR_API_KEY || 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ'; // Public API key
-const CLIENT_KEY = 'napalmsky';
+const CLIENT_KEY = 'bumpin';
 
 export interface TenorGIF {
   id: string;

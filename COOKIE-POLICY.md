@@ -7,9 +7,9 @@
 
 ## INTRODUCTION
 
-This Cookie Policy explains how Napalm Sky ("we," "us," or "our") uses cookies and similar tracking technologies on our website and platform.
+This Cookie Policy explains how BUMPIn ("we," "us," or "our") uses cookies and similar tracking technologies on our website and platform.
 
-By using Napalm Sky, you consent to the use of cookies as described in this policy.
+By using BUMPIn, you consent to the use of cookies as described in this policy.
 
 ---
 
@@ -96,7 +96,7 @@ We do **NOT** use:
 ## 4. HOW COOKIES WORK ON NAPALM SKY
 
 ### 4.1 First-Time Visit
-When you first visit Napalm Sky:
+When you first visit BUMPIn:
 1. No cookies are set until you take an action (e.g., create account)
 2. You may see a cookie consent banner (where required by law)
 3. Essential cookies are set when you create an account
@@ -186,7 +186,7 @@ You can opt out of analytics tracking by:
 
 ### 6.4 Clearing Cookies
 
-You can clear all Napalm Sky cookies and data by:
+You can clear all BUMPIn cookies and data by:
 1. Using your browser's "Clear browsing data" feature
 2. Selecting "Cookies and other site data"
 3. Choosing the appropriate time range
@@ -284,7 +284,7 @@ We do not knowingly collect information from anyone under 18. If we discover coo
 
 If you have questions about our use of cookies:
 
-**Napalm Sky**  
+**BUMPIn**  
 Email: everything@napalmsky.com  
 Website: napalmsky.com  
 Subject Line: "Cookie Policy Question"
@@ -340,5 +340,5 @@ However, you can control cookies through your browser settings as described in S
 
 **Last Updated: October 16, 2025**
 
-© 2025 Napalm Sky. All rights reserved.
+© 2025 BUMPIn. All rights reserved.
 

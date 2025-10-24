@@ -47,7 +47,7 @@ export default function TrackerPage() {
           .catch(err => {
             console.error('[Tracker] Failed to load from server:', err);
             // Fallback to localStorage for backward compatibility
-            const saved = localStorage.getItem('napalmsky_timer_total');
+            const saved = localStorage.getItem('bumpin_timer_total');
             setTotalSeconds(saved ? parseInt(saved, 10) : 0);
           })
           .finally(() => setLoading(false));

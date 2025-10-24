@@ -1,4 +1,4 @@
-# Napalm Sky - Complete Project Documentation
+# BUMPIn - Complete Project Documentation
 
 **Last Updated**: October 24, 2025  
 **Version**: 2.0  
@@ -8,7 +8,7 @@
 
 ## 🎯 PROJECT OVERVIEW
 
-Napalm Sky is a 1-1 video social network featuring:
+BUMPIn is a 1-1 video social network featuring:
 - Real-time video chat with WebRTC
 - Text-only chat mode with unlimited duration  
 - Intelligent matchmaking

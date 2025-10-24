@@ -46,7 +46,7 @@ export default function SocialsPage() {
       .catch(err => {
         console.error('[Socials] Failed to load from server:', err);
         // Fallback to localStorage for backward compatibility
-        const savedSocials = localStorage.getItem('napalmsky_socials');
+        const savedSocials = localStorage.getItem('bumpin_socials');
         if (savedSocials) {
           try {
             const parsed = JSON.parse(savedSocials);
@@ -92,7 +92,7 @@ export default function SocialsPage() {
       await updateUserSocials(session.sessionToken, normalized);
       
       // Save to localStorage for quick access
-      localStorage.setItem('napalmsky_socials', JSON.stringify(normalized));
+      localStorage.setItem('bumpin_socials', JSON.stringify(normalized));
       
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -155,7 +155,7 @@ export default function SocialsPage() {
                       type="text"
                       value={socials[platform.key] || ''}
                       onChange={(e) => handleChange(platform.key, e.target.value)}
-                      className="w-full rounded-xl bg-white/10 px-4 py-3 text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+                      className="w-full rounded-xl bg-white/10 px-4 py-3 text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
                       placeholder={platform.placeholder}
                     />
                     {normalizedPreviews[platform.key] && (
@@ -177,7 +177,7 @@ export default function SocialsPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="focus-ring w-full rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="focus-ring w-full rounded-xl bg-[#fbbf24] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save preset links'}
             </button>

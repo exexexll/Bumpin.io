@@ -364,7 +364,7 @@ app.use('/admin', authLimiter, createEventAdminRoutes(io));
 // Root endpoint - API information
 app.get('/', (req, res) => {
   res.json({
-    name: 'Napalm Sky API',
+    name: 'BUMPIn API',
     version: '1.0.0',
     status: 'running',
     timestamp: Date.now(),
@@ -381,7 +381,7 @@ app.get('/', (req, res) => {
       postgresql: process.env.DATABASE_URL ? 'connected' : 'not configured',
       redis: process.env.REDIS_URL ? 'connected' : 'not configured',
     },
-    message: 'Napalm Sky Backend API - For frontend integration only'
+    message: 'BUMPIn Backend API - For frontend integration only'
   });
 });
 

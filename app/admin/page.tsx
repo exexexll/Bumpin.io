@@ -72,7 +72,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     // Check for admin authentication
-    const adminToken = localStorage.getItem('napalmsky_admin_token');
+    const adminToken = localStorage.getItem('bumpin_admin_token');
     
     if (!adminToken) {
       // No admin token, redirect to admin login
@@ -106,7 +106,7 @@ export default function AdminPage() {
         
         // Wait 2 seconds then redirect to login
         setTimeout(() => {
-          localStorage.removeItem('napalmsky_admin_token');
+          localStorage.removeItem('bumpin_admin_token');
           router.push('/admin-login');
         }, 2000);
       });
@@ -115,7 +115,7 @@ export default function AdminPage() {
 
   const loadData = async () => {
     // Use admin token for all admin API calls
-    const adminToken = localStorage.getItem('napalmsky_admin_token');
+    const adminToken = localStorage.getItem('bumpin_admin_token');
 
     if (!adminToken) {
       router.push('/admin-login');
@@ -179,7 +179,7 @@ export default function AdminPage() {
   };
 
   const handleGenerateQRCode = async () => {
-    const adminToken = localStorage.getItem('napalmsky_admin_token');
+    const adminToken = localStorage.getItem('bumpin_admin_token');
     if (!adminToken || !qrLabel.trim()) return;
 
     setGeneratingQR(true);
@@ -214,7 +214,7 @@ export default function AdminPage() {
   };
 
   const handleDeactivateCode = async (code: string) => {
-    const adminToken = localStorage.getItem('napalmsky_admin_token');
+    const adminToken = localStorage.getItem('bumpin_admin_token');
     if (!adminToken) return;
 
     if (!confirm(`Deactivate code ${code}?`)) return;
@@ -237,7 +237,7 @@ export default function AdminPage() {
   };
 
   const handleReview = async (userId: string, decision: 'permanent' | 'vindicated') => {
-    const adminToken = localStorage.getItem('napalmsky_admin_token');
+    const adminToken = localStorage.getItem('bumpin_admin_token');
     if (!adminToken) return;
 
     try {
@@ -270,7 +270,7 @@ export default function AdminPage() {
 
   const handleSaveEventSettings = async () => {
     // FIXED: Use admin token for admin API calls
-    const adminToken = localStorage.getItem('napalmsky_admin_token');
+    const adminToken = localStorage.getItem('bumpin_admin_token');
     if (!adminToken) return;
 
     try {
@@ -392,7 +392,7 @@ export default function AdminPage() {
           onClick={() => setActiveTab('pending')}
           className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
             activeTab === 'pending'
-              ? 'border-b-2 border-[#ff9b6b] text-[#ff9b6b]'
+              ? 'border-b-2 border-[#fbbf24] text-[#fbbf24]'
               : 'text-[#eaeaf0]/50 hover:text-[#eaeaf0]/70'
           }`}
         >
@@ -402,7 +402,7 @@ export default function AdminPage() {
           onClick={() => setActiveTab('reports')}
           className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
             activeTab === 'reports'
-              ? 'border-b-2 border-[#ff9b6b] text-[#ff9b6b]'
+              ? 'border-b-2 border-[#fbbf24] text-[#fbbf24]'
               : 'text-[#eaeaf0]/50 hover:text-[#eaeaf0]/70'
           }`}
         >
@@ -412,7 +412,7 @@ export default function AdminPage() {
           onClick={() => setActiveTab('qrcodes')}
           className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
             activeTab === 'qrcodes'
-              ? 'border-b-2 border-[#ff9b6b] text-[#ff9b6b]'
+              ? 'border-b-2 border-[#fbbf24] text-[#fbbf24]'
               : 'text-[#eaeaf0]/50 hover:text-[#eaeaf0]/70'
           }`}
         >
@@ -422,7 +422,7 @@ export default function AdminPage() {
           onClick={() => setActiveTab('event')}
           className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
             activeTab === 'event'
-              ? 'border-b-2 border-[#ff9b6b] text-[#ff9b6b]'
+              ? 'border-b-2 border-[#fbbf24] text-[#fbbf24]'
               : 'text-[#eaeaf0]/50 hover:text-[#eaeaf0]/70'
           }`}
         >
@@ -669,10 +669,10 @@ export default function AdminPage() {
       {activeTab === 'event' && (
         <div className="space-y-6">
           {/* Event Mode Toggle */}
-          <div className="rounded-xl bg-gradient-to-r from-[#ff9b6b]/10 to-[#ff7a45]/10 border border-[#ff9b6b]/30 p-6">
+          <div className="rounded-xl bg-gradient-to-r from-[#fbbf24]/10 to-[#ff7a45]/10 border border-[#fbbf24]/30 p-6">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-xl font-bold text-[#ff9b6b] mb-2">
+                <h3 className="text-xl font-bold text-[#fbbf24] mb-2">
                   Event Mode {eventModeEnabled ? 'ON' : 'OFF'}
                 </h3>
                 <p className="text-sm text-[#eaeaf0]/70 mb-4">
@@ -684,7 +684,7 @@ export default function AdminPage() {
               <button
                 onClick={() => setEventModeEnabled(!eventModeEnabled)}
                 className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                  eventModeEnabled ? 'bg-[#ff9b6b]' : 'bg-white/20'
+                  eventModeEnabled ? 'bg-[#fbbf24]' : 'bg-white/20'
                 }`}
               >
                 <span
@@ -711,7 +711,7 @@ export default function AdminPage() {
                   value={eventStartTime.substring(0, 5)}
                   onChange={(e) => setEventStartTime(`${e.target.value}:00`)}
                   step="1800"
-                  className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[#eaeaf0] focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+                  className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[#eaeaf0] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
                 />
               </div>
 
@@ -725,7 +725,7 @@ export default function AdminPage() {
                   value={eventEndTime.substring(0, 5)}
                   onChange={(e) => setEventEndTime(`${e.target.value}:00`)}
                   step="1800"
-                  className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[#eaeaf0] focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+                  className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[#eaeaf0] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
                 />
               </div>
             </div>
@@ -738,7 +738,7 @@ export default function AdminPage() {
               <select
                 value={eventTimezone}
                 onChange={(e) => setEventTimezone(e.target.value)}
-                className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[#eaeaf0] focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+                className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[#eaeaf0] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
               >
                 <option value="America/Los_Angeles">Pacific (PST/PDT)</option>
                 <option value="America/Denver">Mountain (MST/MDT)</option>
@@ -767,7 +767,7 @@ export default function AdminPage() {
                     onClick={() => toggleEventDay(day)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       eventDays.includes(day)
-                        ? 'bg-[#ff9b6b] text-[#0a0a0c]'
+                        ? 'bg-[#fbbf24] text-[#0a0a0c]'
                         : 'bg-white/10 text-[#eaeaf0] hover:bg-white/20'
                     }`}
                   >
@@ -798,7 +798,7 @@ export default function AdminPage() {
                 onChange={(e) => setEventTitle(e.target.value)}
                 placeholder="Event Mode Active"
                 maxLength={50}
-                className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[#eaeaf0] placeholder-[#eaeaf0]/40 focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+                className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[#eaeaf0] placeholder-[#eaeaf0]/40 focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
               />
               <p className="mt-1.5 text-xs text-[#eaeaf0]/50">
                 Main heading shown on the event wait page
@@ -816,7 +816,7 @@ export default function AdminPage() {
                 onChange={(e) => setEventBannerText(e.target.value)}
                 placeholder="Event Mode"
                 maxLength={30}
-                className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[#eaeaf0] placeholder-[#eaeaf0]/40 focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+                className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-[#eaeaf0] placeholder-[#eaeaf0]/40 focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
               />
               <p className="mt-1.5 text-xs text-[#eaeaf0]/50">
                 Text shown in the orange notification banner (top-right corner)
@@ -830,7 +830,7 @@ export default function AdminPage() {
               <h3 className="text-lg font-bold text-[#eaeaf0] mb-3">
                 Today&apos;s RSVPs
               </h3>
-              <p className="text-3xl font-bold text-[#ff9b6b] mb-2">
+              <p className="text-3xl font-bold text-[#fbbf24] mb-2">
                 {todayAttendance.totalRSVPs}
               </p>
               <p className="text-sm text-[#eaeaf0]/70">
@@ -844,7 +844,7 @@ export default function AdminPage() {
             <button
               onClick={handleSaveEventSettings}
               disabled={savingEvent}
-              className="rounded-xl bg-[#ff9b6b] px-8 py-3 font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="rounded-xl bg-[#fbbf24] px-8 py-3 font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {savingEvent ? 'Saving...' : 'Save Event Settings'}
             </button>

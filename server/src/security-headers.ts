@@ -31,7 +31,7 @@ export function securityHeaders(req: express.Request, res: express.Response, nex
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' https://api.napalmsky.com wss://api.napalmsky.com https://*.cloudflare.com https://*.railway.app wss://*.railway.app",
+    "connect-src 'self' https://api.bumpin.com wss://api.bumpin.com https://*.cloudflare.com https://*.railway.app wss://*.railway.app",
     "frame-src https://js.stripe.com https://checkout.stripe.com",
     "media-src 'self' blob: https:",
     "object-src 'none'",

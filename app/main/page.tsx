@@ -164,7 +164,7 @@ function MainPageContent() {
           {/* Header - Hidden when matchmaking */}
           <div className={`text-center transition-opacity duration-300 ${showMatchmake ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             <h1 className="font-playfair text-6xl font-bold text-white sm:text-7xl lg:text-8xl drop-shadow-lg">
-              Napalm Sky
+              BUMPIn
             </h1>
           </div>
 

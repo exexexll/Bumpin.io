@@ -61,7 +61,7 @@ export default function HistoryPage() {
           .catch(err => {
             console.error('[History] Failed to load from server:', err);
             // Fallback to localStorage for backward compatibility
-            const saved = localStorage.getItem('napalmsky_history');
+            const saved = localStorage.getItem('bumpin_history');
             if (saved) {
               try {
                 setHistory(JSON.parse(saved));
@@ -152,7 +152,7 @@ export default function HistoryPage() {
                           key={i}
                           className={`rounded-lg p-3 text-sm ${
                             msg.from === getSession()?.userId
-                              ? 'bg-[#ff9b6b]/20 text-[#eaeaf0]'
+                              ? 'bg-[#fbbf24]/20 text-[#eaeaf0]'
                               : 'bg-white/10 text-[#eaeaf0]/90'
                           }`}
                         >

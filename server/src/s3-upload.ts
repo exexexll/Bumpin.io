@@ -18,7 +18,7 @@ const s3Client = new S3Client({
   } : undefined,
 });
 
-const BUCKET_NAME = process.env.AWS_S3_BUCKET || 'napalmsky-media-prod';
+const BUCKET_NAME = process.env.AWS_S3_BUCKET || 'bumpin-media-prod';
 const CDN_BASE_URL = process.env.CDN_BASE_URL || `https://${BUCKET_NAME}.s3.amazonaws.com`;
 
 /**

@@ -192,7 +192,7 @@ function PaywallPageContent() {
           >
             <div>
               <h1 className="font-playfair text-4xl font-bold text-[#eaeaf0] mb-2">
-                Welcome to Napalm Sky
+                Welcome to BUMPIn
               </h1>
               <p className="text-[#eaeaf0]/60">
                 One-time $0.50 payment • Keeps bots out
@@ -221,7 +221,7 @@ function PaywallPageContent() {
             <button
               onClick={handlePayment}
               disabled={loading}
-              className="focus-ring w-full rounded-xl bg-[#ff9b6b] px-6 py-4 font-semibold text-[#0a0a0c] transition-all hover:opacity-90 disabled:opacity-50"
+              className="focus-ring w-full rounded-xl bg-[#fbbf24] px-6 py-4 font-semibold text-[#0a0a0c] transition-all hover:opacity-90 disabled:opacity-50"
             >
               {loading ? 'Processing...' : 'Pay $0.50 & Continue'}
             </button>

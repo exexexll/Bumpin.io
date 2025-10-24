@@ -14,11 +14,11 @@ export default function HomePage() {
           <Container>
             <div className="mx-auto max-w-3xl">
               <h2 className="mb-6 font-playfair text-3xl font-bold tracking-tight sm:text-4xl">
-                What is Napalm Sky?
+                What is BUMPIn?
               </h2>
               <div className="space-y-4 text-base leading-relaxed text-[#e6e6e9]/90 sm:text-lg">
                 <p>
-                  Napalm Sky is a 1-1 Video Social Network built for authentic human connection in an age of endless swiping. Every call lasts up to 500 seconds—no more, no less. When the time runs out, the conversation ends, and you decide if you want to connect again.
+                  BUMPIn is a 1-1 Video Social Network built for authentic human connection in an age of endless swiping. Every call lasts up to 500 seconds—no more, no less. When the time runs out, the conversation ends, and you decide if you want to connect again.
                 </p>
                 <p>
                   No profiles to curate. No photos to judge. Just two people, 500 seconds, and a chance to see if something real can happen. Genuine connection shouldn&apos;t require a perfect bio.
@@ -30,7 +30,7 @@ export default function HomePage() {
                 </Button>
                 <Link 
                   href="/login"
-                  className="text-sm font-medium text-[#eaeaf0]/70 hover:text-[#ff9b6b] transition-colors"
+                  className="text-sm font-medium text-[#eaeaf0]/70 hover:text-[#fbbf24] transition-colors"
                 >
                   Already have an account? Login
                 </Link>
@@ -57,7 +57,7 @@ export default function HomePage() {
               <span className="text-[#e6e6e9]/30">•</span>
               <Link 
                 href="/manifesto"
-                className="text-[#e6e6e9]/50 transition-colors hover:text-[#ff9b6b]"
+                className="text-[#e6e6e9]/50 transition-colors hover:text-[#fbbf24]"
               >
                 Meet Who and Do What?
               </Link>

@@ -7,9 +7,9 @@
 
 ## WELCOME TO NAPALM SKY
 
-Napalm Sky is a community built on genuine human connection. These Community Guidelines help create a safe, respectful, and enjoyable environment for everyone seeking meaningful interactions.
+BUMPIn is a community built on genuine human connection. These Community Guidelines help create a safe, respectful, and enjoyable environment for everyone seeking meaningful interactions.
 
-**By using Napalm Sky, you agree to follow these guidelines.**
+**By using BUMPIn, you agree to follow these guidelines.**
 
 ---
 
@@ -17,7 +17,7 @@ Napalm Sky is a community built on genuine human connection. These Community Gui
 
 > "For hopeless romantics who believe genuine connection shouldn't require a perfect bio."
 
-We created Napalm Sky to help people make authentic connections through face-to-face video conversations, skipping the superficiality of text-based dating apps.
+We created BUMPIn to help people make authentic connections through face-to-face video conversations, skipping the superficiality of text-based dating apps.
 
 ---
 
@@ -44,7 +44,7 @@ You'll meet people from diverse backgrounds. Embrace the opportunity to learn.
 
 **Treat others as you would want to be treated.**
 
-Every person on Napalm Sky is seeking connection, just like you. Show them the same respect and consideration you'd hope to receive.
+Every person on BUMPIn is seeking connection, just like you. Show them the same respect and consideration you'd hope to receive.
 
 ---
 
@@ -229,7 +229,7 @@ Every person on Napalm Sky is seeking connection, just like you. Show them the s
 
 ### We Welcome Everyone
 
-Napalm Sky users come from all backgrounds, including diverse:
+BUMPIn users come from all backgrounds, including diverse:
 - Races and ethnicities
 - Religions and spiritual beliefs
 - Gender identities and expressions
@@ -340,7 +340,7 @@ Users who are permanently banned for:
 - **Deterrence:** Knowing bans are public discourages violations
 - **Safety:** Warns others about problematic individuals
 
-**By using Napalm Sky, you consent to potential blacklist disclosure if permanently banned.**
+**By using BUMPIn, you consent to potential blacklist disclosure if permanently banned.**
 
 ---
 
@@ -409,7 +409,7 @@ This is for your safety. Please leave immediately.
 
 ## YOUR ROLE IN OUR COMMUNITY
 
-Every user shapes the Napalm Sky community. **You have the power to:**
+Every user shapes the BUMPIn community. **You have the power to:**
 
 ✨ **Make someone's day** with a genuine compliment  
 ✨ **Help someone feel comfortable** if they're nervous  
@@ -474,7 +474,7 @@ We may update these guidelines to reflect community needs and platform changes.
 
 ## FINAL THOUGHTS
 
-Napalm Sky is what we make it together. These guidelines exist to create a space where everyone feels respected, safe, and excited to make genuine connections.
+BUMPIn is what we make it together. These guidelines exist to create a space where everyone feels respected, safe, and excited to make genuine connections.
 
 **Thank you for being part of our community.**
 
@@ -484,7 +484,7 @@ Napalm Sky is what we make it together. These guidelines exist to create a space
 
 Questions about these guidelines?
 
-**Napalm Sky Community Team**  
+**BUMPIn Community Team**  
 Email: everything@napalmsky.com  
 Website: napalmsky.com
 
@@ -492,7 +492,7 @@ Website: napalmsky.com
 
 ## ACKNOWLEDGMENT
 
-By using Napalm Sky, you acknowledge that you have read and agree to follow these Community Guidelines.
+By using BUMPIn, you acknowledge that you have read and agree to follow these Community Guidelines.
 
 ---
 
@@ -502,5 +502,5 @@ By using Napalm Sky, you acknowledge that you have read and agree to follow thes
 
 **Last Updated: October 16, 2025**
 
-© 2025 Napalm Sky. All rights reserved.
+© 2025 BUMPIn. All rights reserved.
 

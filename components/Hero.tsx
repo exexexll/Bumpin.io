@@ -123,7 +123,7 @@ export function Hero() {
         >
           {/* H1 */}
           <h1 className="mb-4 font-playfair text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
-            Napalm Sky
+            BUMPIn
           </h1>
 
           {/* Subtitle */}
@@ -136,14 +136,14 @@ export function Hero() {
             {checkingSession ? (
               <button
                 disabled
-                className="rounded-xl bg-[#ff9b6b]/50 px-8 py-3 font-medium text-[#0a0a0c] cursor-wait"
+                className="rounded-xl bg-[#fbbf24]/50 px-8 py-3 font-medium text-[#0a0a0c] cursor-wait"
               >
                 Loading...
               </button>
             ) : (
               <button
                 onClick={handleConnect}
-                className="rounded-xl bg-[#ff9b6b] px-8 py-3 font-medium text-[#0a0a0c] shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 focus-ring"
+                className="rounded-xl bg-[#fbbf24] px-8 py-3 font-medium text-[#0a0a0c] shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 focus-ring"
               >
                 {isVerified ? 'Continue to App' : 'Start connecting'}
               </button>
@@ -159,7 +159,7 @@ export function Hero() {
               Already have an account?{' '}
               <Link 
                 href="/login"
-                className="font-medium text-[#ff9b6b] hover:underline focus-ring rounded"
+                className="font-medium text-[#fbbf24] hover:underline focus-ring rounded"
               >
                 Login
               </Link>

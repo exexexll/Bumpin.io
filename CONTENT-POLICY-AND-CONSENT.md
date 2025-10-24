@@ -7,7 +7,7 @@
 
 ## PURPOSE
 
-This Content Policy and Consent Agreement governs the creation, upload, display, and use of all content on Napalm Sky, with special emphasis on video and webcam content. This document ensures you understand and consent to how your content will be used and what content is acceptable.
+This Content Policy and Consent Agreement governs the creation, upload, display, and use of all content on BUMPIn, with special emphasis on video and webcam content. This document ensures you understand and consent to how your content will be used and what content is acceptable.
 
 **BY UPLOADING CONTENT OR USING VIDEO FEATURES, YOU AGREE TO THE TERMS IN THIS DOCUMENT.**
 
@@ -47,7 +47,7 @@ We automatically generate and store:
 
 ### 2.1 Camera and Microphone Access
 
-**When you use Napalm Sky, you grant permission to:**
+**When you use BUMPIn, you grant permission to:**
 - Access your device's camera for selfie capture, video recording, and video chat
 - Access your device's microphone for video recording and video chat
 - Capture still images via your camera
@@ -103,7 +103,7 @@ Your camera and microphone are **OFF** when:
 
 ### 3.2 License You Grant Us
 
-By uploading content, you grant Napalm Sky a **non-exclusive, worldwide, royalty-free, sublicensable, transferable license** to:
+By uploading content, you grant BUMPIn a **non-exclusive, worldwide, royalty-free, sublicensable, transferable license** to:
 
 **Use your content to:**
 - Store on our servers and cloud storage
@@ -135,7 +135,7 @@ By uploading content, you grant Napalm Sky a **non-exclusive, worldwide, royalty
 - Your introduction video
 - Ban reason and report count
 
-**By using Napalm Sky, you explicitly consent to this potential public disclosure.**
+**By using BUMPIn, you explicitly consent to this potential public disclosure.**
 
 This serves the purpose of:
 - Community transparency
@@ -491,9 +491,9 @@ Settings → Account → Delete Account
 **I understand and consent that:**
 - ✓ My selfie and video will be shown to all users in matchmaking
 - ✓ Other users can view my profile content
-- ✓ My content will be stored on Napalm Sky's servers
+- ✓ My content will be stored on BUMPIn's servers
 - ✓ I am comfortable with other users seeing this content
-- ✓ I grant Napalm Sky the license described in Section 3.2
+- ✓ I grant BUMPIn the license described in Section 3.2
 
 ### 10.2 Video Chat Consent
 
@@ -518,7 +518,7 @@ Settings → Account → Delete Account
 - ✓ My content may be reviewed by moderators
 - ✓ Content violating policies may be removed without notice
 - ✓ Violations may result in account suspension or ban
-- ✓ Napalm Sky has sole discretion over content decisions
+- ✓ BUMPIn has sole discretion over content decisions
 
 ---
 
@@ -684,11 +684,11 @@ Include:
 
 ---
 
-**Thank you for helping keep Napalm Sky safe, respectful, and genuine.**
+**Thank you for helping keep BUMPIn safe, respectful, and genuine.**
 
 ---
 
 **Last Updated: October 16, 2025**
 
-© 2025 Napalm Sky. All rights reserved.
+© 2025 BUMPIn. All rights reserved.
 

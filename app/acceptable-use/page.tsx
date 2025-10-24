@@ -5,8 +5,8 @@ import { remark } from 'remark';
 import html from 'remark-html';
 
 export const metadata = {
-  title: 'Acceptable Use Policy - Napalm Sky',
-  description: 'Acceptable Use Policy for Napalm Sky 1-1 Video Social Network',
+  title: 'Acceptable Use Policy - BUMPIn',
+  description: 'Acceptable Use Policy for BUMPIn 1-1 Video Social Network',
 };
 
 async function getAUPContent() {
@@ -29,7 +29,7 @@ export default async function AcceptableUsePage() {
         <article 
           className="prose prose-invert prose-sm sm:prose-base max-w-4xl mx-auto
                      prose-headings:text-[#eaeaf0] prose-p:text-[#eaeaf0]/80
-                     prose-a:text-[#ff9b6b] prose-a:no-underline hover:prose-a:underline
+                     prose-a:text-[#fbbf24] prose-a:no-underline hover:prose-a:underline
                      prose-strong:text-[#eaeaf0] prose-ul:text-[#eaeaf0]/80
                      prose-ol:text-[#eaeaf0]/80 prose-li:text-[#eaeaf0]/80"
           dangerouslySetInnerHTML={{ __html: content }}

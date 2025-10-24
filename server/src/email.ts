@@ -1,7 +1,7 @@
 import sgMail from '@sendgrid/mail';
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@napalmsky.com';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@bumpin.com';
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -24,7 +24,7 @@ export async function sendVerificationEmail(
     await sgMail.send({
       to: email,
       from: FROM_EMAIL,
-      subject: 'Verify your Napalm Sky account',
+      subject: 'Verify your BUMPIn account',
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
           <h1 style="color:#ff9b6b;text-align:center;">Verify Your Email</h1>

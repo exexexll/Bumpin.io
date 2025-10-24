@@ -92,7 +92,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
 
   // Load rate limit state from sessionStorage on mount (survives overlay close/open)
   useEffect(() => {
-    const savedLimit = sessionStorage.getItem('napalmsky_rate_limit');
+    const savedLimit = sessionStorage.getItem('bumpin_rate_limit');
     if (savedLimit) {
       const { expiry, viewedIds } = JSON.parse(savedLimit);
       if (Date.now() < expiry) {
@@ -100,7 +100,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         setViewedUserIds(new Set(viewedIds));
         console.log('[RateLimit] Restored active rate limit from session');
       } else {
-        sessionStorage.removeItem('napalmsky_rate_limit');
+        sessionStorage.removeItem('bumpin_rate_limit');
       }
     }
   }, []);
@@ -123,21 +123,21 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     });
     
     // Get timestamps from sessionStorage
-    const stored = sessionStorage.getItem('napalmsky_nav_timestamps');
+    const stored = sessionStorage.getItem('bumpin_nav_timestamps');
     let timestamps: number[] = stored ? JSON.parse(stored) : [];
     timestamps.push(now);
     
     // Keep only last 30 seconds
     const thirtySecondsAgo = now - 30000;
     timestamps = timestamps.filter(ts => ts > thirtySecondsAgo);
-    sessionStorage.setItem('napalmsky_nav_timestamps', JSON.stringify(timestamps));
+    sessionStorage.setItem('bumpin_nav_timestamps', JSON.stringify(timestamps));
     
     // Check if 10+ NEW card views in 30 seconds
     if (timestamps.length >= 10) {
       const cooldownEnd = now + 180000;
       setIsRateLimited(true);
       
-      sessionStorage.setItem('napalmsky_rate_limit', JSON.stringify({
+      sessionStorage.setItem('bumpin_rate_limit', JSON.stringify({
         expiry: cooldownEnd,
         viewedIds: Array.from(viewedUserIds),
       }));
@@ -146,8 +146,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       
       setTimeout(() => {
         setIsRateLimited(false);
-        sessionStorage.removeItem('napalmsky_rate_limit');
-        sessionStorage.removeItem('napalmsky_nav_timestamps');
+        sessionStorage.removeItem('bumpin_rate_limit');
+        sessionStorage.removeItem('bumpin_nav_timestamps');
         showToast('Cooldown ended! Explore new cards again.', 'info');
       }, 180000);
     }
@@ -156,13 +156,13 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
   // Check if rate limit expired (on mount and interval)
   useEffect(() => {
     const checkExpiry = () => {
-      const savedLimit = sessionStorage.getItem('napalmsky_rate_limit');
+      const savedLimit = sessionStorage.getItem('bumpin_rate_limit');
       if (savedLimit) {
         const { expiry } = JSON.parse(savedLimit);
         if (Date.now() >= expiry) {
           setIsRateLimited(false);
-          sessionStorage.removeItem('napalmsky_rate_limit');
-          sessionStorage.removeItem('napalmsky_nav_timestamps');
+          sessionStorage.removeItem('bumpin_rate_limit');
+          sessionStorage.removeItem('bumpin_nav_timestamps');
           console.log('[RateLimit] Cooldown expired');
         }
       }
@@ -314,7 +314,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     if (!session || locationAsked) return;
     
     // Check if user previously granted location
-    const hasLocationConsent = localStorage.getItem('napalmsky_location_consent');
+    const hasLocationConsent = localStorage.getItem('bumpin_location_consent');
     
     if (hasLocationConsent === 'true') {
       // Auto-update location
@@ -820,7 +820,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
 
   // Auto-invite when direct match target is set
   useEffect(() => {
-    const autoInvite = localStorage.getItem('napalmsky_auto_invite');
+    const autoInvite = localStorage.getItem('bumpin_auto_invite');
     
     if (autoInvite === 'true' && directMatchTarget && users.length > 0 && !autoInviteSent && socketRef.current) {
       // Find the target user in the list
@@ -830,7 +830,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         console.log('[Matchmake] 🎯 Auto-inviting direct match target:', targetUser.name, 'with 300 seconds');
         
         // Clear the flag
-        localStorage.removeItem('napalmsky_auto_invite');
+        localStorage.removeItem('bumpin_auto_invite');
         setAutoInviteSent(true);
         
         // Send invite automatically with default 300 seconds
@@ -847,7 +847,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         }, 500); // Small delay to ensure socket is ready
       } else if (targetUser && targetUser.hasCooldown) {
         console.log('[Matchmake] ⚠️ Cannot auto-invite - target has cooldown');
-        localStorage.removeItem('napalmsky_auto_invite');
+        localStorage.removeItem('bumpin_auto_invite');
       }
     }
   }, [directMatchTarget, users, autoInviteSent]);
@@ -1034,12 +1034,12 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     
     const success = await requestAndUpdateLocation(session.sessionToken);
     if (success) {
-      localStorage.setItem('napalmsky_location_consent', 'true');
+      localStorage.setItem('bumpin_location_consent', 'true');
       showToast('Location enabled - showing nearby people first', 'info');
       loadInitialQueue();
     } else {
       showToast('Location permission denied', 'error');
-      localStorage.setItem('napalmsky_location_consent', 'false');
+      localStorage.setItem('bumpin_location_consent', 'false');
     }
   }, [showToast, loadInitialQueue]);
 
@@ -1047,7 +1047,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
   const handleLocationDeny = useCallback(() => {
     setShowLocationModal(false);
     setLocationAsked(true);
-    localStorage.setItem('napalmsky_location_consent', 'false');
+    localStorage.setItem('bumpin_location_consent', 'false');
   }, []);
 
   // Handle mode selection and start browsing
@@ -1077,8 +1077,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     setAutoInviteSent(false);
     
     // Clear direct match flags
-    localStorage.removeItem('napalmsky_direct_match_target');
-    localStorage.removeItem('napalmsky_auto_invite');
+    localStorage.removeItem('bumpin_direct_match_target');
+    localStorage.removeItem('bumpin_auto_invite');
     
     // Reset mode selection for next time
     setModeLocked(false);
@@ -1126,7 +1126,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                   onClick={() => setChatMode('video')}
                   className={`group relative rounded-2xl p-6 sm:p-8 transition-all ${
                     chatMode === 'video'
-                      ? 'bg-[#ff9b6b] shadow-2xl shadow-[#ff9b6b]/20'
+                      ? 'bg-[#fbbf24] shadow-2xl shadow-[#fbbf24]/20'
                       : 'bg-white/5 hover:bg-white/10'
                   }`}
                 >
@@ -1161,7 +1161,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                   onClick={() => setChatMode('text')}
                   className={`group relative rounded-2xl p-6 sm:p-8 transition-all ${
                     chatMode === 'text'
-                      ? 'bg-[#ff9b6b] shadow-2xl shadow-[#ff9b6b]/20'
+                      ? 'bg-[#fbbf24] shadow-2xl shadow-[#fbbf24]/20'
                       : 'bg-white/5 hover:bg-white/10'
                   }`}
                 >
@@ -1195,7 +1195,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.4 }}
                   onClick={handleStartBrowsing}
-                  className="w-full sm:w-auto mx-auto block rounded-xl bg-[#ff9b6b] px-8 sm:px-12 py-3 sm:py-4 text-base sm:text-lg font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity shadow-xl"
+                  className="w-full sm:w-auto mx-auto block rounded-xl bg-[#fbbf24] px-8 sm:px-12 py-3 sm:py-4 text-base sm:text-lg font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity shadow-xl"
                 >
                   Continue with {chatMode === 'video' ? 'Video' : 'Text'} Mode
                 </motion.button>
@@ -1221,14 +1221,14 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
             <div className="flex items-center justify-center gap-3">
               {chatMode === 'video' ? (
                 <>
-                  <svg className="w-4 h-4 text-[#ff9b6b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-[#fbbf24]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                   <span className="text-sm font-medium text-white">Video Mode</span>
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4 text-[#ff9b6b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-[#fbbf24]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                   <span className="text-sm font-medium text-white">Text Mode</span>
@@ -1362,14 +1362,14 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
             <div className="flex items-center gap-2">
               {chatMode === 'video' ? (
                 <>
-                  <svg className="w-5 h-5 text-[#ff9b6b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 text-[#fbbf24]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                   <span className="text-sm font-medium text-white">Video Mode</span>
                 </>
               ) : (
                 <>
-                  <svg className="w-5 h-5 text-[#ff9b6b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 text-[#fbbf24]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                   <span className="text-sm font-medium text-white">Text Mode</span>
@@ -1472,7 +1472,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                       key={idx}
                       className={`w-2 rounded-full transition-all ${
                         idx === currentIndex 
-                          ? 'h-10 bg-[#ff9b6b] shadow-lg' 
+                          ? 'h-10 bg-[#fbbf24] shadow-lg' 
                           : 'h-2 bg-white/40'
                       }`}
                     />
@@ -1488,7 +1488,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
 
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-[#ff9b6b] border-t-transparent" />
+                <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-[#fbbf24] border-t-transparent" />
               </div>
             )}
           </div>
@@ -1525,7 +1525,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
               </div>
               <button
                 onClick={recordActivity}
-                className="w-full rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
+                className="w-full rounded-xl bg-[#fbbf24] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
               >
                 Reactivate Now
               </button>
@@ -1572,7 +1572,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                     setShowProfileIncompleteModal(false);
                     router.push('/refilm');
                   }}
-                  className="w-full rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
+                  className="w-full rounded-xl bg-[#fbbf24] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
                 >
                   Upload Photo & Video
                 </button>

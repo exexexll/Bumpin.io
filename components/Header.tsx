@@ -54,10 +54,10 @@ export function Header() {
       )}
     >
       <Container className="flex h-full items-center justify-between">
-        <Link href="/" className="focus-ring rounded-md" aria-label="Napalm Sky home">
+        <Link href="/" className="focus-ring rounded-md" aria-label="BUMPIn home">
           <Image
             src="/logo.svg"
-            alt="Napalm Sky"
+            alt="BUMPIn"
             width={160}
             height={32}
             priority
@@ -71,8 +71,8 @@ export function Header() {
               <Link
                 href="/manifesto"
                 className={cn(
-                  'focus-ring rounded-md text-sm font-medium transition-colors hover:text-[#ff9b6b] sm:text-base',
-                  pathname === '/manifesto' ? 'text-[#ff9b6b]' : 'text-[#e6e6e9]'
+                  'focus-ring rounded-md text-sm font-medium transition-colors hover:text-[#fbbf24] sm:text-base',
+                  pathname === '/manifesto' ? 'text-[#fbbf24]' : 'text-[#e6e6e9]'
                 )}
               >
                 Meet Who and Do What?
@@ -81,7 +81,7 @@ export function Header() {
             <li>
               <Link
                 href="/onboarding"
-                className="focus-ring rounded-xl bg-[#ff9b6b] px-4 py-2 text-sm font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 sm:text-base"
+                className="focus-ring rounded-xl bg-[#fbbf24] px-4 py-2 text-sm font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 sm:text-base"
               >
                 Start connecting
               </Link>

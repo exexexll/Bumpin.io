@@ -61,7 +61,7 @@ export function TimeSlotPicker({ startTime, endTime, selectedTime, onChange }: T
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-left text-[#eaeaf0] hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[#ff9b6b]"
+        className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-left text-[#eaeaf0] hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[#fbbf24]"
       >
         <div className="flex items-center justify-between">
           <span className="font-medium">
@@ -90,7 +90,7 @@ export function TimeSlotPicker({ startTime, endTime, selectedTime, onChange }: T
               }}
               className={`w-full px-4 py-3 text-left transition-colors ${
                 slot === selectedTime
-                  ? 'bg-[#ff9b6b] text-[#0a0a0c] font-medium'
+                  ? 'bg-[#fbbf24] text-[#0a0a0c] font-medium'
                   : 'text-[#eaeaf0] hover:bg-white/5'
               }`}
             >

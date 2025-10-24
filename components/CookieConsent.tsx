@@ -9,7 +9,7 @@ export function CookieConsent() {
 
   useEffect(() => {
     // Check if user has already consented
-    const consent = localStorage.getItem('napalmsky_cookie_consent');
+    const consent = localStorage.getItem('bumpin_cookie_consent');
     if (!consent) {
       // Show banner after a short delay
       setTimeout(() => setShowBanner(true), 1000);
@@ -17,13 +17,13 @@ export function CookieConsent() {
   }, []);
 
   const acceptAll = () => {
-    localStorage.setItem('napalmsky_cookie_consent', 'all');
+    localStorage.setItem('bumpin_cookie_consent', 'all');
     setShowBanner(false);
     console.log('[Cookies] User accepted all cookies');
   };
 
   const acceptEssential = () => {
-    localStorage.setItem('napalmsky_cookie_consent', 'essential');
+    localStorage.setItem('bumpin_cookie_consent', 'essential');
     setShowBanner(false);
     console.log('[Cookies] User accepted essential cookies only');
   };
@@ -39,7 +39,7 @@ export function CookieConsent() {
           className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6"
         >
           <div className="max-w-6xl mx-auto">
-            <div className="bg-[#0a0a0c]/95 backdrop-blur-lg border border-[#ff9b6b]/30 rounded-2xl shadow-2xl p-6">
+            <div className="bg-[#0a0a0c]/95 backdrop-blur-lg border border-[#fbbf24]/30 rounded-2xl shadow-2xl p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 {/* Cookie Icon */}
                 <div className="text-4xl">🍪</div>
@@ -55,7 +55,7 @@ export function CookieConsent() {
                   </p>
                   <Link 
                     href="/cookie-policy" 
-                    className="text-sm text-[#ff9b6b] hover:underline"
+                    className="text-sm text-[#fbbf24] hover:underline"
                     target="_blank"
                   >
                     Learn more about our cookie policy →
@@ -74,9 +74,9 @@ export function CookieConsent() {
                   </button>
                   <button
                     onClick={acceptAll}
-                    className="px-6 py-2 rounded-xl bg-[#ff9b6b] text-[#0a0a0c] 
+                    className="px-6 py-2 rounded-xl bg-[#fbbf24] text-[#0a0a0c] 
                              hover:opacity-90 transition-all text-sm font-medium
-                             shadow-lg shadow-[#ff9b6b]/20"
+                             shadow-lg shadow-[#fbbf24]/20"
                   >
                     Accept All
                   </button>

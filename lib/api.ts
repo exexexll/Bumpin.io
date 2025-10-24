@@ -1,5 +1,5 @@
 /**
- * API client functions for Napalm Sky
+ * API client functions for BUMPIn
  * Production-ready with centralized configuration
  */
 

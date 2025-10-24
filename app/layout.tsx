@@ -35,26 +35,26 @@ export const metadata: Metadata = {
     userScalable: false, // Disable pinch zoom
     viewportFit: 'cover', // iOS safe area support
   },
-  title: 'Napalm Sky - 1-1 Video Social Network',
+  title: 'BUMPIn - 1-1 Video Social Network',
   description: 'Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.',
   keywords: ['1-1 video social network', 'video chat', 'matchmaking', 'social networking', 'live video'],
-  authors: [{ name: 'Napalm Sky' }],
+  authors: [{ name: 'BUMPIn' }],
   icons: {
     icon: '/Love.png',
     apple: '/Love.png',
     shortcut: '/Love.png',
   },
   openGraph: {
-    title: 'Napalm Sky - 1-1 Video Social Network',
+    title: 'BUMPIn - 1-1 Video Social Network',
     description: 'Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.',
-    url: 'https://napalmsky.com',
-    siteName: 'Napalm Sky',
+    url: 'https://bumpin.com',
+    siteName: 'BUMPIn',
     images: [
       {
         url: '/Love.png',
         width: 1200,
         height: 630,
-        alt: 'Napalm Sky',
+        alt: 'BUMPIn',
       },
     ],
     locale: 'en_US',
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Napalm Sky - 1-1 Video Social Network',
+    title: 'BUMPIn - 1-1 Video Social Network',
     description: 'Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.',
     images: ['/Love.png'],
   },

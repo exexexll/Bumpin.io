@@ -7,15 +7,15 @@
 
 ## PURPOSE
 
-This Acceptable Use Policy ("AUP") governs your use of Napalm Sky and defines acceptable and prohibited behaviors on the platform. Violations of this AUP may result in account suspension, termination, and/or permanent ban with public blacklist disclosure.
+This Acceptable Use Policy ("AUP") governs your use of BUMPIn and defines acceptable and prohibited behaviors on the platform. Violations of this AUP may result in account suspension, termination, and/or permanent ban with public blacklist disclosure.
 
-**By using Napalm Sky, you agree to comply with this AUP.**
+**By using BUMPIn, you agree to comply with this AUP.**
 
 ---
 
 ## 1. GENERAL PRINCIPLES
 
-You agree to use Napalm Sky:
+You agree to use BUMPIn:
 
 ✓ For its intended purpose (video-based speed dating and connections)  
 ✓ In compliance with all applicable laws and regulations  
@@ -73,7 +73,7 @@ You agree to use Napalm Sky:
 - Create fake profiles or accounts
 - Misrepresent your identity, age, or intentions
 - Engage in catfishing or deceptive practices
-- Pretend to be a Napalm Sky employee or moderator
+- Pretend to be a BUMPIn employee or moderator
 
 ### 2.5 Commercial and Promotional Activity
 
@@ -366,11 +366,11 @@ If you have questions about what is or isn't acceptable, please contact us at ev
 
 ## ACKNOWLEDGMENT
 
-By using Napalm Sky, you acknowledge that you have read, understand, and agree to comply with this Acceptable Use Policy. Violations may result in permanent ban and public disclosure on our blacklist.
+By using BUMPIn, you acknowledge that you have read, understand, and agree to comply with this Acceptable Use Policy. Violations may result in permanent ban and public disclosure on our blacklist.
 
 ---
 
 **Last Updated: October 16, 2025**
 
-© 2025 Napalm Sky. All rights reserved.
+© 2025 BUMPIn. All rights reserved.
 

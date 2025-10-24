@@ -151,8 +151,8 @@ export function ReferralNotifications() {
     setShowPopup(false);
     
     // Store the target user ID and auto-invite flag
-    localStorage.setItem('napalmsky_direct_match_target', referredUserId);
-    localStorage.setItem('napalmsky_auto_invite', 'true');
+    localStorage.setItem('bumpin_direct_match_target', referredUserId);
+    localStorage.setItem('bumpin_auto_invite', 'true');
     
     // Small delay to ensure state is set
     setTimeout(() => {
@@ -202,7 +202,7 @@ export function ReferralNotifications() {
                 <button
                   onClick={() => handleCallNow(latestNotification.referredUserId)}
                   disabled={callingUser === latestNotification.referredUserId}
-                  className="focus-ring w-full rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90 disabled:opacity-50"
+                  className="focus-ring w-full rounded-xl bg-[#fbbf24] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   {callingUser === latestNotification.referredUserId ? 'Opening...' : '📞 Call Now'}
                 </button>
