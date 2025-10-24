@@ -127,8 +127,14 @@ export default function TextChatRoom() {
     });
     
     socket.on('room:ended-by-disconnect', () => {
-      alert('Partner did not reconnect. Session ended.');
+      console.log('[TextRoom] Session ended by disconnect timeout');
       router.push('/history');
+    });
+    
+    socket.on('disconnect', (reason) => {
+      console.log('[TextRoom] Socket disconnected:', reason);
+      setShowReconnecting(true);
+      setReconnectCountdown(10);
     });
 
     // Load message history

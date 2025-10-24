@@ -373,17 +373,9 @@ export default function RoomPage() {
         
         socket.emit('room:join', { roomId });
         
-        // Handle socket reconnection (network switch, connection loss)
-        socket.on('connect', () => {
-          console.log('[Room] Socket reconnected - rejoining room');
-          const savedRoomId = sessionStorage.getItem('current_room_id');
-          if (savedRoomId === roomId) {
-            socket.emit('room:join', { roomId });
-          }
-        });
-        
-        socket.on('reconnect', () => {
-          console.log('[Room] Socket reconnected after failure - rejoining room');
+        // Simple reconnection: just rejoin on socket reconnect
+        socket.io.on('reconnect', () => {
+          console.log('[Room] Socket reconnected - rejoining');
           socket.emit('room:join', { roomId });
         });
         
@@ -424,7 +416,7 @@ export default function RoomPage() {
         });
         
         socket.on('room:ended-by-disconnect', () => {
-          alert('Partner did not reconnect. Session ended.');
+          console.log('[Room] Session ended by disconnect timeout');
           router.push('/history');
         });
 
