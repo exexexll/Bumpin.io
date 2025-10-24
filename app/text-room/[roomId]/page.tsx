@@ -38,7 +38,9 @@ export default function TextChatRoom() {
 
   // State
   const [messages, setMessages] = useState<Message[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState(agreedSeconds);
+  // TORCH RULE: No fixed timer for text mode - unlimited time based on activity
+  const [inactivityWarning, setInactivityWarning] = useState(false);
+  const [inactivityCountdown, setInactivityCountdown] = useState(60);
   const [rateLimited, setRateLimited] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [showGIFPicker, setShowGIFPicker] = useState(false);
@@ -131,6 +133,27 @@ export default function TextChatRoom() {
       router.push('/history');
     });
     
+    // TORCH RULE: Inactivity system listeners
+    socket.on('textroom:inactivity-warning', ({ secondsRemaining }: any) => {
+      console.log('[TorchRule] Inactivity warning received:', secondsRemaining);
+      setInactivityWarning(true);
+      setInactivityCountdown(secondsRemaining);
+    });
+    
+    socket.on('textroom:inactivity-countdown', ({ secondsRemaining }: any) => {
+      setInactivityCountdown(secondsRemaining);
+    });
+    
+    socket.on('textroom:inactivity-cleared', () => {
+      console.log('[TorchRule] Activity resumed - warning cleared');
+      setInactivityWarning(false);
+    });
+    
+    socket.on('textroom:ended-inactivity', () => {
+      alert('Session ended due to inactivity');
+      router.push('/history');
+    });
+    
     socket.on('disconnect', (reason) => {
       console.log('[TextRoom] Socket disconnected:', reason);
       setShowReconnecting(true);
@@ -203,8 +226,9 @@ export default function TextChatRoom() {
     // Listen for video upgrade accepted
     socket.on('textchat:upgrade-to-video', ({ roomId: upgradeRoomId, isInitiator }: { roomId: string; isInitiator?: boolean }) => {
       console.log('[TextChat] Both users accepted video - upgrading...');
-      // Redirect to video room with same params and correct initiator status
-      router.push(`/room/${upgradeRoomId}?duration=${timeRemaining}&peerId=${peerUserId}&peerName=${encodeURIComponent(peerName)}&initiator=${isInitiator || false}`);
+      // Redirect to video room with default duration since text mode has no fixed timer
+      // Use 300s (5 minutes) as default video duration after upgrade
+      router.push(`/room/${upgradeRoomId}?duration=300&peerId=${peerUserId}&peerName=${encodeURIComponent(peerName)}&initiator=${isInitiator || false}`);
     });
 
     // Listen for video decline
@@ -236,38 +260,27 @@ export default function TextChatRoom() {
     };
   }, [roomId, agreedSeconds, peerUserId, peerName, router]);
 
-  // Start timer
+  // TORCH RULE: No fixed timer - show video request button after 60s of chat
   useEffect(() => {
     if (timerRef.current) return; // Already started
     
     let elapsed = 0;
     
+    // Simple elapsed time counter (not a countdown)
     timerRef.current = setInterval(() => {
       elapsed++;
-      setTimeRemaining(prev => {
-        const next = prev - 1;
         
-        // Show video request button after 60 seconds elapsed
-        if (elapsed >= 60 && !showVideoRequest) {
-          setShowVideoRequest(true);
-        }
-        
-        if (next <= 0) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          // Timer expired - end session
-          if (socketRef.current) {
-            socketRef.current.emit('call:end', { roomId });
-          }
-          return 0;
-        }
-        return next;
-      });
+      // Show video request button after 60 seconds elapsed AND 5+ messages exchanged
+      if (elapsed >= 60 && messages.length >= 5 && !showVideoRequest) {
+        setShowVideoRequest(true);
+        console.log('[TorchRule] Video upgrade button now available (60s + 5 messages)');
+      }
     }, 1000);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, []); // Empty deps - only run once
+  }, [messages.length, showVideoRequest]);
 
   // Format time mm:ss
   const formatTime = (seconds: number) => {
@@ -386,9 +399,21 @@ export default function TextChatRoom() {
             </svg>
           </button>
           
-          {/* Timer */}
-          <div className="font-playfair text-xl sm:text-2xl font-bold text-[#ff9b6b]">
-            {formatTime(timeRemaining)}
+          {/* TORCH RULE: Activity indicator instead of timer */}
+          <div className="flex items-center gap-2">
+            {inactivityWarning ? (
+              <div className="flex items-center gap-2 text-yellow-300">
+                <svg className="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="text-sm font-medium">Inactive: {inactivityCountdown}s</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-green-300">
+                <span className="h-2 w-2 rounded-full bg-green-300 animate-pulse" />
+                <span className="text-sm font-medium">● Active</span>
+              </div>
+            )}
           </div>
 
           {/* Video Request Button (appears after 60s) */}
@@ -537,7 +562,7 @@ export default function TextChatRoom() {
                 Upgrade to Video?
               </h3>
               <p className="text-[#eaeaf0]/80 mb-6">
-                {peerName} wants to switch to video chat. Your timer will continue from {formatTime(timeRemaining)}.
+                {peerName} wants to switch to video chat. You'll start a 5-minute video call.
               </p>
               <div className="flex gap-3">
                 <button

@@ -219,6 +219,122 @@ const activeRooms = new Map<string, {
   user2Connected: boolean;
 }>(); // roomId -> room data
 
+// Text Mode "Torch Rule" - Activity tracking
+const textRoomActivity = new Map<string, {
+  user1LastMessageAt: number;
+  user2LastMessageAt: number;
+  warningStartedAt: number | null;
+}>(); // roomId -> activity data (for text mode only)
+
+// TORCH RULE: Background job to check text room inactivity
+setInterval(() => {
+  const now = Date.now();
+  
+  for (const [roomId, room] of activeRooms.entries()) {
+    // Only check text mode rooms
+    if (room.chatMode !== 'text' || room.status !== 'active') continue;
+    
+    const activity = textRoomActivity.get(roomId);
+    if (!activity) {
+      // Initialize activity tracking for this room
+      textRoomActivity.set(roomId, {
+        user1LastMessageAt: now,
+        user2LastMessageAt: now,
+        warningStartedAt: null,
+      });
+      continue;
+    }
+    
+    // Check if either user is inactive (2 minutes without messaging)
+    const user1Inactive = now - activity.user1LastMessageAt > 120000; // 2 minutes
+    const user2Inactive = now - activity.user2LastMessageAt > 120000;
+    
+    if (user1Inactive || user2Inactive) {
+      // Start warning if not already started
+      if (!activity.warningStartedAt) {
+        activity.warningStartedAt = now;
+        io.to(roomId).emit('textroom:inactivity-warning', {
+          secondsRemaining: 60
+        });
+        console.log(`[TorchRule] Inactivity warning started for room ${roomId.substring(0, 8)}`);
+      } else {
+        // Check if 60s warning period expired
+        const warningSince = now - activity.warningStartedAt;
+        if (warningSince > 60000) {
+          // End session due to inactivity
+          console.log(`[TorchRule] Session ended due to inactivity in room ${roomId.substring(0, 8)}`);
+          room.status = 'ended';
+          
+          // Notify both users
+          io.to(roomId).emit('textroom:ended-inactivity');
+          
+          // End session and save to history
+          (async () => {
+            const sessionId = `session-${Date.now()}`;
+            const user1 = await store.getUser(room.user1);
+            const user2 = await store.getUser(room.user2);
+            
+            if (user1 && user2) {
+              const actualDuration = Math.floor((Date.now() - room.startedAt) / 1000);
+              
+              // Save history
+              await store.addHistory(room.user1, {
+                sessionId,
+                roomId,
+                partnerId: room.user2,
+                partnerName: user2.name,
+                startedAt: room.startedAt,
+                duration: actualDuration,
+                messages: room.messages || [],
+              });
+              
+              await store.addHistory(room.user2, {
+                sessionId,
+                roomId,
+                partnerId: room.user1,
+                partnerName: user1.name,
+                startedAt: room.startedAt,
+                duration: actualDuration,
+                messages: room.messages || [],
+              });
+              
+              // Set 24h cooldown
+              await store.setCooldown(room.user1, room.user2, Date.now() + 24 * 60 * 60 * 1000);
+              
+              // Track session completion for QR (if > 30s)
+              if (actualDuration > 30) {
+                await store.trackSessionCompletion(room.user1, room.user2, roomId, actualDuration);
+                await store.trackSessionCompletion(room.user2, room.user1, roomId, actualDuration);
+              }
+            }
+            
+            // Mark both available
+            store.updatePresence(room.user1, { available: true });
+            store.updatePresence(room.user2, { available: true });
+            
+            // Clean up
+            activeRooms.delete(roomId);
+            textRoomActivity.delete(roomId);
+          })();
+        } else {
+          // Update countdown
+          const remaining = Math.ceil((60000 - warningSince) / 1000);
+          io.to(roomId).emit('textroom:inactivity-countdown', {
+            secondsRemaining: remaining
+          });
+        }
+      }
+    } else {
+      // Both users are active - clear warning if it was active
+      if (activity.warningStartedAt) {
+        activity.warningStartedAt = null;
+        io.to(roomId).emit('textroom:inactivity-cleared');
+        console.log(`[TorchRule] Activity resumed in room ${roomId.substring(0, 8)}`);
+      }
+    }
+  }
+}, 30000); // Check every 30 seconds
+
 // Routes with rate limiting and dependency injection
 app.use('/auth', authLimiter, createAuthRoutes(io, activeSockets));
 app.use('/media', apiLimiter, mediaRoutes);
@@ -1185,6 +1301,34 @@ io.on('connection', (socket) => {
       
       io.to(roomId).emit('textchat:message', messagePayload);
       console.log(`[TextChat] Message sent: ${messageType} in room ${roomId.substring(0, 8)}`);
+      
+      // TORCH RULE: Update activity tracking for text mode
+      if (room.chatMode === 'text') {
+        let activity = textRoomActivity.get(roomId);
+        if (!activity) {
+          activity = {
+            user1LastMessageAt: 0,
+            user2LastMessageAt: 0,
+            warningStartedAt: null,
+          };
+          textRoomActivity.set(roomId, activity);
+        }
+        
+        // Update last message time for this user
+        const isUser1 = room.user1 === currentUserId;
+        if (isUser1) {
+          activity.user1LastMessageAt = Date.now();
+        } else {
+          activity.user2LastMessageAt = Date.now();
+        }
+        
+        // Clear warning if it was active (activity resumed)
+        if (activity.warningStartedAt) {
+          activity.warningStartedAt = null;
+          io.to(roomId).emit('textroom:inactivity-cleared');
+          console.log(`[TorchRule] Activity resumed in room ${roomId.substring(0, 8)} - warning cleared`);
+        }
+      }
       
     } catch (error) {
       socket.emit('textchat:error', { error: 'Failed to send message' });

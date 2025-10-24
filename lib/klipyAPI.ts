@@ -1,14 +1,14 @@
 /**
  * Klipy GIF API Integration
- * Docs: https://docs.klipy.com/getting-started
- * GitHub: https://github.com/KLIPY-com/Klipy-GIF-API
- * 
+ * Docs: https://docs.klipy.com/gifs-api
  * API Key: 6vXxnAAWsFE2MkGlOlVVozkhPI8BAEKubYjLBAqGSAWIDF6MKGMCP1QbjYTxnYUc
+ * 
+ * Based on Klipy API documentation structure
  */
 
 const KLIPY_API_KEY = '6vXxnAAWsFE2MkGlOlVVozkhPI8BAEKubYjLBAqGSAWIDF6MKGMCP1QbjYTxnYUc';
-// Base URL - will update when found in docs
-const KLIPY_BASE_URL = 'https://api.klipy.com';
+// Klipy uses g.klipy.com for GIF API endpoints
+const KLIPY_BASE_URL = 'https://g.klipy.com';
 
 export interface KlipyGIF {
   id: string;
@@ -21,30 +21,38 @@ export interface KlipyGIF {
 
 /**
  * Search for GIFs
- * Endpoint: GET /gif/search (from docs.klipy.com)
+ * Endpoint: GET /v1/gifs/search
+ * Docs: https://docs.klipy.com/gifs-api#getgif-search-api
  */
 export async function searchGIFs(query: string, limit: number = 20): Promise<KlipyGIF[]> {
   try {
-    // Based on standard REST API patterns
     const response = await fetch(
-      `${KLIPY_BASE_URL}/gif/search?q=${encodeURIComponent(query)}&limit=${limit}&key=${KLIPY_API_KEY}`
+      `${KLIPY_BASE_URL}/v1/gifs/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+      {
+        headers: {
+          'api-key': KLIPY_API_KEY,
+        },
+      }
     );
     
     if (!response.ok) {
-      console.error('[Klipy] Search failed:', response.status);
+      console.error('[Klipy] Search failed:', response.status, await response.text());
       return [];
     }
     
     const data = await response.json();
-    const results = data.results || data.data || data.gifs || [];
+    console.log('[Klipy] Search response:', data);
     
-    return results.map((gif: any) => ({
-      id: gif.id || gif.gif_id,
-      title: gif.title || gif.description || 'GIF',
-      url: gif.url || gif.media_url || gif.gif_url,
-      previewUrl: gif.preview_url || gif.thumbnail || gif.url,
-      width: gif.width || 498,
-      height: gif.height || 280,
+    // Parse Klipy response structure
+    const results = data.results || data.data || [];
+    
+    return results.map((item: any) => ({
+      id: item.id || item.itemid,
+      title: item.title || item.content_description || 'GIF',
+      url: item.media?.[0]?.gif?.url || item.url || item.gif_url,
+      previewUrl: item.media?.[0]?.tinygif?.url || item.media?.[0]?.gif?.url || item.preview_url || item.url,
+      width: item.media?.[0]?.gif?.dims?.[0] || item.width || 498,
+      height: item.media?.[0]?.gif?.dims?.[1] || item.height || 280,
     }));
   } catch (error) {
     console.error('[Klipy] Search error:', error);
@@ -54,29 +62,37 @@ export async function searchGIFs(query: string, limit: number = 20): Promise<Kli
 
 /**
  * Get trending GIFs
- * Endpoint: GET /gif/trending (from docs.klipy.com)
+ * Endpoint: GET /v1/gifs/trending
+ * Docs: https://docs.klipy.com/gifs-api#getgif-trending-api
  */
 export async function getTrendingGIFs(limit: number = 20): Promise<KlipyGIF[]> {
   try {
     const response = await fetch(
-      `${KLIPY_BASE_URL}/gif/trending?limit=${limit}&key=${KLIPY_API_KEY}`
+      `${KLIPY_BASE_URL}/v1/gifs/trending?limit=${limit}`,
+      {
+        headers: {
+          'api-key': KLIPY_API_KEY,
+        },
+      }
     );
     
     if (!response.ok) {
-      console.error('[Klipy] Trending failed:', response.status);
+      console.error('[Klipy] Trending failed:', response.status, await response.text());
       return [];
     }
     
     const data = await response.json();
-    const results = data.results || data.data || data.gifs || [];
+    console.log('[Klipy] Trending response:', data);
     
-    return results.map((gif: any) => ({
-      id: gif.id || gif.gif_id,
-      title: gif.title || 'Trending GIF',
-      url: gif.url || gif.media_url || gif.gif_url,
-      previewUrl: gif.preview_url || gif.thumbnail || gif.url,
-      width: gif.width || 498,
-      height: gif.height || 280,
+    const results = data.results || data.data || [];
+    
+    return results.map((item: any) => ({
+      id: item.id || item.itemid,
+      title: item.title || item.content_description || 'Trending GIF',
+      url: item.media?.[0]?.gif?.url || item.url || item.gif_url,
+      previewUrl: item.media?.[0]?.tinygif?.url || item.media?.[0]?.gif?.url || item.preview_url || item.url,
+      width: item.media?.[0]?.gif?.dims?.[0] || item.width || 498,
+      height: item.media?.[0]?.gif?.dims?.[1] || item.height || 280,
     }));
   } catch (error) {
     console.error('[Klipy] Trending error:', error);
@@ -86,17 +102,24 @@ export async function getTrendingGIFs(limit: number = 20): Promise<KlipyGIF[]> {
 
 /**
  * Get GIF categories
- * Endpoint: GET /gif/categories (from docs.klipy.com)
+ * Endpoint: GET /v1/gifs/categories
+ * Docs: https://docs.klipy.com/gifs-api#getgif-categories-api
  */
 export async function getGIFCategories(): Promise<string[]> {
   try {
     const response = await fetch(
-      `${KLIPY_BASE_URL}/gif/categories?key=${KLIPY_API_KEY}`
+      `${KLIPY_BASE_URL}/v1/gifs/categories`,
+      {
+        headers: {
+          'api-key': KLIPY_API_KEY,
+        },
+      }
     );
     
     if (response.ok) {
       const data = await response.json();
-      return data.categories || data.data || [];
+      console.log('[Klipy] Categories response:', data);
+      return data.results || data.categories || data.data || [];
     }
   } catch (error) {
     console.log('[Klipy] Using default categories');
@@ -111,22 +134,25 @@ export async function getGIFCategories(): Promise<string[]> {
 
 /**
  * Track GIF share for Klipy monetization
- * Endpoint: POST /gif/share (from docs.klipy.com - Share Trigger API)
+ * Endpoint: POST /v1/gifs/{id}/share
+ * Docs: https://docs.klipy.com/gifs-api#postgif-share-trigger-api
  */
 export async function trackGIFImpression(gifId: string): Promise<void> {
   try {
-    await fetch(`${KLIPY_BASE_URL}/gif/share`, {
+    await fetch(`${KLIPY_BASE_URL}/v1/gifs/${gifId}/share`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${KLIPY_API_KEY}`,
+        'api-key': KLIPY_API_KEY,
       },
       body: JSON.stringify({
-        gif_id: gifId,
-        timestamp: Date.now(),
+        action: 'share',
+        timestamp: new Date().toISOString(),
       }),
     });
+    console.log('[Klipy] Tracked GIF share:', gifId);
   } catch (error) {
-    // Silent fail
+    console.error('[Klipy] Failed to track impression:', error);
+    // Silent fail - don't block user experience
   }
 }
