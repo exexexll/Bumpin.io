@@ -4,156 +4,112 @@ import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { PixelHeart } from './PixelHeart';
 
-interface HeartPair {
-  id: number;
-  left: { x: number; y: number };
-  right: { x: number; y: number };
-  leftVelocity: { x: number; y: number };
-  rightVelocity: { x: number; y: number };
-  merged: boolean;
-  mergedPos?: { x: number; y: number };
-  mergedVelocity?: { x: number; y: number };
-  showSparkle: boolean;
-}
-
 export function AnimatedHearts() {
-  const [heartPairs, setHeartPairs] = useState<HeartPair[]>([]);
+  const [leftHeart, setLeftHeart] = useState({ x: -100, y: 0 });
+  const [rightHeart, setRightHeart] = useState({ x: 0, y: -100 });
+  const [merged, setMerged] = useState(false);
+  const [mergedPosition, setMergedPosition] = useState({ x: 0, y: 0 });
+  const [showSparkle, setShowSparkle] = useState(false);
   const animationFrameRef = useRef<number>();
   
-  const initializeHeartPair = (id: number): HeartPair => {
+  const leftVelocityRef = useRef({ x: 0, y: 0 });
+  const rightVelocityRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    // Initialize random positions and velocities
     const sides = ['top', 'bottom', 'left', 'right'];
     const leftSide = sides[Math.floor(Math.random() * sides.length)];
     const rightSide = sides[Math.floor(Math.random() * sides.length)];
     
-    let leftPos = { x: 0, y: 0 };
-    let leftVel = { x: 0, y: 0 };
-    let rightPos = { x: 0, y: 0 };
-    let rightVel = { x: 0, y: 0 };
-    
-    // Left heart
-    const w = typeof window !== 'undefined' ? window.innerWidth : 1000;
-    const h = typeof window !== 'undefined' ? window.innerHeight : 1000;
-    
+    // Left heart starting position
     if (leftSide === 'top') {
-      leftPos = { x: Math.random() * w, y: -100 };
-      leftVel = { x: (Math.random() - 0.5) * 2, y: Math.random() * 1.5 + 0.5 };
+      setLeftHeart({ x: Math.random() * window.innerWidth, y: -100 });
+      leftVelocityRef.current = { x: (Math.random() - 0.5) * 3, y: Math.random() * 2 + 1 };
     } else if (leftSide === 'bottom') {
-      leftPos = { x: Math.random() * w, y: h + 100 };
-      leftVel = { x: (Math.random() - 0.5) * 2, y: -(Math.random() * 1.5 + 0.5) };
+      setLeftHeart({ x: Math.random() * window.innerWidth, y: window.innerHeight + 100 });
+      leftVelocityRef.current = { x: (Math.random() - 0.5) * 3, y: -(Math.random() * 2 + 1) };
     } else if (leftSide === 'left') {
-      leftPos = { x: -100, y: Math.random() * h };
-      leftVel = { x: Math.random() * 1.5 + 0.5, y: (Math.random() - 0.5) * 2 };
+      setLeftHeart({ x: -100, y: Math.random() * window.innerHeight });
+      leftVelocityRef.current = { x: Math.random() * 2 + 1, y: (Math.random() - 0.5) * 3 };
     } else {
-      leftPos = { x: w + 100, y: Math.random() * h };
-      leftVel = { x: -(Math.random() * 1.5 + 0.5), y: (Math.random() - 0.5) * 2 };
+      setLeftHeart({ x: window.innerWidth + 100, y: Math.random() * window.innerHeight });
+      leftVelocityRef.current = { x: -(Math.random() * 2 + 1), y: (Math.random() - 0.5) * 3 };
     }
     
-    // Right heart
+    // Right heart starting position
     if (rightSide === 'top') {
-      rightPos = { x: Math.random() * w, y: -100 };
-      rightVel = { x: (Math.random() - 0.5) * 2, y: Math.random() * 1.5 + 0.5 };
+      setRightHeart({ x: Math.random() * window.innerWidth, y: -100 });
+      rightVelocityRef.current = { x: (Math.random() - 0.5) * 3, y: Math.random() * 2 + 1 };
     } else if (rightSide === 'bottom') {
-      rightPos = { x: Math.random() * w, y: h + 100 };
-      rightVel = { x: (Math.random() - 0.5) * 2, y: -(Math.random() * 1.5 + 0.5) };
+      setRightHeart({ x: Math.random() * window.innerWidth, y: window.innerHeight + 100 });
+      rightVelocityRef.current = { x: (Math.random() - 0.5) * 3, y: -(Math.random() * 2 + 1) };
     } else if (rightSide === 'left') {
-      rightPos = { x: -100, y: Math.random() * h };
-      rightVel = { x: Math.random() * 1.5 + 0.5, y: (Math.random() - 0.5) * 2 };
+      setRightHeart({ x: -100, y: Math.random() * window.innerHeight });
+      rightVelocityRef.current = { x: Math.random() * 2 + 1, y: (Math.random() - 0.5) * 3 };
     } else {
-      rightPos = { x: w + 100, y: Math.random() * h };
-      rightVel = { x: -(Math.random() * 1.5 + 0.5), y: (Math.random() - 0.5) * 2 };
+      setRightHeart({ x: window.innerWidth + 100, y: Math.random() * window.innerHeight });
+      rightVelocityRef.current = { x: -(Math.random() * 2 + 1), y: (Math.random() - 0.5) * 3 };
     }
-    
-    return {
-      id,
-      left: leftPos,
-      right: rightPos,
-      leftVelocity: leftVel,
-      rightVelocity: rightVel,
-      merged: false,
-      showSparkle: false,
-    };
-  };
-
-  useEffect(() => {
-    // Create 20 pairs of hearts
-    const pairs: HeartPair[] = [];
-    for (let i = 0; i < 20; i++) {
-      pairs.push(initializeHeartPair(i));
-    }
-    setHeartPairs(pairs);
   }, []);
 
   useEffect(() => {
-    if (heartPairs.length === 0) return;
+    if (merged) return;
 
     let lastTime = performance.now();
     
     const animate = (currentTime: number) => {
-      const deltaTime = (currentTime - lastTime) / 16.67;
+      const deltaTime = (currentTime - lastTime) / 16.67; // Normalize to 60 FPS
       lastTime = currentTime;
       
-      setHeartPairs(prev => prev.map(pair => {
-        if (pair.merged && pair.mergedPos && pair.mergedVelocity) {
-          // Keep merged heart moving
-          let newX = pair.mergedPos.x + pair.mergedVelocity.x * deltaTime;
-          let newY = pair.mergedPos.y + pair.mergedVelocity.y * deltaTime;
-          
-          const w = typeof window !== 'undefined' ? window.innerWidth : 1000;
-          const h = typeof window !== 'undefined' ? window.innerHeight : 1000;
-          
-          if (newY < 0 || newY > h - 40) pair.mergedVelocity.y *= -1;
-          if (newX < 0 || newX > w - 40) pair.mergedVelocity.x *= -1;
-          
-          return {
-            ...pair,
-            mergedPos: { x: newX, y: newY },
-          };
+      setLeftHeart(prev => {
+        let newX = prev.x + leftVelocityRef.current.x * deltaTime;
+        let newY = prev.y + leftVelocityRef.current.y * deltaTime;
+        
+        // Bounce off edges
+        if (newY < 0) {
+          newY = 0;
+          leftVelocityRef.current.y *= -1;
+        }
+        if (newY > window.innerHeight - 40) {
+          newY = window.innerHeight - 40;
+          leftVelocityRef.current.y *= -1;
+        }
+        if (newX < 0) {
+          newX = 0;
+          leftVelocityRef.current.x *= -1;
+        }
+        if (newX > window.innerWidth - 40) {
+          newX = window.innerWidth - 40;
+          leftVelocityRef.current.x *= -1;
         }
         
-        // Move individual hearts
-        let newLeftX = pair.left.x + pair.leftVelocity.x * deltaTime;
-        let newLeftY = pair.left.y + pair.leftVelocity.y * deltaTime;
-        let newRightX = pair.right.x + pair.rightVelocity.x * deltaTime;
-        let newRightY = pair.right.y + pair.rightVelocity.y * deltaTime;
+        return { x: newX, y: newY };
+      });
+      
+      setRightHeart(prev => {
+        let newX = prev.x + rightVelocityRef.current.x * deltaTime;
+        let newY = prev.y + rightVelocityRef.current.y * deltaTime;
         
-        const w = typeof window !== 'undefined' ? window.innerWidth : 1000;
-        const h = typeof window !== 'undefined' ? window.innerHeight : 1000;
-        
-        // Bounce left heart
-        if (newLeftY < 0 || newLeftY > h - 40) pair.leftVelocity.y *= -1;
-        if (newLeftX < 0 || newLeftX > w - 40) pair.leftVelocity.x *= -1;
-        
-        // Bounce right heart
-        if (newRightY < 0 || newRightY > h - 40) pair.rightVelocity.y *= -1;
-        if (newRightX < 0 || newRightX > w - 40) pair.rightVelocity.x *= -1;
-        
-        // Check collision
-        const distance = Math.sqrt(
-          Math.pow(newRightX - newLeftX, 2) + 
-          Math.pow(newRightY - newLeftY, 2)
-        );
-        
-        if (distance < 50 && !pair.merged) {
-          const mergedX = (newLeftX + newRightX) / 2;
-          const mergedY = (newLeftY + newRightY) / 2;
-          const mergedVelX = (pair.leftVelocity.x + pair.rightVelocity.x) / 2;
-          const mergedVelY = (pair.leftVelocity.y + pair.rightVelocity.y) / 2;
-          
-          return {
-            ...pair,
-            merged: true,
-            mergedPos: { x: mergedX, y: mergedY },
-            mergedVelocity: { x: mergedVelX, y: mergedVelY },
-            showSparkle: true,
-          };
+        // Bounce off edges
+        if (newY < 0) {
+          newY = 0;
+          rightVelocityRef.current.y *= -1;
+        }
+        if (newY > window.innerHeight - 40) {
+          newY = window.innerHeight - 40;
+          rightVelocityRef.current.y *= -1;
+        }
+        if (newX < 0) {
+          newX = 0;
+          rightVelocityRef.current.x *= -1;
+        }
+        if (newX > window.innerWidth - 40) {
+          newX = window.innerWidth - 40;
+          rightVelocityRef.current.x *= -1;
         }
         
-        return {
-          ...pair,
-          left: { x: newLeftX, y: newLeftY },
-          right: { x: newRightX, y: newRightY },
-        };
-      }));
+        return { x: newX, y: newY };
+      });
       
       animationFrameRef.current = requestAnimationFrame(animate);
     };
@@ -165,81 +121,96 @@ export function AnimatedHearts() {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [heartPairs.length]);
+  }, [merged]);
   
-  // Hide sparkles after animation
+  // Collision detection in separate effect for performance
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setHeartPairs(prev => prev.map(pair => ({
-        ...pair,
-        showSparkle: false,
-      })));
-    }, 1500);
+    if (merged) return;
     
-    return () => clearTimeout(timer);
-  }, []);
+    const checkCollision = () => {
+      const distance = Math.sqrt(
+        Math.pow(rightHeart.x - leftHeart.x, 2) + 
+        Math.pow(rightHeart.y - leftHeart.y, 2)
+      );
+      
+      if (distance < 50) {
+        setMerged(true);
+        setMergedPosition({
+          x: (leftHeart.x + rightHeart.x) / 2,
+          y: (leftHeart.y + rightHeart.y) / 2,
+        });
+        setShowSparkle(true);
+        setTimeout(() => setShowSparkle(false), 1500);
+      }
+    };
+    
+    checkCollision();
+  }, [leftHeart, rightHeart, merged]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {heartPairs.map(pair => (
-        <div key={pair.id}>
-          {!pair.merged ? (
+      {!merged ? (
+        <>
+          <motion.div
+            animate={{
+              x: leftHeart.x,
+              y: leftHeart.y,
+            }}
+            transition={{ type: 'tween', duration: 0, ease: 'linear' }}
+          >
+            <PixelHeart type="left" color="black" position={{ x: 0, y: 0 }} />
+          </motion.div>
+          <motion.div
+            animate={{
+              x: rightHeart.x,
+              y: rightHeart.y,
+            }}
+            transition={{ type: 'tween', duration: 0, ease: 'linear' }}
+          >
+            <PixelHeart type="right" color="black" position={{ x: 0, y: 0 }} />
+          </motion.div>
+        </>
+      ) : (
+        <>
+          <motion.div
+            initial={{ scale: 0.5, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+            style={{
+              position: 'absolute',
+              left: mergedPosition.x,
+              top: mergedPosition.y,
+            }}
+          >
+            <PixelHeart type="complete" color="red" position={{ x: 0, y: 0 }} />
+          </motion.div>
+          
+          {showSparkle && (
             <>
-              <div style={{ position: 'absolute', left: pair.left.x, top: pair.left.y, transform: 'translate3d(0,0,0)', willChange: 'transform' }}>
-                <PixelHeart type="left" color="black" position={{ x: 0, y: 0 }} />
-              </div>
-              <div style={{ position: 'absolute', left: pair.right.x, top: pair.right.y, transform: 'translate3d(0,0,0)', willChange: 'transform' }}>
-                <PixelHeart type="right" color="black" position={{ x: 0, y: 0 }} />
-              </div>
-            </>
-          ) : (
-            <>
-              <motion.div
-                initial={{ scale: 0.5, rotate: -45 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                style={{
-                  position: 'absolute',
-                  left: pair.mergedPos!.x,
-                  top: pair.mergedPos!.y,
-                  transform: 'translate3d(0,0,0)',
-                  willChange: 'transform',
-                }}
-              >
-                <PixelHeart type="complete" color="red" position={{ x: 0, y: 0 }} />
-              </motion.div>
-              
-              {pair.showSparkle && (
-                <>
-                  {[...Array(8)].map((_, i) => (
-                    <motion.div
-                      key={`${pair.id}-sparkle-${i}`}
-                      className="absolute w-2 h-2 bg-red-500 rounded-full"
-                      style={{
-                        left: pair.mergedPos!.x + 20,
-                        top: pair.mergedPos!.y + 20,
-                      }}
-                      initial={{ scale: 0, opacity: 1 }}
-                      animate={{
-                        x: Math.cos((i / 8) * Math.PI * 2) * 60,
-                        y: Math.sin((i / 8) * Math.PI * 2) * 60,
-                        scale: [0, 1, 0],
-                        opacity: [1, 1, 0],
-                      }}
-                      transition={{ duration: 1, ease: 'easeOut' }}
-                    />
-                  ))}
-                </>
-              )}
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-2 h-2 bg-red-500 rounded-full"
+                  style={{
+                    left: mergedPosition.x + 20,
+                    top: mergedPosition.y + 20,
+                  }}
+                  initial={{ scale: 0, opacity: 1 }}
+                  animate={{
+                    x: Math.cos((i / 8) * Math.PI * 2) * 60,
+                    y: Math.sin((i / 8) * Math.PI * 2) * 60,
+                    scale: [0, 1, 0],
+                    opacity: [1, 1, 0],
+                  }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
+                />
+              ))}
             </>
           )}
-        </div>
-      ))}
+        </>
+      )}
     </div>
   );
 }
-
-
-
 
 
