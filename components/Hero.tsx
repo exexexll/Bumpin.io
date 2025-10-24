@@ -109,6 +109,9 @@ export function Hero() {
         imageRendering: 'pixelated',
       }} />
 
+      {/* Slight dim overlay */}
+      <div className="absolute inset-0 pointer-events-none bg-black/10" />
+
       {/* Animated Hearts */}
       <AnimatedHearts />
 
