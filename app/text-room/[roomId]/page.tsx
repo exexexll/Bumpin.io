@@ -52,11 +52,29 @@ export default function TextChatRoom() {
   const [reconnectCountdown, setReconnectCountdown] = useState(10);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  
+  // BEST-IN-CLASS: Offline detection and message queueing
+  const [isOnline, setIsOnline] = useState(true);
+  
+  // CRITICAL FIX: Use ref for message queue to avoid stale closures in socket handlers
+  const messageQueueRef = useRef<Array<{
+    roomId: string;
+    messageType: string;
+    content?: string;
+    gifUrl?: string;
+    gifId?: string;
+    fileUrl?: string;
+    fileName?: string;
+    timestamp: number;
+  }>>([]);
+  const [queuedMessageCount, setQueuedMessageCount] = useState(0); // For UI only
 
   const socketRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const disconnectCountdownRef = useRef<NodeJS.Timeout | null>(null); // CRITICAL: Track disconnect countdown
+  const partnerDisconnectCountdownRef = useRef<NodeJS.Timeout | null>(null); // CRITICAL: Track partner disconnect countdown
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   // Initialize socket and load message history
@@ -123,15 +141,65 @@ export default function TextChatRoom() {
       sessionStorage.setItem('text_room_join_time', Date.now().toString());
     });
     
-    // Handle socket reconnection
+    // BEST-IN-CLASS: Handle socket connection/reconnection with queue flushing
     socket.on('connect', () => {
+      console.log('[TextRoom] Socket connected');
       setShowReconnecting(false);
+      setIsOnline(true);
+      
+      // CRITICAL FIX: Clear disconnect countdown when reconnected
+      if (disconnectCountdownRef.current) {
+        clearInterval(disconnectCountdownRef.current);
+        disconnectCountdownRef.current = null;
+      }
+      
       socket.emit('room:join', { roomId });
+      
+      // FLUSH MESSAGE QUEUE on reconnect (using ref to avoid stale closure)
+      if (messageQueueRef.current.length > 0) {
+        console.log(`[TextRoom] Flushing ${messageQueueRef.current.length} queued messages`);
+        messageQueueRef.current.forEach(msg => {
+          socket.emit('textchat:send', msg);
+        });
+        messageQueueRef.current = [];
+        setQueuedMessageCount(0);
+      }
     });
     
     socket.on('reconnect', () => {
+      console.log('[TextRoom] Socket reconnected');
       setShowReconnecting(false);
+      setIsOnline(true);
+      
+      // CRITICAL FIX: Clear disconnect countdown when reconnected
+      if (disconnectCountdownRef.current) {
+        clearInterval(disconnectCountdownRef.current);
+        disconnectCountdownRef.current = null;
+      }
+      
       socket.emit('room:join', { roomId });
+      
+      // FLUSH MESSAGE QUEUE on reconnect (using ref to avoid stale closure)
+      if (messageQueueRef.current.length > 0) {
+        console.log(`[TextRoom] Flushing ${messageQueueRef.current.length} queued messages after reconnect`);
+        messageQueueRef.current.forEach(msg => {
+          socket.emit('textchat:send', msg);
+        });
+        messageQueueRef.current = [];
+        setQueuedMessageCount(0);
+      }
+      
+      // RELOAD MESSAGE HISTORY (state sync)
+      socket.emit('textchat:get-history', { roomId }, (response: any) => {
+        if (response.success && response.messages) {
+          console.log(`[TextRoom] Reloaded ${response.messages.length} messages after reconnect`);
+          setMessages(response.messages.map((m: any) => ({
+            ...m,
+            timestamp: new Date(m.sent_at),
+            readAt: m.read_at ? new Date(m.read_at) : undefined,
+          })));
+        }
+      });
     });
     
     socket.on('room:invalid', () => {
@@ -156,19 +224,35 @@ export default function TextChatRoom() {
       setShowReconnecting(true);
       setReconnectCountdown(gracePeriodSeconds);
       
+      // CRITICAL FIX: Clear existing countdown to prevent duplicates
+      if (partnerDisconnectCountdownRef.current) {
+        clearInterval(partnerDisconnectCountdownRef.current);
+      }
+      
       const interval = setInterval(() => {
         setReconnectCountdown((prev: number) => {
           if (prev <= 1) {
             clearInterval(interval);
+            partnerDisconnectCountdownRef.current = null;
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
+      
+      // Store interval ref for cleanup
+      partnerDisconnectCountdownRef.current = interval;
     });
     
     socket.on('room:partner-reconnected', ({ userId }: any) => {
+      console.log('[TextRoom] Partner reconnected');
       setShowReconnecting(false);
+      
+      // CRITICAL FIX: Clear countdown interval when partner reconnects
+      if (partnerDisconnectCountdownRef.current) {
+        clearInterval(partnerDisconnectCountdownRef.current);
+        partnerDisconnectCountdownRef.current = null;
+      }
     });
     
     socket.on('room:ended-by-disconnect', () => {
@@ -208,9 +292,32 @@ export default function TextChatRoom() {
       typingTimeoutRef.current = timeout;
     });
     
-    socket.on('disconnect', () => {
+    // BEST-IN-CLASS: Offline detection with countdown
+    socket.on('disconnect', (reason) => {
+      console.log('[TextRoom] Socket disconnected:', reason);
       setShowReconnecting(true);
       setReconnectCountdown(10);
+      setIsOnline(false); // Mark as offline
+      
+      // CRITICAL FIX: Clear existing countdown to prevent duplicates
+      if (disconnectCountdownRef.current) {
+        clearInterval(disconnectCountdownRef.current);
+      }
+      
+      // Start countdown
+      const interval = setInterval(() => {
+        setReconnectCountdown((prev: number) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            disconnectCountdownRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      // Store interval ref for cleanup
+      disconnectCountdownRef.current = interval;
     });
 
     // Load message history
@@ -313,11 +420,14 @@ export default function TextChatRoom() {
     });
 
     return () => {
-      // Cleanup timers
+      // CRITICAL FIX: Cleanup ALL timers to prevent memory leaks
       if (timerRef.current) clearInterval(timerRef.current);
       if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+      if (disconnectCountdownRef.current) clearInterval(disconnectCountdownRef.current);
+      if (partnerDisconnectCountdownRef.current) clearInterval(partnerDisconnectCountdownRef.current);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       
-      // Remove all socket listeners
+      // CRITICAL FIX: Remove ALL socket listeners (was missing 4 events)
       socket.off('textchat:message');
       socket.off('textchat:rate-limited');
       socket.off('textchat:error');
@@ -325,6 +435,23 @@ export default function TextChatRoom() {
       socket.off('textchat:upgrade-to-video');
       socket.off('textchat:video-declined');
       socket.off('session:finalized');
+      socket.off('textchat:typing');
+      socket.off('textroom:inactivity-warning');
+      socket.off('textroom:inactivity-countdown');
+      socket.off('textroom:inactivity-cleared');
+      socket.off('textroom:ended-inactivity');
+      socket.off('room:partner-disconnected');
+      socket.off('room:partner-reconnected');
+      socket.off('room:ended-by-disconnect');
+      socket.off('room:invalid'); // MISSING
+      socket.off('room:joined'); // MISSING
+      socket.off('room:unauthorized'); // MISSING
+      socket.off('room:ended'); // MISSING
+      socket.off('disconnect');
+      socket.off('connect');
+      socket.off('reconnect');
+      
+      console.log('[TextRoom] ✅ All 22 listeners and timers cleaned up');
     };
   }, [roomId, agreedSeconds, peerUserId, peerName, router]);
 
@@ -360,27 +487,71 @@ export default function TextChatRoom() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Send text message
+  // BEST-IN-CLASS: Send text message with offline queueing
   const handleSendMessage = (content: string) => {
     if (!socketRef.current) return;
     
-    socketRef.current.emit('textchat:send', {
+    const message = {
       roomId,
       messageType: 'text',
       content,
-    });
+      timestamp: Date.now(),
+    };
+    
+    if (!isOnline || !socketRef.current.connected) {
+      // QUEUE message for later (using ref to avoid stale closure)
+      console.log('[TextRoom] Offline - queueing message');
+      messageQueueRef.current.push(message);
+      setQueuedMessageCount(messageQueueRef.current.length);
+      
+      // Show optimistically in UI with pending state
+      const optimisticMessage: Message = {
+        messageId: `pending-${Date.now()}`,
+        from: currentUserId,
+        fromName: 'You',
+        messageType: 'text',
+        content,
+        timestamp: new Date(message.timestamp),
+      };
+      setMessages(prev => [...prev, optimisticMessage]);
+    } else {
+      // Send immediately
+      socketRef.current.emit('textchat:send', message);
+    }
   };
 
-  // Send GIF
+  // BEST-IN-CLASS: Send GIF with offline queueing
   const handleSendGIF = (gifUrl: string, gifId: string) => {
     if (!socketRef.current) return;
     
-    socketRef.current.emit('textchat:send', {
+    const message = {
       roomId,
       messageType: 'gif',
       gifUrl,
       gifId,
-    });
+      timestamp: Date.now(),
+    };
+    
+    if (!isOnline || !socketRef.current.connected) {
+      // QUEUE GIF for later (using ref to avoid stale closure)
+      console.log('[TextRoom] Offline - queueing GIF');
+      messageQueueRef.current.push(message);
+      setQueuedMessageCount(messageQueueRef.current.length);
+      
+      // Show optimistically
+      const optimisticMessage: Message = {
+        messageId: `pending-${Date.now()}`,
+        from: currentUserId,
+        fromName: 'You',
+        messageType: 'gif',
+        gifUrl,
+        timestamp: new Date(message.timestamp),
+      };
+      setMessages(prev => [...prev, optimisticMessage]);
+    } else {
+      // Send immediately
+      socketRef.current.emit('textchat:send', message);
+    }
   };
 
   // Request video upgrade
@@ -461,7 +632,9 @@ export default function TextChatRoom() {
           )}
           <div>
             <p className="font-medium text-[#eaeaf0]">{peerName}</p>
-            <p className="text-xs text-[#eaeaf0]/60">Active now</p>
+            <p className="text-xs text-[#eaeaf0]/60">
+              {isOnline ? 'Active now' : 'Reconnecting...'}
+            </p>
           </div>
         </div>
 
@@ -523,6 +696,25 @@ export default function TextChatRoom() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Offline Banner - Shows when messages are queued */}
+      <AnimatePresence>
+        {!isOnline && queuedMessageCount > 0 && (
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            className="mx-4 mt-2 rounded-xl bg-yellow-500/20 border border-yellow-500/30 p-3"
+          >
+            <div className="flex items-center gap-2 text-sm text-yellow-300">
+              <svg className="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+              </svg>
+              <span>Offline - {queuedMessageCount} message{queuedMessageCount > 1 ? 's' : ''} queued</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Video Upgrade Button - Floating above messages */}
       <AnimatePresence>

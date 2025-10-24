@@ -8,9 +8,10 @@ import { Container } from '@/components/Container';
 import { createGuestAccount, uploadSelfie, uploadVideo, linkAccount, getReferralInfo } from '@/lib/api';
 import { saveSession, getSession } from '@/lib/session';
 import { PasswordInput } from '@/components/PasswordInput';
+import { EmailVerification } from '@/components/EmailVerification';
 import { compressImage } from '@/lib/imageCompression';
 
-type Step = 'name' | 'selfie' | 'video' | 'permanent' | 'introduction';
+type Step = 'name' | 'email-verify' | 'selfie' | 'video' | 'permanent' | 'introduction';
 type Gender = 'female' | 'male' | 'nonbinary' | 'unspecified';
 
 function OnboardingPageContent() {
@@ -55,40 +56,71 @@ function OnboardingPageContent() {
   // USC Email for admin QR codes
   const [uscEmail, setUscEmail] = useState('');
   const [needsUSCEmail, setNeedsUSCEmail] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
   
   // Onboarding completion tracking
   const [onboardingComplete, setOnboardingComplete] = useState(false);
 
-  // Prevent tab closing/navigation during onboarding (un-bypassable)
+  // Prevent tab closing/navigation during onboarding (strengthened)
   useEffect(() => {
     if (onboardingComplete) return; // Allow leaving after complete
     
+    // 1. Prevent tab close/refresh
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Prevent closing tab during onboarding
       e.preventDefault();
       const message = 'Your profile is not complete yet. Are you sure you want to leave?';
       e.returnValue = message;
       return e.returnValue;
     };
     
-    // Prevent back button
+    // 2. Prevent back/forward navigation
     const handlePopState = (e: PopStateEvent) => {
       if (!onboardingComplete) {
         e.preventDefault();
+        // Push state again to trap user
         window.history.pushState(null, '', window.location.href);
         alert('Please complete your profile before navigating away.');
       }
     };
     
-    // Add initial history entry to trap back button
+    // 3. Intercept keyboard shortcuts (Backspace, Cmd+W, etc.)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent Backspace navigation (but allow in input fields)
+      if (e.key === 'Backspace' && 
+          document.activeElement?.tagName !== 'INPUT' && 
+          document.activeElement?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+      }
+      
+      // Prevent Cmd+W (close tab) - shows browser warning
+      if ((e.metaKey || e.ctrlKey) && e.key === 'w') {
+        e.preventDefault();
+        alert('Please complete your profile before closing.');
+      }
+    };
+    
+    // 4. Add multiple history entries to trap back button
+    // (Makes it harder to escape by pressing back multiple times)
+    window.history.pushState(null, '', window.location.href);
+    window.history.pushState(null, '', window.location.href);
     window.history.pushState(null, '', window.location.href);
     
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
+    
+    // 5. Continuous history trap (re-add every 500ms)
+    const historyTrap = setInterval(() => {
+      if (!onboardingComplete) {
+        window.history.pushState(null, '', window.location.href);
+      }
+    }, 500);
     
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
+      clearInterval(historyTrap);
     };
   }, [onboardingComplete]);
   
@@ -272,6 +304,13 @@ function OnboardingPageContent() {
         sessionStorage.setItem('redirecting_to_paywall', 'true');
         sessionStorage.setItem('return_to_onboarding', 'true');
         router.push('/paywall');
+        return;
+      }
+      
+      // NEW: If USC email was provided, verify it before proceeding
+      if (needsUSCEmail && uscEmail && !emailVerified) {
+        console.log('[Onboarding] USC email needs verification - moving to email-verify step');
+        setStep('email-verify');
         return;
       }
       
@@ -809,7 +848,37 @@ function OnboardingPageContent() {
               </motion.div>
             )}
 
-            {/* Step 2: Selfie */}
+            {/* Step 2: Email Verification (for USC admin codes) */}
+            {step === 'email-verify' && (
+              <motion.div
+                key="email-verify"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-8 motion-reduce:opacity-100 motion-reduce:translate-y-0"
+              >
+                <h1 className="font-playfair text-4xl font-bold text-[#eaeaf0] sm:text-5xl">
+                  Verify your USC email
+                </h1>
+
+                <p className="text-[#eaeaf0]/70">
+                  We&apos;ll send a verification code to confirm your USC student status
+                </p>
+
+                <EmailVerification
+                  sessionToken={sessionToken}
+                  email={uscEmail}
+                  onVerified={() => {
+                    console.log('[Onboarding] USC email verified - proceeding to selfie');
+                    setEmailVerified(true);
+                    setStep('selfie');
+                  }}
+                />
+              </motion.div>
+            )}
+
+            {/* Step 3: Selfie */}
             {step === 'selfie' && (
               <motion.div
                 key="selfie"

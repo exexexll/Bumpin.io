@@ -9,6 +9,24 @@ import { SOCKET_URL } from './config';
 let socket: Socket | null = null;
 let heartbeatInterval: NodeJS.Timeout | null = null;
 
+// BEST-IN-CLASS: Adaptive heartbeat based on network type
+function getHeartbeatInterval(): number {
+  // Check if Network Information API is available
+  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  
+  if (!connection) {
+    return 25000; // Default 25s
+  }
+  
+  const type = connection.effectiveType; // '4g', '3g', '2g', 'slow-2g'
+  
+  // Adapt heartbeat based on network speed
+  if (type === '4g' || !type) return 25000; // 25s for fast networks
+  if (type === '3g') return 30000; // 30s for medium networks
+  if (type === '2g') return 40000; // 40s for slow networks
+  return 45000; // 45s for very slow networks
+}
+
 export function connectSocket(sessionToken: string): Socket {
   // Reuse existing socket if it's connected OR connecting
   if (socket) {
@@ -33,6 +51,7 @@ export function connectSocket(sessionToken: string): Socket {
 
   console.log('[Socket] Creating new socket connection to:', SOCKET_URL);
   
+  // BEST-IN-CLASS: Exponential backoff with jitter
   socket = io(SOCKET_URL, {
     autoConnect: true,
     auth: {
@@ -40,8 +59,10 @@ export function connectSocket(sessionToken: string): Socket {
     },
     transports: ['websocket', 'polling'], // WebSocket preferred, polling fallback
     reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
+    reconnectionAttempts: Infinity, // Keep trying indefinitely (production best practice)
+    reconnectionDelay: 1000, // Start at 1s
+    reconnectionDelayMax: 30000, // Cap at 30s
+    randomizationFactor: 0.5, // Add jitter: delay = base * (1 + random * 0.5)
     timeout: 20000,
   });
 
@@ -50,19 +71,41 @@ export function connectSocket(sessionToken: string): Socket {
     // Still emit auth for backward compatibility with event handlers
     socket?.emit('auth', { sessionToken });
     
-    // Start heartbeat to keep presence alive (every 25 seconds)
+    // BEST-IN-CLASS: Start adaptive heartbeat based on network type
     if (heartbeatInterval) {
       clearInterval(heartbeatInterval);
     }
     
-    heartbeatInterval = setInterval(() => {
-      if (socket?.connected) {
-        socket.emit('heartbeat');
-        console.log('[Socket] 💓 Heartbeat sent');
-      }
-    }, 20000); // 20 seconds - keeps user active
+    const startAdaptiveHeartbeat = () => {
+      const interval = getHeartbeatInterval();
+      console.log('[Socket] Starting adaptive heartbeat (every', interval / 1000, 's)');
+      
+      heartbeatInterval = setInterval(() => {
+        if (socket?.connected) {
+          socket.emit('heartbeat', { timestamp: Date.now() });
+          console.log('[Socket] 💓 Heartbeat sent');
+        }
+      }, interval);
+    };
     
-    console.log('[Socket] Heartbeat started (every 20s)');
+    startAdaptiveHeartbeat();
+    
+    // BEST-IN-CLASS: Adjust heartbeat on network change
+    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    if (connection) {
+      const handleNetworkChange = () => {
+        console.log('[Socket] Network changed - adjusting heartbeat interval');
+        if (heartbeatInterval) {
+          clearInterval(heartbeatInterval);
+        }
+        startAdaptiveHeartbeat();
+      };
+      
+      connection.addEventListener('change', handleNetworkChange);
+      
+      // Store reference for cleanup
+      (socket as any)._networkChangeHandler = handleNetworkChange;
+    }
   });
 
   socket.on('auth:success', () => {
@@ -94,6 +137,13 @@ export function connectSocket(sessionToken: string): Socket {
 
 export function disconnectSocket() {
   if (socket) {
+    // BEST-IN-CLASS: Clean up network change listener
+    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    if (connection && (socket as any)._networkChangeHandler) {
+      connection.removeEventListener('change', (socket as any)._networkChangeHandler);
+      console.log('[Socket] Network change listener removed');
+    }
+    
     socket.disconnect();
     socket = null;
   }

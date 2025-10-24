@@ -95,6 +95,11 @@ export default function RoomPage() {
   const [connectionFailureReason, setConnectionFailureReason] = useState('');
   const [peerConnectionFailed, setPeerConnectionFailed] = useState(false);
   
+  // Connection quality monitoring
+  const [connectionQuality, setConnectionQuality] = useState<'good' | 'fair' | 'poor' | 'unknown'>('unknown');
+  const statsMonitorRef = useRef<NodeJS.Timeout | null>(null);
+  const partnerDisconnectCountdownRef = useRef<NodeJS.Timeout | null>(null); // CRITICAL: Track partner disconnect countdown
+  
   // Refs
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -117,6 +122,13 @@ export default function RoomPage() {
       clearInterval(timerRef.current);
       timerRef.current = null;
       console.log('[Room] ✅ Timer cleared');
+    }
+    
+    // CRITICAL FIX: Clear partner disconnect countdown
+    if (partnerDisconnectCountdownRef.current) {
+      clearInterval(partnerDisconnectCountdownRef.current);
+      partnerDisconnectCountdownRef.current = null;
+      console.log('[Room] ✅ Partner disconnect countdown cleared');
     }
     
     // Stop all media tracks (camera/mic)
@@ -286,13 +298,27 @@ export default function RoomPage() {
           }
         };
 
-        // Handle ICE candidates
+        // BEST-IN-CLASS: Handle ICE candidates with immediate trickle (no batching)
         pc.onicecandidate = (event) => {
           if (event.candidate && socketRef.current) {
+            // Log candidate type for debugging
+            const type = event.candidate.type; // 'host', 'srflx', 'relay'
+            const protocol = event.candidate.protocol; // 'udp', 'tcp'
+            console.log(`[ICE] Sending candidate: ${type} (${protocol})`);
+            
+            // Send immediately - Trickle ICE for fastest connection
             socketRef.current.emit('rtc:ice', {
               roomId,
               candidate: event.candidate,
             });
+            
+            // Log when TURN relay candidates are found (important for NAT traversal)
+            if (type === 'relay') {
+              console.log('[ICE] ✅ TURN relay candidate sent - NAT traversal enabled');
+            }
+          } else if (!event.candidate) {
+            // null candidate = gathering complete
+            console.log('[ICE] ICE gathering complete');
           }
         };
 
@@ -522,16 +548,25 @@ export default function RoomPage() {
           setShowReconnecting(true);
           setReconnectCountdown(gracePeriodSeconds);
           
+          // CRITICAL FIX: Clear existing countdown to prevent duplicates
+          if (partnerDisconnectCountdownRef.current) {
+            clearInterval(partnerDisconnectCountdownRef.current);
+          }
+          
           // Countdown timer
           const interval = setInterval(() => {
             setReconnectCountdown((prev: number) => {
               if (prev <= 1) {
                 clearInterval(interval);
+                partnerDisconnectCountdownRef.current = null;
                 return 0;
               }
               return prev - 1;
             });
           }, 1000);
+          
+          // Store interval ref for cleanup
+          partnerDisconnectCountdownRef.current = interval;
         });
         
         socket.on('room:partner-reconnected', () => {
@@ -539,6 +574,12 @@ export default function RoomPage() {
           setShowReconnecting(false);
           setPeerDisconnected(false);
           setConnectionPhase('connected');
+          
+          // CRITICAL FIX: Clear countdown interval when partner reconnects
+          if (partnerDisconnectCountdownRef.current) {
+            clearInterval(partnerDisconnectCountdownRef.current);
+            partnerDisconnectCountdownRef.current = null;
+          }
           
           // If we're in a disconnected state, attempt to renegotiate WebRTC
           if (peerConnectionRef.current && 
@@ -819,11 +860,164 @@ export default function RoomPage() {
       sessionStorage.removeItem('room_connection_active');
       sessionStorage.removeItem('room_join_time');
       sessionStorage.removeItem('current_room_id');
+      
+      // Clean up stats monitor
+      if (statsMonitorRef.current) {
+        clearInterval(statsMonitorRef.current);
+        statsMonitorRef.current = null;
+      }
+      
+      // CRITICAL FIX: Remove ALL socket event listeners to prevent memory leaks
+      if (socketRef.current) {
+        socketRef.current.off('room:invalid');
+        socketRef.current.off('room:joined');
+        socketRef.current.off('room:unauthorized');
+        socketRef.current.off('room:ended');
+        socketRef.current.off('room:partner-disconnected');
+        socketRef.current.off('room:partner-reconnected');
+        socketRef.current.off('room:ended-by-disconnect');
+        socketRef.current.off('rtc:offer');
+        socketRef.current.off('rtc:answer');
+        socketRef.current.off('rtc:ice');
+        socketRef.current.off('room:chat');
+        socketRef.current.off('room:socialShared');
+        socketRef.current.off('session:finalized');
+        socketRef.current.off('peer:disconnected');
+        socketRef.current.off('connection:peer-failed');
+        
+        // Also remove socket.io.on listeners
+        if (socketRef.current.io) {
+          socketRef.current.io.off('reconnect');
+        }
+        
+        console.log('[Room] ✅ All 15 socket listeners removed');
+      }
+      
       cleanupConnections();
       disconnectSocket();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleanupConnections]);
+
+  // BEST-IN-CLASS: Network Change Detection (Proactive ICE Restart)
+  useEffect(() => {
+    // Check if Network Information API is available
+    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    
+    if (!connection) {
+      console.log('[Network] Network Information API not available');
+      return;
+    }
+    
+    const handleNetworkChange = () => {
+      const pc = peerConnectionRef.current;
+      const type = connection.effectiveType; // '4g', '3g', '2g', 'slow-2g'
+      const downlink = connection.downlink; // Mbps
+      
+      console.log('[Network] Network changed:', { type, downlink });
+      
+      // If connected, proactively restart ICE to adapt to new network
+      if (pc && pc.connectionState === 'connected') {
+        console.log('[Network] 🔄 Proactive ICE restart due to network change');
+        pc.restartIce();
+        
+        // If initiator, create new offer
+        if (isInitiator && socketRef.current) {
+          pc.createOffer({ iceRestart: true })
+            .then(offer => pc.setLocalDescription(offer))
+            .then(() => {
+              socketRef.current?.emit('rtc:offer', { roomId, offer: pc.localDescription });
+              console.log('[Network] ✅ Sent ICE restart offer after network change');
+            })
+            .catch(err => console.error('[Network] Error creating ICE restart offer:', err));
+        }
+      }
+    };
+    
+    connection.addEventListener('change', handleNetworkChange);
+    
+    return () => {
+      connection.removeEventListener('change', handleNetworkChange);
+    };
+  }, [roomId, isInitiator]);
+
+  // BEST-IN-CLASS: RTCStats Monitoring (Connection Quality Tracking)
+  useEffect(() => {
+    const pc = peerConnectionRef.current;
+    if (!pc || connectionPhase !== 'connected') return;
+    
+    console.log('[Stats] Starting connection quality monitoring');
+    
+    // Monitor every 5 seconds
+    const monitorStats = async () => {
+      if (!pc || pc.connectionState !== 'connected') {
+        setConnectionQuality('unknown');
+        return;
+      }
+      
+      try {
+        const stats = await pc.getStats();
+        
+        let packetsLost = 0;
+        let packetsReceived = 0;
+        let jitter = 0;
+        let rtt = 0;
+        let bytesReceived = 0;
+        
+        stats.forEach(report => {
+          if (report.type === 'inbound-rtp' && report.mediaType === 'video') {
+            packetsLost += report.packetsLost || 0;
+            packetsReceived += report.packetsReceived || 0;
+            jitter = report.jitter || 0;
+            bytesReceived += report.bytesReceived || 0;
+          }
+          
+          if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+            rtt = report.currentRoundTripTime || 0;
+          }
+        });
+        
+        // Calculate quality metrics
+        const lossRate = packetsReceived > 0 ? packetsLost / packetsReceived : 0;
+        const jitterMs = jitter * 1000; // Convert to ms
+        const rttMs = rtt * 1000;
+        
+        console.log('[Stats] Quality metrics:', {
+          lossRate: (lossRate * 100).toFixed(2) + '%',
+          jitter: jitterMs.toFixed(1) + 'ms',
+          rtt: rttMs.toFixed(1) + 'ms',
+          bytesReceived: (bytesReceived / 1024).toFixed(0) + 'KB'
+        });
+        
+        // Determine quality level
+        if (lossRate > 0.1 || jitterMs > 100 || rttMs > 300) {
+          setConnectionQuality('poor');
+          console.warn('[Stats] ⚠️ Poor connection quality detected');
+        } else if (lossRate > 0.05 || jitterMs > 50 || rttMs > 150) {
+          setConnectionQuality('fair');
+          console.log('[Stats] Fair connection quality');
+        } else {
+          setConnectionQuality('good');
+          console.log('[Stats] ✅ Good connection quality');
+        }
+      } catch (error) {
+        console.error('[Stats] Error getting stats:', error);
+      }
+    };
+    
+    // Initial check
+    monitorStats();
+    
+    // Set up interval
+    statsMonitorRef.current = setInterval(monitorStats, 5000);
+    
+    return () => {
+      if (statsMonitorRef.current) {
+        clearInterval(statsMonitorRef.current);
+        statsMonitorRef.current = null;
+      }
+    };
+  }, [connectionPhase]);
 
   // Timer (useCallback to avoid dependency warnings)
   const startTimer = useCallback(() => {
@@ -1185,9 +1379,25 @@ export default function RoomPage() {
             {formatTime(timeRemaining)}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-[#ffc46a]" />
-            <span className="text-sm font-medium text-[#ffc46a]">Live</span>
+          <div className="flex items-center gap-3">
+            {/* Connection Quality Indicator */}
+            {connectionQuality !== 'unknown' && (
+              <div className="flex items-center gap-1.5" title={`Connection: ${connectionQuality}`}>
+                <div className={`flex gap-0.5 items-end h-3`}>
+                  <div className={`w-1 h-1 rounded-sm ${connectionQuality === 'poor' ? 'bg-red-400' : connectionQuality === 'fair' ? 'bg-yellow-400' : 'bg-green-400'}`} />
+                  <div className={`w-1 h-2 rounded-sm ${connectionQuality === 'poor' ? 'bg-red-400/30' : connectionQuality === 'fair' ? 'bg-yellow-400' : 'bg-green-400'}`} />
+                  <div className={`w-1 h-3 rounded-sm ${connectionQuality === 'poor' ? 'bg-red-400/30' : connectionQuality === 'fair' ? 'bg-yellow-400/30' : 'bg-green-400'}`} />
+                </div>
+                <span className={`text-xs font-medium ${connectionQuality === 'poor' ? 'text-red-400' : connectionQuality === 'fair' ? 'text-yellow-400' : 'text-green-400'}`}>
+                  {connectionQuality === 'poor' ? 'Poor' : connectionQuality === 'fair' ? 'Fair' : 'Good'}
+                </span>
+              </div>
+            )}
+            
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-[#ffc46a]" />
+              <span className="text-sm font-medium text-[#ffc46a]">Live</span>
+            </div>
           </div>
         </div>
       </header>
