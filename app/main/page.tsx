@@ -121,37 +121,38 @@ function MainPageContent() {
           <div className="relative w-full max-w-7xl">
             {/* Top Left - Intro Code */}
             <div className="absolute top-0 left-0">
-              <DirectMatchInput onMatch={handleDirectMatch} />
+              <div className="bg-white px-6 py-3 rounded-lg border-2 border-[#ffc46a] shadow-md">
+                <DirectMatchInput onMatch={handleDirectMatch} />
+              </div>
             </div>
 
             {/* Top Right - Profile */}
             <Link
               href="/refilm"
-              className="absolute top-0 right-0 px-8 py-4 rounded-xl font-bold text-black shadow-lg hover:scale-105 transition-all"
+              className="absolute top-0 right-0 px-8 py-4 rounded-2xl font-bold text-black border-2 border-black hover:scale-105 transition-all"
               style={{ backgroundColor: '#ffc46a' }}
             >
               Profile
             </Link>
 
-            {/* Center - Matchmake Button (3D effect) */}
+            {/* Center - Matchmake Button (minimalist with pop) */}
             <div className="flex flex-col items-center gap-6">
               <button
                 onClick={() => setShowMatchmake(true)}
-                className="px-20 py-10 rounded-3xl font-playfair text-6xl font-bold text-black shadow-2xl hover:scale-105 transition-all"
+                className="px-20 py-10 rounded-3xl font-playfair text-6xl font-bold text-black border-4 border-black shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all"
                 style={{
                   backgroundColor: '#ffc46a',
-                  boxShadow: '0 25px 70px rgba(0, 0, 0, 0.4), inset 0 -5px 15px rgba(0, 0, 0, 0.3), inset 0 5px 15px rgba(255, 255, 255, 0.5)',
-                  transform: 'perspective(1000px) rotateX(3deg)',
+                  boxShadow: '8px 8px 0px #000000',
                 }}
               >
                 Matchmake Now
               </button>
               
-              {/* Socials - Below center (smaller) */}
+              {/* Socials - Below center */}
               <Link
                 href="/socials"
-                className="px-6 py-2 rounded-lg text-sm font-semibold text-black shadow hover:scale-105 transition-all"
-                style={{ backgroundColor: '#ffc46a' }}
+                className="px-6 py-2 rounded-lg text-sm font-bold text-black border-2 border-black hover:scale-105 transition-all"
+                style={{ backgroundColor: '#ffc46a', boxShadow: '3px 3px 0px #000000' }}
               >
                 Socials
               </Link>
@@ -160,8 +161,8 @@ function MainPageContent() {
             {/* Bottom Left - Past Chats */}
             <Link
               href="/history"
-              className="absolute bottom-0 left-0 px-8 py-4 rounded-xl font-bold text-black shadow-lg hover:scale-105 transition-all"
-              style={{ backgroundColor: '#ffc46a' }}
+              className="absolute bottom-0 left-0 px-8 py-4 rounded-2xl font-bold text-black border-2 border-black hover:scale-105 transition-all"
+              style={{ backgroundColor: '#ffc46a', boxShadow: '5px 5px 0px #000000' }}
             >
               Past Chats
             </Link>
@@ -169,8 +170,8 @@ function MainPageContent() {
             {/* Bottom Right - Settings */}
             <Link
               href="/settings"
-              className="absolute bottom-0 right-0 px-8 py-4 rounded-xl font-bold text-black shadow-lg hover:scale-105 transition-all"
-              style={{ backgroundColor: '#ffc46a' }}
+              className="absolute bottom-0 right-0 px-8 py-4 rounded-2xl font-bold text-black border-2 border-black hover:scale-105 transition-all"
+              style={{ backgroundColor: '#ffc46a', boxShadow: '5px 5px 0px #000000' }}
             >
               Settings
             </Link>
@@ -192,16 +193,16 @@ function MainPageContent() {
           
           <button
             onClick={() => setShowMatchmake(true)}
-            className="w-full max-w-md px-10 py-8 rounded-2xl font-playfair text-4xl font-bold text-black shadow-xl"
-            style={{ backgroundColor: '#ffc46a' }}
+            className="w-full max-w-md px-10 py-8 rounded-2xl font-playfair text-4xl font-bold text-black border-4 border-black shadow-xl"
+            style={{ backgroundColor: '#ffc46a', boxShadow: '6px 6px 0px #000000' }}
           >
             Matchmake Now
           </button>
           
           <Link
             href="/socials"
-            className="px-6 py-2 rounded-lg text-sm font-semibold text-black shadow"
-            style={{ backgroundColor: '#ffc46a' }}
+            className="px-6 py-2 rounded-lg text-sm font-bold text-black border-2 border-black"
+            style={{ backgroundColor: '#ffc46a', boxShadow: '3px 3px 0px #000000' }}
           >
             Socials
           </Link>
@@ -209,15 +210,15 @@ function MainPageContent() {
           <div className="flex gap-4 w-full max-w-md">
             <Link
               href="/history"
-              className="flex-1 px-4 py-3 rounded-lg font-semibold text-black shadow text-center"
-              style={{ backgroundColor: '#ffc46a' }}
+              className="flex-1 px-4 py-3 rounded-lg font-bold text-black border-2 border-black text-center"
+              style={{ backgroundColor: '#ffc46a', boxShadow: '4px 4px 0px #000000' }}
             >
               Past Chats
             </Link>
             <Link
               href="/settings"
-              className="flex-1 px-4 py-3 rounded-lg font-semibold text-black shadow text-center"
-              style={{ backgroundColor: '#ffc46a' }}
+              className="flex-1 px-4 py-3 rounded-lg font-bold text-black border-2 border-black text-center"
+              style={{ backgroundColor: '#ffc46a', boxShadow: '4px 4px 0px #000000' }}
             >
               Settings
             </Link>
