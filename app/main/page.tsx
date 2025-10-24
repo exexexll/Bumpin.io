@@ -135,24 +135,14 @@ function MainPageContent() {
   const silverTitleBarClass = "bg-gradient-to-b from-gray-300 to-gray-400";
 
   return (
-    <main id="main" className="relative min-h-screen py-20">
-      {/* Background Image */}
-      <div className="fixed inset-0 -z-10">
-        <Image
-          src="/mainpage.png"
-          alt=""
-          fill
-          priority
-          className="object-cover"
-          quality={90}
-        />
-        {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-black/40" />
-        
-        {/* Smooth vignette effect - gradient fade on edges */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50" />
-      </div>
+    <main id="main" className="relative min-h-screen py-20" style={{ backgroundColor: 'white' }}>
+      {/* Grid pattern with #ffc46a borders */}
+      <div className="fixed inset-0 -z-10 pointer-events-none" style={{
+        backgroundImage: `
+          repeating-linear-gradient(0deg, transparent, transparent 40px, #ffc46a 40px, #ffc46a 41px),
+          repeating-linear-gradient(90deg, transparent, transparent 40px, #ffc46a 40px, #ffc46a 41px)
+        `,
+      }} />
 
       <Container>
         <motion.div
@@ -163,8 +153,8 @@ function MainPageContent() {
         >
           {/* Header - Hidden when matchmaking */}
           <div className={`text-center transition-opacity duration-300 ${showMatchmake ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-            <h1 className="font-playfair text-6xl font-bold text-white sm:text-7xl lg:text-8xl drop-shadow-lg">
-              BUMPIn
+            <h1 className="font-playfair text-6xl font-bold text-black sm:text-7xl lg:text-8xl" style={{ textShadow: '0 2px 8px rgba(255,255,255,0.8)' }}>
+              BUMPIN
             </h1>
           </div>
 
