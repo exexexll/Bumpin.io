@@ -467,7 +467,9 @@ export default function RoomPage() {
         if (isSameRoom && wasActiveCall && isRecentReload) {
           // User reloaded the SAME room within 30 seconds - this is a reconnection attempt
           console.log('[Room] Detected tab reload during active call - attempting reconnection');
-          setConnectionPhase('reconnecting');
+          // DON'T set to 'reconnecting' yet - let it connect first, then it will transition to 'connected'
+          // The 'reconnecting' phase should only be set by the disconnect handler, not here
+          console.log('[Room] Will attempt to rejoin room via server grace period');
         } else if (!isSameRoom && wasActiveCall) {
           // Different room - clear old session data
           console.log('[Room] New room detected - clearing old session data');
