@@ -7,8 +7,8 @@
  */
 
 const KLIPY_API_KEY = '6vXxnAAWsFE2MkGlOlVVozkhPI8BAEKubYjLBAqGSAWIDF6MKGMCP1QbjYTxnYUc';
-// Klipy uses g.klipy.com for GIF API endpoints
-const KLIPY_BASE_URL = 'https://g.klipy.com';
+// Klipy uses api.klipy.com for GIF API endpoints (verified with curl)
+const KLIPY_BASE_URL = 'https://api.klipy.com';
 
 export interface KlipyGIF {
   id: string;
