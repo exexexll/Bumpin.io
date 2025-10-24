@@ -143,7 +143,7 @@ export default function TextChatRoom() {
       }, 1000);
     });
     
-    socket.on('room:partner-reconnected', () => {
+    socket.on('room:partner-reconnected', ({ userId }: any) => {
       setShowReconnecting(false);
     });
     
@@ -368,11 +368,18 @@ export default function TextChatRoom() {
     setIncomingVideoRequest(false);
   };
 
-  // Mark message as read
   const handleMessageRead = (messageId: string) => {
     if (!socketRef.current) return;
     socketRef.current.emit('textchat:mark-read', { messageId });
   };
+
+  // Auto-scroll to bottom when messages update
+  useEffect(() => {
+    const messagesDiv = document.querySelector('.messages-area');
+    if (messagesDiv) {
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+  }, [messages.length]);
 
   // Hide global layout elements (header, footer)
   useEffect(() => {
@@ -501,9 +508,9 @@ export default function TextChatRoom() {
         )}
       </AnimatePresence>
 
-      {/* Messages Area - Scrollable */}
-      <div className="flex-1 overflow-y-auto pb-24">
-        <div className="p-4 space-y-1">
+      {/* Messages Area - Scrollable with bottom padding for input */}
+      <div className="messages-area flex-1 overflow-y-auto">
+        <div className="p-4 pb-40 space-y-1">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
               <div className="text-6xl mb-4">💬</div>
