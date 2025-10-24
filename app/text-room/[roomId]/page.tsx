@@ -110,14 +110,17 @@ export default function TextChatRoom() {
       sessionStorage.removeItem('current_text_room_id');
     }
     
-    // Join room FIRST
+    // Store room info immediately (optimistic)
+    sessionStorage.setItem('current_text_room_id', roomId);
+    sessionStorage.setItem('text_room_join_time', Date.now().toString());
+    sessionStorage.setItem('text_room_active', 'true');
+    
+    // Join room
     socket.emit('room:join', { roomId });
     
-    // Store room info after successful join
+    // Update timestamp on successful join confirmation
     socket.on('room:joined', () => {
-      sessionStorage.setItem('current_text_room_id', roomId);
       sessionStorage.setItem('text_room_join_time', Date.now().toString());
-      sessionStorage.setItem('text_room_active', 'true');
     });
     
     // Handle socket reconnection

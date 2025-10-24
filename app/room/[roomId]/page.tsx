@@ -478,10 +478,15 @@ export default function RoomPage() {
           sessionStorage.removeItem('current_room_id');
         }
         
-        // Join room FIRST, then store info only if successful
+        // Store room info immediately (optimistic) - will be confirmed by room:joined
+        sessionStorage.setItem('current_room_id', roomId);
+        sessionStorage.setItem('room_join_time', Date.now().toString());
+        sessionStorage.setItem('room_connection_active', 'true');
+        
+        // Join room
         socket.emit('room:join', { roomId });
         
-        // Socket reconnection handler (for ephemeral disconnects)
+        // Socket reconnection handler
         socket.io.on('reconnect', () => {
           console.log('[Room] Socket reconnected after disconnect - rejoining room');
           setConnectionPhase('reconnecting');
@@ -490,7 +495,7 @@ export default function RoomPage() {
         
         // Listen for room security events
         socket.on('room:invalid', () => {
-          // Clear any stored room data since this room is invalid
+          // Clear stored room data since this room is invalid
           sessionStorage.removeItem('room_connection_active');
           sessionStorage.removeItem('room_join_time');
           sessionStorage.removeItem('current_room_id');
@@ -498,11 +503,9 @@ export default function RoomPage() {
           router.push('/main');
         });
         
-        // Store room info after successful join (use 'on' not 'once' for reconnections)
+        // Update timestamp on successful join confirmation
         socket.on('room:joined', () => {
-          sessionStorage.setItem('current_room_id', roomId);
           sessionStorage.setItem('room_join_time', Date.now().toString());
-          sessionStorage.setItem('room_connection_active', 'true');
         });
         
         socket.on('room:unauthorized', () => {
