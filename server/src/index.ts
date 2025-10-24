@@ -459,6 +459,20 @@ setInterval(() => {
   const allPresence = Array.from(store['presence'].entries());
   
   for (const [userId, presence] of allPresence) {
+    // CRITICAL FIX: Don't mark users as offline if they're in an active call
+    // Check if user is in any active room
+    let userInActiveRoom = false;
+    for (const [roomId, room] of activeRooms.entries()) {
+      if ((room.user1 === userId || room.user2 === userId) && room.status !== 'ended') {
+        userInActiveRoom = true;
+        console.log(`[Cleanup] User ${userId.substring(0, 8)} in active room ${roomId.substring(0, 8)} - skipping stale check`);
+        break;
+      }
+    }
+    
+    // Skip users in active calls (they're busy, not stale)
+    if (userInActiveRoom) continue;
+    
     // If user has heartbeat and it's stale, mark offline
     if (presence.lastHeartbeat && (now - presence.lastHeartbeat) > STALE_THRESHOLD) {
       console.warn(`[Cleanup] Marking stale user ${userId.substring(0, 8)} offline (no heartbeat in ${Math.floor((now - presence.lastHeartbeat) / 1000)}s)`);

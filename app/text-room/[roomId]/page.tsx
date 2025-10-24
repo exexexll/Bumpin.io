@@ -455,6 +455,21 @@ export default function TextChatRoom() {
     };
   }, [roomId, agreedSeconds, peerUserId, peerName, router]);
 
+  // CRITICAL FIX: Send heartbeat from text room to prevent being marked offline
+  useEffect(() => {
+    if (!socketRef.current) return;
+    
+    // Send heartbeat every 20s while in room
+    const heartbeatInterval = setInterval(() => {
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('heartbeat', { timestamp: Date.now() });
+        console.log('[TextRoom] 💓 Heartbeat sent (keep online during chat)');
+      }
+    }, 20000);
+    
+    return () => clearInterval(heartbeatInterval);
+  }, []);
+
   useEffect(() => {
     let elapsed = 0;
     

@@ -941,6 +941,21 @@ export default function RoomPage() {
     };
   }, [roomId, isInitiator]);
 
+  // CRITICAL FIX: Send heartbeat from room to prevent being marked offline
+  useEffect(() => {
+    if (!socketRef.current) return;
+    
+    // Send heartbeat every 20s while in room
+    const heartbeatInterval = setInterval(() => {
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('heartbeat', { timestamp: Date.now() });
+        console.log('[Room] 💓 Heartbeat sent (keep online during call)');
+      }
+    }, 20000);
+    
+    return () => clearInterval(heartbeatInterval);
+  }, []);
+
   // BEST-IN-CLASS: RTCStats Monitoring (Connection Quality Tracking)
   useEffect(() => {
     const pc = peerConnectionRef.current;

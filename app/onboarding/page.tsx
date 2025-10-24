@@ -140,6 +140,25 @@ function OnboardingPageContent() {
     if (invite) {
       setInviteCode(invite);
       console.log('[Onboarding] Invite code from URL:', invite);
+      
+      // CRITICAL FIX: Check if this is an admin code (requires USC email)
+      // We need to know BEFORE user submits form so we can show email input
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/payment/validate-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: invite }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.valid && data.type === 'admin') {
+            console.log('[Onboarding] Admin code detected - USC email will be required');
+            setNeedsUSCEmail(true);
+          }
+        })
+        .catch(err => {
+          console.error('[Onboarding] Failed to validate code:', err);
+          // Not critical - will be caught during signup
+        });
     }
     
     if (ref) {
