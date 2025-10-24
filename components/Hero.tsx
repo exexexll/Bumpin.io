@@ -120,13 +120,25 @@ export function Hero() {
           animate="visible"
           className="motion-reduce:opacity-100 motion-reduce:translate-y-0"
         >
-          {/* H1 - BUMPIN.IO with original Playfair font, white solid */}
-          <h1 className="mb-4 font-playfair text-7xl font-bold text-white sm:text-8xl lg:text-9xl drop-shadow-2xl">
+          {/* H1 - BUMPIN.IO with high contrast */}
+          <h1 
+            className="mb-4 font-playfair text-7xl font-bold sm:text-8xl lg:text-9xl"
+            style={{
+              color: '#000000',
+              textShadow: '0 4px 12px rgba(255, 255, 255, 0.8), 0 8px 24px rgba(255, 255, 255, 0.6), 0 0 40px rgba(255, 255, 255, 0.4)',
+              WebkitTextStroke: '1px rgba(255, 255, 255, 0.3)',
+            }}
+          >
             BUMPIN.IO
           </h1>
 
-          {/* Subtitle */}
-          <p className="mb-8 font-inter text-base font-medium text-white/95 sm:text-lg lg:text-xl">
+          {/* Subtitle with better contrast */}
+          <p className="mb-8 font-inter text-base font-bold sm:text-lg lg:text-xl"
+            style={{
+              color: '#000000',
+              textShadow: '0 2px 8px rgba(255, 255, 255, 0.8), 0 4px 16px rgba(255, 255, 255, 0.5)',
+            }}
+          >
             Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.
           </p>
 
