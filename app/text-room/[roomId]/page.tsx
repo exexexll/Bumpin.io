@@ -509,8 +509,11 @@ export default function TextChatRoom() {
       </AnimatePresence>
 
       {/* Messages Area - Scrollable with bottom padding for input */}
-      <div className="messages-area flex-1 overflow-y-auto">
-        <div className="p-4 pb-40 space-y-1">
+      <div className="messages-area flex-1 overflow-y-auto overflow-x-hidden" style={{
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'contain',
+      }}>
+        <div className="p-4 pb-40 space-y-1" style={{ minHeight: '100%' }}>
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
               <div className="text-6xl mb-4">💬</div>

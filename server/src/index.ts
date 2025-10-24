@@ -1042,6 +1042,22 @@ io.on('connection', (socket) => {
       if (room.user1 === currentUserId) room.user1Connected = true;
       if (room.user2 === currentUserId) room.user2Connected = true;
       
+      // CRITICAL: Reset torch rule activity timestamps on reconnection
+      if (room.chatMode === 'text') {
+        const activity = textRoomActivity.get(roomId);
+        if (activity) {
+          const isUser1 = room.user1 === currentUserId;
+          if (isUser1) {
+            activity.user1LastMessageAt = Date.now();
+          } else {
+            activity.user2LastMessageAt = Date.now();
+          }
+          // Clear any warning that was active
+          activity.warningStartedAt = null;
+          io.to(roomId).emit('textroom:inactivity-cleared');
+        }
+      }
+      
       console.log(`[Room] ✅ User ${currentUserId.substring(0, 8)} reconnected to room ${roomId.substring(0, 8)}`);
       
       // Notify partner
