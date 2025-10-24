@@ -7,6 +7,7 @@ import { getSession } from '@/lib/session';
 import { MatchmakeOverlay } from '@/components/matchmake/MatchmakeOverlay';
 import { ReferralNotifications } from '@/components/ReferralNotifications';
 import { MainPageIcons } from '@/components/MainPageIcons';
+import { FloatingUserNames } from '@/components/FloatingUserNames';
 import DirectMatchInput from '@/components/DirectMatchInput';
 import { API_BASE } from '@/lib/config';
 import { prefetchTurnCredentials } from '@/lib/webrtc-config';
@@ -18,6 +19,21 @@ function MainPageContent() {
   const [loading, setLoading] = useState(true);
   const [showMatchmake, setShowMatchmake] = useState(false);
   const [directMatchTarget, setDirectMatchTarget] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Hide footer on main page
+    const footer = document.querySelector('footer');
+    if (footer) {
+      (footer as HTMLElement).style.display = 'none';
+    }
+    
+    return () => {
+      const footer = document.querySelector('footer');
+      if (footer) {
+        (footer as HTMLElement).style.display = '';
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const session = getSession();
@@ -113,6 +129,9 @@ function MainPageContent() {
 
       {/* Animated Icons */}
       <MainPageIcons />
+
+      {/* Floating User Names (behind buttons) */}
+      <FloatingUserNames />
 
       {/* Button Layout */}
       <div className={`absolute inset-0 transition-opacity duration-300 ${showMatchmake ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} style={{ zIndex: 10 }}>
