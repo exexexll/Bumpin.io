@@ -544,22 +544,28 @@ export default function TextChatRoom() {
         <div className="flex items-center gap-2 px-4 pt-2 pb-1 border-b border-white/5">
           {/* Share Social Button */}
           <button
-            onClick={() => {
+            onClick={async () => {
               const session = getSession();
               if (!session || !socketRef.current) return;
               
-              // Get user's socials
-              import('@/lib/api').then(async ({ getMyProfile }) => {
-                const profile = await getMyProfile(session.sessionToken);
-                if (profile?.socials) {
-                  socketRef.current.emit('room:giveSocial', {
-                    roomId,
-                    socials: profile.socials,
-                  });
-                } else {
-                  alert('No socials set. Add them in Settings first.');
-                }
-              });
+              // Simple social share - emit directly
+              // Users can manually type their socials or we can add a modal
+              const socials = prompt('Enter your social handles (format: instagram:@username, snapchat:username)');
+              if (socials && socketRef.current) {
+                // Parse simple format
+                const socialObj: Record<string, string> = {};
+                socials.split(',').forEach(item => {
+                  const [platform, handle] = item.split(':').map(s => s.trim());
+                  if (platform && handle) {
+                    socialObj[platform.toLowerCase()] = handle;
+                  }
+                });
+                
+                socketRef.current.emit('room:giveSocial', {
+                  roomId,
+                  socials: socialObj,
+                });
+              }
             }}
             className="flex-shrink-0 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-all"
             aria-label="Share socials"
