@@ -31,7 +31,7 @@ export function PixelHeart({ type, color, position }: PixelHeartProps) {
         },
       }}
     >
-      <svg width="40" height="40" viewBox="0 0 16 16" style={{ imageRendering: 'pixelated' }}>
+      <svg width="60" height="60" viewBox="0 0 16 16" style={{ imageRendering: 'pixelated' }}>
         {type === 'left' && (
           <g fill={heartColor}>
             <rect x="2" y="3" width="1" height="1"/>
