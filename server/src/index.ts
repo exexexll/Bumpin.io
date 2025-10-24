@@ -955,6 +955,95 @@ io.on('connection', (socket) => {
     socket.to(roomId).emit('rtc:ice', { candidate, from: currentUserId });
   });
 
+  // Handle WebRTC disconnection (triggered by client when connection is lost)
+  socket.on('room:disconnected', async ({ roomId }) => {
+    if (!currentUserId) return;
+    
+    const room = activeRooms.get(roomId);
+    if (!room) return;
+    
+    console.log(`[Room] User ${currentUserId.substring(0, 8)} reported disconnection in room ${roomId.substring(0, 8)}`);
+    
+    // Mark user as disconnected
+    if (room.user1 === currentUserId) room.user1Connected = false;
+    if (room.user2 === currentUserId) room.user2Connected = false;
+    
+    // Start grace period if not already started
+    if (room.status === 'active') {
+      room.status = 'grace_period';
+      room.gracePeriodExpires = Date.now() + 10000; // 10 seconds
+      
+      console.log(`[Room] Starting grace period for room ${roomId.substring(0, 8)}`);
+      
+      // Notify partner
+      const partnerId = room.user1 === currentUserId ? room.user2 : room.user1;
+      const partnerSocketId = activeSockets.get(partnerId);
+      if (partnerSocketId) {
+        io.to(partnerSocketId).emit('room:partner-disconnected', {
+          gracePeriodSeconds: 10,
+          userId: currentUserId,
+        });
+        console.log(`[Room] Notified partner ${partnerId.substring(0, 8)} about disconnection`);
+      }
+      
+      // Schedule room end if no reconnection
+      setTimeout(async () => {
+        const currentRoom = activeRooms.get(roomId);
+        if (currentRoom && currentRoom.status === 'grace_period') {
+          console.log(`[Room] ⏰ Grace period expired for room ${roomId.substring(0, 8)} - ending session`);
+          currentRoom.status = 'ended';
+          
+          // Notify both users
+          io.to(roomId).emit('room:ended-by-disconnect');
+          
+          // End the session properly
+          const sessionId = `session-${Date.now()}`;
+          const user1 = await store.getUser(currentRoom.user1);
+          const user2 = await store.getUser(currentRoom.user2);
+          
+          if (user1 && user2) {
+            const actualDuration = Math.floor((Date.now() - currentRoom.startedAt) / 1000);
+            
+            // Add to both users' history
+            await store.addHistory(currentRoom.user1, {
+              sessionId,
+              roomId,
+              partnerId: currentRoom.user2,
+              partnerName: user2.name,
+              startedAt: currentRoom.startedAt,
+              duration: actualDuration,
+              messages: currentRoom.messages || [],
+            });
+            
+            await store.addHistory(currentRoom.user2, {
+              sessionId,
+              roomId,
+              partnerId: currentRoom.user1,
+              partnerName: user1.name,
+              startedAt: currentRoom.startedAt,
+              duration: actualDuration,
+              messages: currentRoom.messages || [],
+            });
+            
+            // Set cooldowns using DataStore method
+            await store.setCooldown(currentRoom.user1, currentRoom.user2, Date.now() + 24 * 60 * 60 * 1000);
+            
+            // Track session completion for QR unlock (if duration > 30s)
+            if (actualDuration > 30) {
+              await store.trackSessionCompletion(currentRoom.user1, currentRoom.user2, roomId, actualDuration);
+              await store.trackSessionCompletion(currentRoom.user2, currentRoom.user1, roomId, actualDuration);
+            }
+            
+            console.log(`[Session] Ended session ${sessionId} due to disconnection timeout`);
+          }
+          
+          // Clean up room
+          activeRooms.delete(roomId);
+        }
+      }, 10000); // 10 seconds grace period
+    }
+  });
+
   // Chat messaging
   socket.on('room:chat', async ({ roomId, text }) => {
     if (!currentUserId) return;

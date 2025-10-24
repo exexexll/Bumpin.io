@@ -88,7 +88,7 @@ export default function RoomPage() {
   const [reportError, setReportError] = useState('');
   
   // Connecting phase tracking
-  const [connectionPhase, setConnectionPhase] = useState<'initializing' | 'gathering' | 'connecting' | 'connected'>('initializing');
+  const [connectionPhase, setConnectionPhase] = useState<'initializing' | 'gathering' | 'connecting' | 'connected' | 'reconnecting'>('initializing');
   const [connectionTimeout, setConnectionTimeout] = useState(false);
   const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [connectionFailed, setConnectionFailed] = useState(false);
@@ -340,27 +340,88 @@ export default function RoomPage() {
           }
           
           if (state === 'disconnected') {
-            console.warn('[WebRTC] Connection disconnected - may reconnect');
-            // Don't immediately fail - WebRTC might reconnect automatically
-            // Wait a bit to see if it recovers
+            console.warn('[WebRTC] Connection disconnected - entering grace period');
+            setConnectionPhase('reconnecting');
+            
+            // Grace period: 10 seconds to allow automatic reconnection
+            // This handles both ephemeral signal loss and brief network interruptions
+            const disconnectTime = Date.now();
+            let reconnectAttempts = 0;
+            const maxReconnectAttempts = 3;
+            const gracePeriodMs = 10000; // 10 seconds grace period
+            
+            // Show reconnecting UI
+            setPermissionError('Connection lost. Attempting to reconnect...');
+            
+            // Attempt ICE restart to help reconnection
+            const attemptReconnect = async () => {
+              if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                reconnectAttempts++;
+                console.log(`[WebRTC] Reconnection attempt ${reconnectAttempts}/${maxReconnectAttempts}`);
+                
+                try {
+                  // ICE restart - this triggers renegotiation
+                  pc.restartIce();
+                  
+                  // If we're the initiator, create a new offer
+                  if (isInitiator) {
+                    console.log('[WebRTC] Creating new offer for reconnection (preserving m-line order)');
+                    const offer = await pc.createOffer({ iceRestart: true });
+                    await pc.setLocalDescription(offer);
+                    
+                    if (socketRef.current) {
+                      socketRef.current.emit('rtc:offer', { roomId, offer });
+                      console.log('[WebRTC] Reconnection offer sent');
+                    }
+                  }
+                } catch (error) {
+                  console.error('[WebRTC] Error during reconnection attempt:', error);
+                }
+              }
+            };
+            
+            // First reconnect attempt after 2 seconds
+            setTimeout(attemptReconnect, 2000);
+            
+            // Second attempt after 5 seconds
+            setTimeout(attemptReconnect, 5000);
+            
+            // Third attempt after 8 seconds
+            setTimeout(attemptReconnect, 8000);
+            
+            // Final check after grace period
             setTimeout(() => {
-              if (pc.connectionState === 'disconnected') {
-                console.error('[WebRTC] Still disconnected after 5s, treating as failed');
+              const elapsedTime = Date.now() - disconnectTime;
+              
+              if (pc.connectionState === 'connected') {
+                console.log('[WebRTC] ✅ Reconnected successfully during grace period');
+                setConnectionPhase('connected');
+                setPermissionError('');
+                return;
+              }
+              
+              if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                console.error(`[WebRTC] Still disconnected after ${gracePeriodMs}ms grace period, treating as failed`);
                 
                 // Notify peer
                 if (socketRef.current) {
                   socketRef.current.emit('connection:failed', { 
                     roomId, 
-                    reason: `${peerName} lost connection` 
+                    reason: `${peerName} lost connection (reconnection failed)` 
                   });
                 }
                 
+                // Update room status to grace period on server
+                if (socketRef.current) {
+                  socketRef.current.emit('room:disconnected', { roomId });
+                }
+                
                 setConnectionFailed(true);
-                setConnectionFailureReason('Connection lost - network interruption');
+                setConnectionFailureReason('Connection lost - unable to reconnect');
                 setShowPermissionSheet(true);
-                setPermissionError('Connection lost. Please check your internet and try again.');
+                setPermissionError('Connection lost. Please refresh the page or check your internet connection.');
               }
-            }, 5000);
+            }, gracePeriodMs);
           }
         };
 
@@ -368,14 +429,28 @@ export default function RoomPage() {
         const socket = connectSocket(currentSession.sessionToken);
         socketRef.current = socket;
 
-        // Store roomId for reconnection
+        // Store roomId and connection state for reconnection (handles tab reload)
         sessionStorage.setItem('current_room_id', roomId);
+        sessionStorage.setItem('room_join_time', Date.now().toString());
+        sessionStorage.setItem('room_connection_active', 'true');
+        
+        // Detect if this is a reload during an active call
+        const wasActiveCall = sessionStorage.getItem('room_connection_active') === 'true';
+        const lastJoinTime = parseInt(sessionStorage.getItem('room_join_time') || '0');
+        const timeSinceJoin = Date.now() - lastJoinTime;
+        
+        if (wasActiveCall && timeSinceJoin < 30000) {
+          // User reloaded within 30 seconds - this is a reconnection attempt
+          console.log('[Room] Detected tab reload during active call - attempting reconnection');
+          setConnectionPhase('reconnecting');
+        }
         
         socket.emit('room:join', { roomId });
         
-        // Simple reconnection: just rejoin on socket reconnect
+        // Socket reconnection handler (for ephemeral disconnects)
         socket.io.on('reconnect', () => {
-          console.log('[Room] Socket reconnected - rejoining');
+          console.log('[Room] Socket reconnected after disconnect - rejoining room');
+          setConnectionPhase('reconnecting');
           socket.emit('room:join', { roomId });
         });
         
@@ -412,7 +487,33 @@ export default function RoomPage() {
         });
         
         socket.on('room:partner-reconnected', () => {
+          console.log('[Room] Partner reconnected');
           setShowReconnecting(false);
+          setPeerDisconnected(false);
+          setConnectionPhase('connected');
+          
+          // If we're in a disconnected state, attempt to renegotiate WebRTC
+          if (peerConnectionRef.current && 
+              (peerConnectionRef.current.connectionState === 'disconnected' || 
+               peerConnectionRef.current.connectionState === 'failed')) {
+            console.log('[Room] Partner reconnected, renegotiating WebRTC connection');
+            
+            // Trigger ICE restart to re-establish connection
+            if (isInitiator) {
+              peerConnectionRef.current.restartIce();
+              
+              peerConnectionRef.current.createOffer({ iceRestart: true })
+                .then(offer => peerConnectionRef.current!.setLocalDescription(offer))
+                .then(() => {
+                  socket.emit('rtc:offer', { 
+                    roomId, 
+                    offer: peerConnectionRef.current!.localDescription 
+                  });
+                  console.log('[Room] Sent reconnection offer to partner');
+                })
+                .catch(err => console.error('[Room] Error creating reconnection offer:', err));
+            }
+          }
         });
         
         socket.on('room:ended-by-disconnect', () => {
@@ -422,33 +523,59 @@ export default function RoomPage() {
 
         // Listen for WebRTC signaling
         socket.on('rtc:offer', async ({ offer }: any) => {
-          console.log('[WebRTC] Received offer');
+          console.log('[WebRTC] Received offer, current signaling state:', pc.signalingState);
           try {
-            await pc.setRemoteDescription(new RTCSessionDescription(offer));
-            remoteDescriptionSet.current = true;
+            // Check if this is a renegotiation (ICE restart)
+            const isRenegotiation = pc.signalingState !== 'stable' && pc.signalingState !== 'have-remote-offer';
             
-            // Flush queued ICE candidates
-            while (iceCandidateQueue.current.length > 0) {
-              const candidate = iceCandidateQueue.current.shift();
-              if (candidate) {
-                await pc.addIceCandidate(candidate);
+            if (isRenegotiation) {
+              console.log('[WebRTC] Renegotiation detected, rolling back to stable state');
+              // Handle glare: if we're in 'have-local-offer', we need to roll back
+              if (pc.signalingState === 'have-local-offer') {
+                console.log('[WebRTC] Rolling back local offer to accept remote offer');
+                await pc.setLocalDescription({ type: 'rollback' } as RTCSessionDescriptionInit);
               }
             }
             
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            socket.emit('rtc:answer', { roomId, answer });
-          } catch (error) {
+            // Only set remote description if we're in a valid state
+            if (pc.signalingState === 'stable' || pc.signalingState === 'have-remote-offer') {
+              await pc.setRemoteDescription(new RTCSessionDescription(offer));
+              remoteDescriptionSet.current = true;
+              console.log('[WebRTC] Remote offer set successfully');
+              
+              // Flush queued ICE candidates
+              while (iceCandidateQueue.current.length > 0) {
+                const candidate = iceCandidateQueue.current.shift();
+                if (candidate) {
+                  await pc.addIceCandidate(candidate);
+                }
+              }
+              
+              const answer = await pc.createAnswer();
+              await pc.setLocalDescription(answer);
+              socket.emit('rtc:answer', { roomId, answer });
+              console.log('[WebRTC] Answer sent');
+            } else {
+              console.warn('[WebRTC] Invalid signaling state for offer:', pc.signalingState);
+            }
+          } catch (error: any) {
             console.error('[WebRTC] Error handling offer:', error);
+            
+            // If it's the m-line order error, try to recover by creating a new peer connection
+            if (error.message && error.message.includes('m-lines')) {
+              console.error('[WebRTC] M-line order mismatch detected - this requires peer connection reset');
+              // Don't auto-reset here, let the disconnection handler deal with it
+            }
           }
         });
 
         socket.on('rtc:answer', async ({ answer }: any) => {
-          console.log('[WebRTC] Received answer');
+          console.log('[WebRTC] Received answer, current signaling state:', pc.signalingState);
           try {
             if (pc.signalingState === 'have-local-offer') {
               await pc.setRemoteDescription(new RTCSessionDescription(answer));
               remoteDescriptionSet.current = true;
+              console.log('[WebRTC] Remote answer set successfully');
               
               // Flush queued ICE candidates
               while (iceCandidateQueue.current.length > 0) {
@@ -460,8 +587,13 @@ export default function RoomPage() {
             } else {
               console.warn('[WebRTC] Ignoring answer in wrong state:', pc.signalingState);
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error('[WebRTC] Error setting remote answer:', error);
+            
+            // If it's the m-line order error during answer, this is critical
+            if (error.message && error.message.includes('m-lines')) {
+              console.error('[WebRTC] M-line order mismatch in answer - peers are out of sync');
+            }
           }
         });
 
@@ -635,6 +767,8 @@ export default function RoomPage() {
     // Cleanup on unmount
     return () => {
       console.log('[Room] Component unmounting - running cleanup');
+      // Clear reconnection state
+      sessionStorage.removeItem('room_connection_active');
       cleanupConnections();
       disconnectSocket();
     };
@@ -1007,6 +1141,26 @@ export default function RoomPage() {
           </div>
         </div>
       </header>
+
+      {/* Reconnection Banner */}
+      {connectionPhase === 'reconnecting' && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="relative z-20 bg-yellow-500/20 backdrop-blur-md border-b border-yellow-500/30"
+        >
+          <div className="flex items-center justify-center gap-3 px-4 py-2">
+            <svg className="h-5 w-5 text-yellow-300 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <span className="text-sm font-medium text-yellow-300">
+              Connection lost - attempting to reconnect...
+            </span>
+          </div>
+        </motion.div>
+      )}
 
       {/* Video Stage */}
       <div className="relative flex-1">
@@ -1387,11 +1541,13 @@ export default function RoomPage() {
                 {connectionPhase === 'initializing' && 'Initializing...'}
                 {connectionPhase === 'gathering' && 'Preparing connection...'}
                 {connectionPhase === 'connecting' && `Connecting to ${peerName}...`}
+                {connectionPhase === 'reconnecting' && '🔄 Reconnecting...'}
               </h3>
               <p className="text-base text-white/70 max-w-md mx-auto">
                 {connectionPhase === 'initializing' && 'Setting up camera and microphone'}
                 {connectionPhase === 'gathering' && 'Gathering network information for secure connection'}
                 {connectionPhase === 'connecting' && 'Establishing peer-to-peer connection...'}
+                {connectionPhase === 'reconnecting' && 'Connection lost - attempting to reconnect automatically (up to 10 seconds)'}
               </p>
             </div>
 
@@ -1403,7 +1559,8 @@ export default function RoomPage() {
                 animate={{ 
                   width: connectionPhase === 'initializing' ? '33%' : 
                          connectionPhase === 'gathering' ? '66%' : 
-                         connectionPhase === 'connecting' ? '90%' : '100%'
+                         connectionPhase === 'connecting' ? '90%' :
+                         connectionPhase === 'reconnecting' ? '75%' : '100%'
                 }}
                 transition={{ duration: 0.5 }}
               />
@@ -1412,6 +1569,7 @@ export default function RoomPage() {
             {/* Helpful Tip */}
             <p className="text-xs text-white/40 max-w-sm mx-auto">
               {connectionPhase === 'connecting' && 'This may take a few seconds on mobile networks'}
+              {connectionPhase === 'reconnecting' && 'Please wait while we restore your connection...'}
             </p>
           </motion.div>
         </div>
