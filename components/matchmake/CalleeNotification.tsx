@@ -124,7 +124,7 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className={`w-full max-w-lg rounded-2xl bg-[#0a0a0c] shadow-2xl border-2 border-[#fcf290]/30 ${
+        className={`w-full max-w-lg rounded-2xl bg-[#0a0a0c] shadow-2xl border-2 border-[#ffc46a]/30 ${
           isMobile ? 'space-y-3 p-4 max-h-[90vh] overflow-y-auto' : 'space-y-6 p-8'
         }`}
         role="alertdialog"
@@ -156,7 +156,7 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
         <div className={isMobile ? 'space-y-2' : 'space-y-4'}>
           {/* Selfie */}
           {invite.fromUser.selfieUrl && (
-            <div className={`relative mx-auto overflow-hidden rounded-full border-4 border-[#fcf290]/30 ${
+            <div className={`relative mx-auto overflow-hidden rounded-full border-4 border-[#ffc46a]/30 ${
               isMobile ? 'h-24 w-24' : 'h-32 w-32'
             }`}>
               <Image
@@ -232,7 +232,7 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
               }}
               min="60"
               max="500"
-              className={`w-full rounded-xl bg-white/10 px-4 text-center font-mono text-[#eaeaf0] focus:outline-none focus:ring-2 focus:ring-[#fcf290] ${
+              className={`w-full rounded-xl bg-white/10 px-4 text-center font-mono text-[#eaeaf0] focus:outline-none focus:ring-2 focus:ring-[#ffc46a] ${
                 isMobile ? 'py-2 text-xl' : 'py-3 text-2xl'
               }`}
               placeholder="60-500"
@@ -257,7 +257,7 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
             ref={firstFocusRef}
             onClick={() => onAccept(invite.inviteId, seconds)}
             disabled={seconds < 60 || seconds > 500}
-            className="focus-ring flex-1 rounded-xl bg-[#fcf290] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="focus-ring flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
             aria-label="Accept call"
           >
             Accept

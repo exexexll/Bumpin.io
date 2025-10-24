@@ -93,21 +93,18 @@ export function Hero() {
     <section
       ref={ref}
       className="relative flex min-h-[620px] h-[100dvh] w-full items-center justify-center overflow-hidden"
-      style={{ backgroundColor: '#fcf290' }}
+      style={{ backgroundColor: '#ffc46a' }}
     >
-      {/* Dim overlay for atmospheric lighting */}
-      <div className="absolute inset-0 pointer-events-none bg-black/30" />
-      
       {/* Pixelized edge vignette - gradient to white */}
       <div className="absolute inset-0 pointer-events-none" style={{
         background: 'radial-gradient(circle at center, transparent 0%, transparent 60%, rgba(255,255,255,0.3) 75%, rgba(255,255,255,0.6) 85%, rgba(255,255,255,0.9) 95%, white 100%)',
       }} />
       
-      {/* Pixelized scaffold border */}
+      {/* Pixelized scaffold border - slightly larger grid */}
       <div className="absolute inset-0 pointer-events-none" style={{
         backgroundImage: `
-          repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 11px),
-          repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 11px)
+          repeating-linear-gradient(0deg, transparent, transparent 12px, rgba(255,255,255,0.1) 12px, rgba(255,255,255,0.1) 13px),
+          repeating-linear-gradient(90deg, transparent, transparent 12px, rgba(255,255,255,0.1) 12px, rgba(255,255,255,0.1) 13px)
         `,
         imageRendering: 'pixelated',
       }} />
@@ -138,7 +135,7 @@ export function Hero() {
             {checkingSession ? (
               <button
                 disabled
-                className="rounded-xl bg-[#fcf290]/50 px-8 py-3 font-medium text-[#0a0a0c] cursor-wait"
+                className="rounded-xl bg-[#ffc46a]/50 px-8 py-3 font-medium text-[#0a0a0c] cursor-wait"
               >
                 Loading...
               </button>
@@ -147,7 +144,7 @@ export function Hero() {
                 onClick={handleConnect}
                 className="rounded-xl px-8 py-3 font-bold text-black shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95 focus-ring"
                 style={{
-                  backgroundColor: '#fcf290',
+                  backgroundColor: '#ffc46a',
                   boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3)',
                 }}
               >
@@ -165,7 +162,7 @@ export function Hero() {
               Already have an account?{' '}
               <Link 
                 href="/login"
-                className="font-medium text-[#fcf290] hover:underline focus-ring rounded"
+                className="font-medium text-[#ffc46a] hover:underline focus-ring rounded"
               >
                 Login
               </Link>
