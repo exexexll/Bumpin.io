@@ -416,6 +416,24 @@ export default function TextChatRoom() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
+          {/* End Call Button */}
+          <button
+            onClick={() => {
+              if (confirm('End this chat?')) {
+                if (socketRef.current) {
+                  socketRef.current.emit('call:end', { roomId });
+                }
+                router.push('/history');
+              }
+            }}
+            className="rounded-full bg-red-500/20 p-2 hover:bg-red-500/30 transition-all sm:hidden"
+            aria-label="End chat"
+          >
+            <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
           {/* TORCH RULE: Activity indicator instead of timer */}
           <div className="flex items-center gap-2">
             {inactivityWarning ? (
@@ -514,29 +532,7 @@ export default function TextChatRoom() {
         </AnimatePresence>
       </div>
 
-      {/* Mobile-only Video Upgrade Button - Above input */}
-      <AnimatePresence>
-        {showVideoRequest && !videoRequested && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="sm:hidden fixed bottom-20 left-0 right-0 px-4 z-30"
-          >
-            <button
-              onClick={handleRequestVideo}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff9b6b] to-[#ff7a3d] px-5 py-3 text-sm font-bold text-[#0a0a0c] shadow-lg shadow-[#ff9b6b]/30"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              Upgrade to Video
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Input Area - Fixed at bottom, keyboard-aware */}
+      {/* Input Area - Fixed at bottom, keyboard-aware, prevents page jump */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-white/10 bg-black/95 backdrop-blur-md z-30" style={{
         paddingBottom: 'max(1rem, env(safe-area-inset-bottom))', // iOS safe area
       }}>
