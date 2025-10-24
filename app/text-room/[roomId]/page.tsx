@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { getSession } from '@/lib/session';
 import { connectSocket } from '@/lib/socket';
-import { MessageList } from '@/components/chat/MessageList';
+import { MessageBubble } from '@/components/chat/MessageBubble';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { GIFPicker } from '@/components/chat/GIFPicker';
 
@@ -173,11 +173,15 @@ export default function TextChatRoom() {
     socket.on('textchat:typing', () => {
       setPartnerTyping(true);
       
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
       
-      typingTimeoutRef.current = setTimeout(() => {
+      const timeout = setTimeout(() => {
         setPartnerTyping(false);
-      }, 2000);
+      }, 3000);
+      
+      typingTimeoutRef.current = timeout;
     });
     
     socket.on('disconnect', () => {
@@ -293,14 +297,13 @@ export default function TextChatRoom() {
         
       if (elapsed >= 60) {
         setShowVideoRequest(true);
-        clearInterval(interval);
       }
     }, 1000);
 
     return () => {
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
     };
-  }, []); // Empty deps - run once on mount
+  }, []);
 
   // CRITICAL: End session client-side when countdown reaches 0
   // Don't wait for server (which checks every 30s) - more responsive UX
