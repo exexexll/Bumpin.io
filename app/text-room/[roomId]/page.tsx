@@ -141,9 +141,16 @@ export default function TextChatRoom() {
       sessionStorage.setItem('text_room_join_time', Date.now().toString());
     });
     
-    // BEST-IN-CLASS: Handle socket connection/reconnection with queue flushing
-    socket.on('connect', () => {
-      console.log('[TextRoom] Socket connected');
+    // CRITICAL FIX: Handle socket reconnection properly with queue flushing
+    const handleSocketReconnect = () => {
+      // Check if we're still in this room (user didn't navigate away)
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes(roomId)) {
+        console.log('[TextRoom] Socket reconnected but user navigated away - not rejoining');
+        return;
+      }
+      
+      console.log('[TextRoom] ✅ Socket reconnected - rejoining room');
       setShowReconnecting(false);
       setIsOnline(true);
       
@@ -153,30 +160,13 @@ export default function TextChatRoom() {
         disconnectCountdownRef.current = null;
       }
       
-      socket.emit('room:join', { roomId });
-      
-      // FLUSH MESSAGE QUEUE on reconnect (using ref to avoid stale closure)
-      if (messageQueueRef.current.length > 0) {
-        console.log(`[TextRoom] Flushing ${messageQueueRef.current.length} queued messages`);
-        messageQueueRef.current.forEach(msg => {
-          socket.emit('textchat:send', msg);
-        });
-        messageQueueRef.current = [];
-        setQueuedMessageCount(0);
-      }
-    });
-    
-    socket.on('reconnect', () => {
-      console.log('[TextRoom] Socket reconnected');
-      setShowReconnecting(false);
-      setIsOnline(true);
-      
-      // CRITICAL FIX: Clear disconnect countdown when reconnected
-      if (disconnectCountdownRef.current) {
-        clearInterval(disconnectCountdownRef.current);
-        disconnectCountdownRef.current = null;
+      // Re-auth first
+      const session = getSession();
+      if (session) {
+        socket.emit('auth', { sessionToken: session.sessionToken });
       }
       
+      // Then rejoin room
       socket.emit('room:join', { roomId });
       
       // FLUSH MESSAGE QUEUE on reconnect (using ref to avoid stale closure)
@@ -200,7 +190,13 @@ export default function TextChatRoom() {
           })));
         }
       });
-    });
+    };
+    
+    // Register handler
+    socket.on('reconnect', handleSocketReconnect);
+    
+    // Store handler reference for cleanup
+    (socket as any)._textRoomReconnectHandler = handleSocketReconnect;
     
     socket.on('room:invalid', () => {
       sessionStorage.removeItem('text_room_active');
@@ -427,7 +423,7 @@ export default function TextChatRoom() {
       if (partnerDisconnectCountdownRef.current) clearInterval(partnerDisconnectCountdownRef.current);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       
-      // CRITICAL FIX: Remove ALL socket listeners (was missing 4 events)
+      // CRITICAL FIX: Remove ALL socket listeners
       socket.off('textchat:message');
       socket.off('textchat:rate-limited');
       socket.off('textchat:error');
@@ -443,15 +439,19 @@ export default function TextChatRoom() {
       socket.off('room:partner-disconnected');
       socket.off('room:partner-reconnected');
       socket.off('room:ended-by-disconnect');
-      socket.off('room:invalid'); // MISSING
-      socket.off('room:joined'); // MISSING
-      socket.off('room:unauthorized'); // MISSING
-      socket.off('room:ended'); // MISSING
+      socket.off('room:invalid');
+      socket.off('room:joined');
+      socket.off('room:unauthorized');
+      socket.off('room:ended');
       socket.off('disconnect');
-      socket.off('connect');
-      socket.off('reconnect');
       
-      console.log('[TextRoom] ✅ All 22 listeners and timers cleaned up');
+      // Remove reconnect handler using stored reference
+      if ((socket as any)._textRoomReconnectHandler) {
+        socket.off('reconnect', (socket as any)._textRoomReconnectHandler);
+        delete (socket as any)._textRoomReconnectHandler;
+      }
+      
+      console.log('[TextRoom] ✅ All 21 text room listeners and timers cleaned up');
     };
   }, [roomId, agreedSeconds, peerUserId, peerName, router]);
 

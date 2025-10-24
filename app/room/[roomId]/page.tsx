@@ -512,12 +512,35 @@ export default function RoomPage() {
         // Join room
         socket.emit('room:join', { roomId });
         
-        // Socket reconnection handler
-        socket.io.on('reconnect', () => {
-          console.log('[Room] Socket reconnected after disconnect - rejoining room');
+        // CRITICAL FIX: Handle socket reconnection properly
+        // When socket reconnects, we need to rejoin the room IF still on this page
+        const handleSocketReconnect = () => {
+          // Check if we're still in this room (user didn't navigate away)
+          const currentPath = window.location.pathname;
+          if (!currentPath.includes(roomId)) {
+            console.log('[Room] Socket reconnected but user navigated away - not rejoining');
+            return;
+          }
+          
+          console.log('[Room] ✅ Socket reconnected - rejoining room');
           setConnectionPhase('reconnecting');
+          setShowReconnecting(true);
+          
+          // Re-auth first
+          const session = getSession();
+          if (session) {
+            socket.emit('auth', { sessionToken: session.sessionToken });
+          }
+          
+          // Then rejoin room
           socket.emit('room:join', { roomId });
-        });
+        };
+        
+        // Register handler
+        socket.on('reconnect', handleSocketReconnect);
+        
+        // Store handler reference for cleanup
+        (socket as any)._roomReconnectHandler = handleSocketReconnect;
         
         // Listen for room security events
         socket.on('room:invalid', () => {
@@ -869,6 +892,7 @@ export default function RoomPage() {
       
       // CRITICAL FIX: Remove ALL socket event listeners to prevent memory leaks
       if (socketRef.current) {
+        // Remove room-specific event listeners
         socketRef.current.off('room:invalid');
         socketRef.current.off('room:joined');
         socketRef.current.off('room:unauthorized');
@@ -885,16 +909,20 @@ export default function RoomPage() {
         socketRef.current.off('peer:disconnected');
         socketRef.current.off('connection:peer-failed');
         
-        // Also remove socket.io.on listeners
-        if (socketRef.current.io) {
-          socketRef.current.io.off('reconnect');
+        // Remove reconnect handler using stored reference
+        if ((socketRef.current as any)._roomReconnectHandler) {
+          socketRef.current.off('reconnect', (socketRef.current as any)._roomReconnectHandler);
+          delete (socketRef.current as any)._roomReconnectHandler;
         }
         
-        console.log('[Room] ✅ All 15 socket listeners removed');
+        console.log('[Room] ✅ All 16 room-specific socket listeners removed');
       }
       
       cleanupConnections();
-      disconnectSocket();
+      // CRITICAL FIX: DON'T disconnect socket on unmount!
+      // Socket is shared singleton - disconnecting breaks the entire app
+      // Only remove room-specific listeners (done above)
+      // Socket stays connected for app-level use (main page, matchmaking, etc.)
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleanupConnections]);
