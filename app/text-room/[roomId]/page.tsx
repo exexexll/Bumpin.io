@@ -51,6 +51,7 @@ export default function TextChatRoom() {
   const [showReconnecting, setShowReconnecting] = useState(false);
   const [reconnectCountdown, setReconnectCountdown] = useState(10);
   const [partnerTyping, setPartnerTyping] = useState(false);
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
 
   const socketRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -429,14 +430,7 @@ export default function TextChatRoom() {
         <div className="flex items-center gap-2 sm:gap-4">
           {/* End Call Button - Always visible */}
           <button
-            onClick={() => {
-              if (confirm('End this chat?')) {
-                if (socketRef.current) {
-                  socketRef.current.emit('call:end', { roomId });
-                }
-                router.push('/history');
-              }
-            }}
+            onClick={() => setShowEndConfirm(true)}
             className="rounded-full bg-red-500/20 p-2 hover:bg-red-500/30 transition-all"
             aria-label="End chat"
           >
@@ -577,23 +571,21 @@ export default function TextChatRoom() {
               const session = getSession();
               if (!session || !socketRef.current) return;
               
-              // Simple social share - emit directly
-              // Users can manually type their socials or we can add a modal
-              const socials = prompt('Enter your social handles (format: instagram:@username, snapchat:username)');
-              if (socials && socketRef.current) {
-                // Parse simple format
-                const socialObj: Record<string, string> = {};
-                socials.split(',').forEach(item => {
-                  const [platform, handle] = item.split(':').map(s => s.trim());
-                  if (platform && handle) {
-                    socialObj[platform.toLowerCase()] = handle;
-                  }
-                });
-                
-                socketRef.current.emit('room:giveSocial', {
-                  roomId,
-                  socials: socialObj,
-                });
+              // Get user's preset socials from localStorage
+              const userSocials = localStorage.getItem('napalmsky_user_socials');
+              if (userSocials) {
+                try {
+                  const socials = JSON.parse(userSocials);
+                  socketRef.current.emit('room:giveSocial', {
+                    roomId,
+                    socials,
+                  });
+                  alert('Socials shared with ' + peerName);
+                } catch (e) {
+                  alert('No socials set. Update them in Settings.');
+                }
+              } else {
+                alert('No socials set. Add them in Settings first.');
               }
             }}
             className="flex-shrink-0 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-all"
@@ -738,6 +730,52 @@ export default function TextChatRoom() {
                   className="flex-1 rounded-xl bg-[#ff9b6b] px-6 py-3 font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity"
                 >
                   Accept Video
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* End Chat Confirmation Modal */}
+      <AnimatePresence>
+        {showEndConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="max-w-md rounded-2xl bg-[#0a0a0c] p-8 shadow-2xl border-2 border-red-500/50 text-center"
+            >
+              <div className="text-6xl mb-4">👋</div>
+              <h3 className="font-playfair text-2xl font-bold text-[#eaeaf0] mb-3">
+                End Chat?
+              </h3>
+              <p className="text-[#eaeaf0]/80 mb-6">
+                Are you sure you want to end this conversation with {peerName}?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowEndConfirm(false)}
+                  className="flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (socketRef.current) {
+                      socketRef.current.emit('call:end', { roomId });
+                    }
+                    router.push('/history');
+                  }}
+                  className="flex-1 rounded-xl bg-red-500 px-6 py-3 font-medium text-white hover:opacity-90 transition-opacity"
+                >
+                  End Chat
                 </button>
               </div>
             </motion.div>

@@ -125,9 +125,28 @@ export function GIFPicker({ onSelectGIF, onClose }: GIFPickerProps) {
         </div>
 
       {/* GIF Grid - Force scrollable with visible scrollbar */}
-      <div className="flex-1 overflow-y-scroll p-4" style={{
+      <style jsx>{`
+        .gif-scroll::-webkit-scrollbar {
+          width: 10px;
+        }
+        .gif-scroll::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 5px;
+          margin: 8px;
+        }
+        .gif-scroll::-webkit-scrollbar-thumb {
+          background: rgba(255, 155, 107, 0.4);
+          border-radius: 5px;
+        }
+        .gif-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 155, 107, 0.6);
+        }
+      `}</style>
+      <div className="gif-scroll flex-1 overflow-y-scroll p-4" style={{
         WebkitOverflowScrolling: 'touch',
-        maxHeight: 'calc(100% - 200px)',
+        maxHeight: 'calc(80vh - 240px)',
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'rgba(255, 155, 107, 0.4) rgba(255, 255, 255, 0.05)',
       }}>
         {loading ? (
             <div className="flex items-center justify-center h-64">
