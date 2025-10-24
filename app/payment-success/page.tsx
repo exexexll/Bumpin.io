@@ -131,6 +131,7 @@ function PaymentSuccessPageContent() {
                 {qrCodeUrl && (
                   <div className="flex justify-center mb-3">
                     <div className="rounded-lg bg-white p-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img 
                         src={qrCodeUrl} 
                         alt="QR Code" 

@@ -226,6 +226,7 @@ export default function SettingsPage() {
                 <div className="flex justify-center">
                   <div className="rounded-lg bg-white p-2">
                     {/* Use img tag for QR codes - more reliable than Next.js Image */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={`${API_BASE}/payment/qr/${paymentStatus.myInviteCode}`}
                       alt="QR Code"

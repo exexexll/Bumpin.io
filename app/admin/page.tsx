@@ -110,7 +110,8 @@ export default function AdminPage() {
           router.push('/admin-login');
         }, 2000);
       });
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]); // loadData is called on demand, not needed in deps
 
   const loadData = async () => {
     // Use admin token for all admin API calls

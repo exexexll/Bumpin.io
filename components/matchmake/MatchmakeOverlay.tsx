@@ -412,7 +412,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     } finally {
       setLoading(false);
     }
-  }, [loading, directMatchTarget, showToast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, directMatchTarget]); // showToast is stable, askForLocation called internally
 
   // Check for new users and update existing user data (cooldown, intro status)
   const checkForNewUsers = useCallback(async () => {
@@ -484,7 +485,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     } catch (err: any) {
       console.error('[Matchmake] ❌ Failed to check for new users:', err);
     }
-  }, [directMatchTarget]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [directMatchTarget]); // currentIndex is managed internally, not needed in deps
 
   // Initialize socket and presence
   useEffect(() => {
@@ -737,7 +739,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     }
     
     setCurrentIndex(nextIndex);
-  }, [currentIndex, users, isRateLimited, viewedUserIds, trackNavigation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, users, isRateLimited, viewedUserIds]); // trackNavigation and showToast are stable
 
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
@@ -931,7 +934,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         window.removeEventListener('popstate', handlePopState);
       };
     }
-  }, [inviteStatuses]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inviteStatuses]); // showToast is stable, inviteStatuses changes trigger re-setup
 
   // Handle invite
   const handleInvite = (toUserId: string, requestedSeconds: number, mode: 'video' | 'text') => {

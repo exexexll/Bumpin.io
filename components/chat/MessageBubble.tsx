@@ -121,6 +121,7 @@ export function MessageBubble({ message, isOwn, showSender = true }: MessageBubb
                 <p className="text-sm whitespace-pre-wrap break-words mb-2">{message.content}</p>
               )}
               <div className="rounded-lg overflow-hidden max-w-xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={message.gifUrl}
                   alt="GIF"

@@ -59,7 +59,8 @@ export default function EventWaitPage() {
     return () => {
       socket.off('event:settings-changed', handleSettingsChanged);
     };
-  }, []); // Empty deps - only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only run once on mount, loadData/router/session are stable
 
   const loadData = async () => {
     if (!session) return;

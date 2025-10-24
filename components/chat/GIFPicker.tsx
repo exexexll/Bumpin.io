@@ -143,6 +143,7 @@ export function GIFPicker({ onSelectGIF, onClose }: GIFPickerProps) {
                   onClick={() => handleSelectGIF(gif)}
                   className="relative aspect-square rounded-lg overflow-hidden bg-white/5 hover:ring-2 hover:ring-[#ff9b6b] transition-all group"
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={gif.previewUrl}
                     alt={gif.title}
