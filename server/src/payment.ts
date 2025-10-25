@@ -447,7 +447,10 @@ router.get('/status', requireAuth, async (req: any, res) => {
     paidStatus: user.paidStatus || 'unpaid',
     paidAt: user.paidAt,
     myInviteCode: user.myInviteCode,
-    inviteCodeUsesRemaining: myCodeInfo?.usesRemaining || user.inviteCodeUsesRemaining || 0,
+    // CRITICAL FIX: Use nullish coalescing (??) not OR (||)
+    // 0 || 4 = 4 (WRONG! 0 is falsy)
+    // 0 ?? 4 = 0 (CORRECT! Only null/undefined fallback)
+    inviteCodeUsesRemaining: myCodeInfo?.usesRemaining ?? user.inviteCodeUsesRemaining ?? 0,
     myCodeInfo, // Full code details
     inviteCodeUsed: user.inviteCodeUsed, // Which code they used to sign up
     qrUnlocked: user.qrUnlocked || false,
