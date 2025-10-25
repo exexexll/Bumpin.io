@@ -558,6 +558,8 @@ export default function RoomPage() {
           sessionStorage.removeItem('room_connection_active');
           sessionStorage.removeItem('room_join_time');
           sessionStorage.removeItem('current_room_id');
+          console.log('[Room] Room invalid - redirecting');
+          cleanupConnections();
           alert('This room does not exist');
           router.push('/main');
         });
@@ -573,7 +575,9 @@ export default function RoomPage() {
         });
         
         socket.on('room:ended', () => {
+          console.log('[Room] Room ended by server');
           alert('This session has ended');
+          cleanupConnections();
           router.push('/history');
         });
         
@@ -640,6 +644,9 @@ export default function RoomPage() {
         
         socket.on('room:ended-by-disconnect', () => {
           console.log('[Room] Session ended by disconnect timeout');
+          // Show alert then redirect
+          alert('Session ended due to connection timeout');
+          cleanupConnections();
           router.push('/history');
         });
 
@@ -1468,7 +1475,7 @@ export default function RoomPage() {
       {/* Header */}
       <header className="relative z-20 bg-black/40 backdrop-blur-md">
         <div className="flex items-center justify-between px-4 py-3 sm:px-6">
-          <Image src="/logo.svg" alt="BUMPIN" width={120} height={24} priority />
+          <h1 className="font-playfair text-xl font-bold text-white">BUMPIN</h1>
           
           <div className="font-playfair text-3xl font-bold text-[#eaeaf0] sm:text-4xl">
             {formatTime(timeRemaining)}
@@ -1555,11 +1562,11 @@ export default function RoomPage() {
         </div>
       </div>
 
-      {/* Controls Footer - Centered, Above Local Preview on Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center" style={{
-        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+      {/* Controls Footer - Always Visible, High Z-Index */}
+      <div className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none" style={{
+        paddingBottom: 'env(safe-area-inset-bottom, 1rem)',
       }}>
-        <div className="flex items-center justify-center gap-3 px-4 pb-4 bg-gradient-to-t from-black/80 to-transparent pt-8 sm:pt-4 sm:bg-none">
+        <div className="flex items-center justify-center gap-3 px-4 pb-6 pt-8 pointer-events-auto bg-gradient-to-t from-black via-black/50 to-transparent">
           {/* Mic Toggle */}
           <button
             onClick={toggleMute}
@@ -1883,7 +1890,7 @@ export default function RoomPage() {
       )}
 
       {/* Connecting Loading Screen */}
-      {connectionPhase !== 'connected' && !connectionTimeout && (
+      {connectionPhase !== 'connected' && !connectionTimeout && !remoteTrackReceived && (
         <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/90 backdrop-blur-md">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
