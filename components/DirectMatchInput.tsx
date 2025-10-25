@@ -50,31 +50,15 @@ export default function DirectMatchInput({ onMatch }: DirectMatchInputProps) {
     }
   };
 
-  // Silver-grey title bar (Windows 95/2000 style)
-  const silverTitleBarClass = "bg-gradient-to-b from-gray-300 to-gray-400";
-
   return (
     <>
       {!showInput ? (
         <button
           onClick={() => setShowInput(true)}
-          className="focus-ring group w-full h-full overflow-hidden rounded-md border-4 border-gray-400 shadow-2xl transition-all hover:scale-105 active:scale-95"
+          className="focus-ring px-8 py-4 rounded-2xl font-bold text-black border-2 border-black hover:scale-105 active:scale-95 transition-all"
+          style={{ backgroundColor: '#ffc46a', boxShadow: '5px 5px 0px #000000' }}
         >
-          {/* Retro Window Title Bar */}
-          <div className={`${silverTitleBarClass} px-3 py-1.5 flex items-center justify-between border-b-2 border-gray-500`}>
-            <span className="text-xs font-bold text-gray-800">IntroCode.exe</span>
-            <div className="flex gap-1">
-              <div className="w-2.5 h-2.5 bg-gray-500 rounded-sm" />
-              <div className="w-2.5 h-2.5 bg-gray-500 rounded-sm" />
-              <div className="w-2.5 h-2.5 bg-gray-500 rounded-sm" />
-            </div>
-          </div>
-          {/* Window Content */}
-          <div className="bg-white p-1 h-full flex items-center justify-center">
-            <h3 className="font-playfair text-4xl font-bold tracking-tight text-gray-600 leading-none">
-              Intro Code
-            </h3>
-          </div>
+          Intro Code
         </button>
       ) : (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setShowInput(false)}>

@@ -139,9 +139,7 @@ function MainPageContent() {
         <div className="hidden md:block h-full">
           {/* Top Left - Intro Code */}
           <div className="absolute top-8 left-8">
-            <div className="bg-white px-6 py-3 rounded-lg border-2 border-[#ffc46a] shadow-md">
-              <DirectMatchInput onMatch={handleDirectMatch} />
-            </div>
+            <DirectMatchInput onMatch={handleDirectMatch} />
           </div>
 
           {/* Top Right - Profile */}
