@@ -8,6 +8,7 @@ import { SOCKET_URL } from './config';
 
 let socket: Socket | null = null;
 let heartbeatInterval: NodeJS.Timeout | null = null;
+let isConnecting = false; // CRITICAL: Prevent race conditions
 
 // BEST-IN-CLASS: Adaptive heartbeat based on network type
 function getHeartbeatInterval(): number {
@@ -28,46 +29,74 @@ function getHeartbeatInterval(): number {
 }
 
 export function connectSocket(sessionToken: string): Socket {
-  // Reuse existing socket if it's connected OR connecting
+  // CRITICAL: Prevent race conditions - if already connecting, wait and return existing
+  if (isConnecting && socket) {
+    console.log('[Socket] Already connecting, waiting for existing connection...');
+    return socket;
+  }
+  
+  // Reuse existing socket if it's connected
+  if (socket && socket.connected) {
+    console.log('[Socket] Reusing connected socket:', socket.id);
+    return socket;
+  }
+  
+  // Socket exists but is disconnected - only clean up if truly dead
   if (socket) {
-    if (socket.connected) {
-      console.log('[Socket] Reusing connected socket:', socket.id);
+    // Check the actual state
+    const socketConnected = socket.connected;
+    const socketDisconnected = socket.disconnected;
+    
+    console.log('[Socket] Existing socket state:', { connected: socketConnected, disconnected: socketDisconnected });
+    
+    // If not clearly disconnected, reuse it (might be connecting)
+    if (!socketDisconnected) {
+      console.log('[Socket] Socket exists and not disconnected - reusing');
       return socket;
     }
     
-    // Check if it's in the process of connecting
-    const isConnecting = !socket.connected && !socket.disconnected;
-    if (isConnecting) {
-      console.log('[Socket] Reusing socket that is connecting...');
-      return socket;
+    // Truly disconnected - clean up
+    console.log('[Socket] Cleaning up truly disconnected socket');
+    try {
+      socket.removeAllListeners();
+      socket.close();
+    } catch (e) {
+      console.error('[Socket] Error cleaning up socket:', e);
     }
-    
-    // Socket exists but is disconnected - clean it up first
-    console.log('[Socket] Cleaning up disconnected socket');
-    socket.removeAllListeners();
-    socket.disconnect();
     socket = null;
   }
 
   console.log('[Socket] Creating new socket connection to:', SOCKET_URL);
+  isConnecting = true; // Mark as connecting
   
   // BEST-IN-CLASS: Exponential backoff with jitter
-  socket = io(SOCKET_URL, {
-    autoConnect: true,
-    auth: {
-      token: sessionToken, // Send token in handshake for middleware authentication
-    },
-    transports: ['websocket', 'polling'], // WebSocket preferred, polling fallback
-    reconnection: true,
-    reconnectionAttempts: Infinity, // Keep trying indefinitely (production best practice)
-    reconnectionDelay: 1000, // Start at 1s
-    reconnectionDelayMax: 30000, // Cap at 30s
-    randomizationFactor: 0.5, // Add jitter: delay = base * (1 + random * 0.5)
-    timeout: 20000,
-  });
+  try {
+    socket = io(SOCKET_URL, {
+      autoConnect: true,
+      auth: {
+        token: sessionToken, // Send token in handshake for middleware authentication
+      },
+      transports: ['websocket', 'polling'], // WebSocket preferred, polling fallback
+      reconnection: true,
+      reconnectionAttempts: Infinity, // Keep trying indefinitely (production best practice)
+      reconnectionDelay: 1000, // Start at 1s
+      reconnectionDelayMax: 30000, // Cap at 30s
+      randomizationFactor: 0.5, // Add jitter: delay = base * (1 + random * 0.5)
+      timeout: 20000,
+      // Additional resilience options
+      forceNew: false, // Reuse connection if possible
+      multiplex: true, // Share connection across namespaces
+    });
+  } catch (error) {
+    console.error('[Socket] Error creating socket:', error);
+    isConnecting = false;
+    throw error;
+  }
 
   socket.on('connect', () => {
-    console.log('[Socket] Connected:', socket?.id);
+    console.log('[Socket] ✅ Connected:', socket?.id);
+    isConnecting = false; // Clear connecting flag
+    
     // Still emit auth for backward compatibility with event handlers
     socket?.emit('auth', { sessionToken });
     
@@ -84,6 +113,12 @@ export function connectSocket(sessionToken: string): Socket {
         if (socket?.connected) {
           socket.emit('heartbeat', { timestamp: Date.now() });
           console.log('[Socket] 💓 Heartbeat sent');
+        } else {
+          // Socket disconnected during heartbeat - clear interval
+          if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+          }
         }
       }, interval);
     };
@@ -107,6 +142,20 @@ export function connectSocket(sessionToken: string): Socket {
       (socket as any)._networkChangeHandler = handleNetworkChange;
     }
   });
+  
+  socket.on('connect_error', (error) => {
+    console.error('[Socket] Connection error:', error.message);
+    isConnecting = false; // Clear connecting flag on error
+  });
+  
+  socket.on('reconnect_attempt', (attemptNumber) => {
+    console.log(`[Socket] 🔄 Reconnection attempt #${attemptNumber}`);
+  });
+  
+  socket.on('reconnect_failed', () => {
+    console.error('[Socket] ❌ Reconnection failed after all attempts');
+    isConnecting = false;
+  });
 
   socket.on('auth:success', () => {
     console.log('[Socket] ✅ Authenticated successfully');
@@ -119,6 +168,7 @@ export function connectSocket(sessionToken: string): Socket {
 
   socket.on('disconnect', (reason) => {
     console.log('[Socket] Disconnected:', reason);
+    isConnecting = false; // Clear connecting flag
     
     // Stop heartbeat
     if (heartbeatInterval) {
@@ -126,16 +176,21 @@ export function connectSocket(sessionToken: string): Socket {
       heartbeatInterval = null;
       console.log('[Socket] Heartbeat stopped');
     }
-  });
-
-  socket.on('connect_error', (error) => {
-    console.error('[Socket] Connection error:', error.message);
+    
+    // Log disconnect reason for debugging
+    if (reason === 'io server disconnect') {
+      console.warn('[Socket] Server initiated disconnect - check server health');
+    } else if (reason === 'transport close') {
+      console.warn('[Socket] Transport closed - network issue or server restart');
+    }
   });
 
   return socket;
 }
 
 export function disconnectSocket() {
+  console.log('[Socket] ⚠️ disconnectSocket() called - this should only be called on app shutdown');
+  
   if (socket) {
     // BEST-IN-CLASS: Clean up network change listener
     const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
@@ -144,7 +199,13 @@ export function disconnectSocket() {
       console.log('[Socket] Network change listener removed');
     }
     
-    socket.disconnect();
+    // Use close() instead of disconnect() to be more graceful
+    try {
+      socket.removeAllListeners(); // Remove all listeners first
+      socket.close(); // Gracefully close
+    } catch (e) {
+      console.error('[Socket] Error during disconnect:', e);
+    }
     socket = null;
   }
   
@@ -153,6 +214,11 @@ export function disconnectSocket() {
     clearInterval(heartbeatInterval);
     heartbeatInterval = null;
   }
+  
+  // Clear flags
+  isConnecting = false;
+  
+  console.log('[Socket] ✅ Socket fully disconnected and cleaned up');
 }
 
 export function getSocket(): Socket | null {
