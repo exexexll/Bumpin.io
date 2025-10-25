@@ -197,9 +197,7 @@ function MainPageContent() {
         <div className="md:hidden h-full flex flex-col justify-between p-6">
           {/* Top Row */}
           <div className="flex justify-between items-start gap-4">
-            <div className="flex-1">
-              <DirectMatchInput onMatch={handleDirectMatch} />
-            </div>
+            <DirectMatchInput onMatch={handleDirectMatch} />
             <Link
               href="/refilm"
               className="px-6 py-3 rounded-lg font-bold text-black border-2 border-black"
