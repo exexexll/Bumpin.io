@@ -94,8 +94,8 @@ router.post('/user', requireAuth, async (req: any, res) => {
   let sessionData: any = null;
   if (roomId) {
     try {
-      // Try to get chat history from both users' history
-      const reporterHistory = store.getHistory(reporterUserId);
+      // CRITICAL FIX: await the async getHistory call
+      const reporterHistory = await store.getHistory(reporterUserId);
       const sessionRecord = reporterHistory.find((h: any) => h.roomId === roomId);
       
       if (sessionRecord) {

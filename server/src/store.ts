@@ -19,6 +19,7 @@ interface ChatHistory {
   startedAt: number;
   duration: number;
   messages: ChatMessage[];
+  chatMode?: 'video' | 'text'; // NEW: Track session type for admin review
 }
 
 /**
