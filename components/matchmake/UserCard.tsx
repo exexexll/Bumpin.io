@@ -84,12 +84,14 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     // Cleanup function runs when component unmounts
     return () => {
       if (video) {
-        console.log('[UserCard] 🧹 Component unmounting - forcing video cleanup for:', user.name);
+        console.log('[UserCard] 🧹 Component unmounting - pausing video for:', user.name);
         video.pause();
         video.muted = true;
-        video.currentTime = 0;
-        video.src = ''; // CRITICAL: Clear src to fully release video resources
-        console.log('[UserCard] ✅ Video fully stopped and resources released');
+        // CRITICAL FIX: Don't reset currentTime or src here either!
+        // Only pause and mute - preserves video progress for next time
+        // video.currentTime = 0; // ❌ REMOVED - was restarting video
+        // video.src = ''; // ❌ REMOVED - was causing reload on re-enter
+        console.log('[UserCard] ✅ Video paused, progress preserved');
       }
     };
   }, [user.name]); // Only depends on user.name so it runs cleanup when user changes or component unmounts
@@ -169,25 +171,28 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
           video.play().catch(() => {});
         }
       });
-    } else {
+    } else if (!isActive) {
+      // Only pause/mute when inactive, but DON'T reset currentTime
+      // This preserves user's manual pause position
       video.pause();
       video.muted = true;
       video.volume = 0;
     }
     
-    // CRITICAL CLEANUP: Stop video when component unmounts or becomes inactive
+    // CRITICAL FIX: Don't reset currentTime in cleanup!
+    // This was causing video to restart on re-enter
     return () => {
-      if (video) {
-        console.log('[UserCard] 🧹 CLEANUP - Stopping video for:', user.name);
+      if (video && !isActive) {
+        console.log('[UserCard] 🧹 CLEANUP - Pausing video for:', user.name);
         video.pause();
         video.muted = true;
         video.volume = 0;
-        video.currentTime = 0;
+        // DON'T RESET: video.currentTime = 0 (preserves progress)
       }
     };
   }, [isActive, isVideoPaused, overlayOpen, user.name]);
 
-  // TikTok-style controls: Double-tap zones (desktop only)
+  // TikTok-style controls: Mobile = center only, Desktop = 3 zones
   const handleVideoTap = (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -197,32 +202,43 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     const timeSinceLastTap = now - lastTapTime.current;
     const isDoubleTap = timeSinceLastTap < 300 && timeSinceLastTap > 0;
     
-    // Get tap position
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    
-    const width = rect.width;
-    const leftThird = width / 3;
-    const rightThird = (width / 3) * 2;
-    
     if (isDoubleTap) {
-      // Double-tap actions
-      if (x < leftThird) {
-        // Left side - rewind 10s
-        videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
-        console.log('[UserCard] ⏪ Rewind 10s');
-      } else if (x > rightThird) {
-        // Right side - forward 10s
-        videoRef.current.currentTime = Math.min(videoRef.current.duration, videoRef.current.currentTime + 10);
-        console.log('[UserCard] ⏩ Forward 10s');
-      } else {
-        // Center - pause/play
+      // MOBILE: Only pause/play (no forward/backward to avoid conflicts)
+      if (isMobile) {
         if (videoRef.current.paused || isVideoPaused) {
           videoRef.current.play();
           setIsVideoPaused(false);
+          console.log('[UserCard] ▶️ Resume from:', Math.floor(videoRef.current.currentTime), 's');
         } else {
           videoRef.current.pause();
           setIsVideoPaused(true);
+          console.log('[UserCard] ⏸️ Paused at:', Math.floor(videoRef.current.currentTime), 's');
+        }
+      } else {
+        // DESKTOP: 3-zone controls (left=rewind, center=pause, right=forward)
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const width = rect.width;
+        const leftThird = width / 3;
+        const rightThird = (width / 3) * 2;
+        
+        if (x < leftThird) {
+          // Left side - rewind 10s
+          videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
+          console.log('[UserCard] ⏪ Rewind 10s');
+        } else if (x > rightThird) {
+          // Right side - forward 10s
+          videoRef.current.currentTime = Math.min(videoRef.current.duration, videoRef.current.currentTime + 10);
+          console.log('[UserCard] ⏩ Forward 10s');
+        } else {
+          // Center - pause/play
+          if (videoRef.current.paused || isVideoPaused) {
+            videoRef.current.play();
+            setIsVideoPaused(false);
+          } else {
+            videoRef.current.pause();
+            setIsVideoPaused(true);
+          }
         }
       }
       lastTapTime.current = 0;

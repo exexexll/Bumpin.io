@@ -473,7 +473,7 @@ export default function AdminPage() {
                         Reports ({record.reports.length}):
                       </p>
                       <div className="space-y-2">
-                        {record.reports.slice(0, 5).map((report) => (
+                        {record.reports.slice(0, 5).map((report: any) => (
                           <div
                             key={report.reportId}
                             className="rounded-lg bg-white/5 p-3 text-sm"
@@ -486,6 +486,28 @@ export default function AdminPage() {
                             </div>
                             {report.reason && (
                               <p className="mt-1 text-[#eaeaf0]/70">{report.reason}</p>
+                            )}
+                            
+                            {/* NEW: Show session data if available */}
+                            {report.sessionData && (
+                              <div className="mt-2 rounded-md bg-blue-500/10 border border-blue-500/30 p-2">
+                                <p className="text-xs font-medium text-blue-300 mb-1">
+                                  Session: {report.sessionData.chatMode === 'video' ? '📹 Video' : '💬 Text'} 
+                                  ({Math.floor(report.sessionData.duration / 60)}m {report.sessionData.duration % 60}s)
+                                </p>
+                                {report.sessionData.messages && report.sessionData.messages.length > 0 && (
+                                  <div className="mt-1">
+                                    <p className="text-xs text-blue-200 mb-1">{report.sessionData.messages.length} messages:</p>
+                                    <div className="max-h-32 overflow-y-auto space-y-1">
+                                      {report.sessionData.messages.slice(0, 10).map((msg: any, i: number) => (
+                                        <p key={i} className="text-xs text-[#eaeaf0]/60 truncate">
+                                          {msg.from === report.reporterUserId ? '👤 Reporter' : '🚫 Reported'}: {msg.text || msg.content || '[media]'}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                         ))}

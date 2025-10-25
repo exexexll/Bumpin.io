@@ -90,7 +90,33 @@ router.post('/user', requireAuth, async (req: any, res) => {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  // Create report
+  // FEATURE: Get session/chat history for this room (if available)
+  let sessionData: any = null;
+  if (roomId) {
+    try {
+      // Try to get chat history from both users' history
+      const reporterHistory = store.getHistory(reporterUserId);
+      const sessionRecord = reporterHistory.find((h: any) => h.roomId === roomId);
+      
+      if (sessionRecord) {
+        sessionData = {
+          duration: sessionRecord.duration,
+          startedAt: sessionRecord.startedAt,
+          chatMode: sessionRecord.chatMode || 'video',
+          messages: sessionRecord.messages || [], // Text chat messages
+        };
+        console.log(`[Report] Found session data for room ${roomId.substring(0, 8)}:`, {
+          duration: sessionData.duration + 's',
+          chatMode: sessionData.chatMode,
+          messageCount: sessionData.messages.length
+        });
+      }
+    } catch (err) {
+      console.log('[Report] No session data found for room:', roomId);
+    }
+  }
+
+  // Create report with session data
   // TODO(cloud-migration): Wrap in database transaction to prevent race condition
   const reportId = uuidv4();
   const report: Report = {
@@ -105,6 +131,7 @@ router.post('/user', requireAuth, async (req: any, res) => {
     reason: reason || 'No reason provided',
     timestamp: Date.now(),
     roomId,
+    sessionData, // NEW: Include session/chat data for admin review
   };
 
   await store.createReport(report);

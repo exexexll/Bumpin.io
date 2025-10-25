@@ -67,6 +67,12 @@ export interface Report {
   reason?: string;
   timestamp: number;
   roomId?: string;
+  sessionData?: {
+    duration: number;
+    startedAt: number;
+    chatMode: 'video' | 'text';
+    messages: any[];
+  };
 }
 
 export interface BanRecord {
