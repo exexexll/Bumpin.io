@@ -5,8 +5,8 @@ import { remark } from 'remark';
 import html from 'remark-html';
 
 export const metadata = {
-  title: 'Community Guidelines - BUMPIn',
-  description: 'Community Guidelines for BUMPIn 1-1 Video Social Network',
+  title: 'Community Guidelines - BUMPIN',
+  description: 'Community Guidelines for BUMPIN 1-1 Video Social Network',
 };
 
 async function getGuidelinesContent() {

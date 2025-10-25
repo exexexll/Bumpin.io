@@ -89,7 +89,7 @@ export default function BanNotification() {
     } else if (banRecord?.banStatus === 'permanent') {
       return {
         title: 'Account Permanently Banned',
-        message: 'Your account has been permanently banned from BUMPIn. Your information has been added to the public blacklist.',
+        message: 'Your account has been permanently banned from BUMPIN. Your information has been added to the public blacklist.',
         status: 'permanent',
         color: 'red',
       };
@@ -114,7 +114,7 @@ export default function BanNotification() {
       >
         {/* Logo */}
         <div className="mb-6 flex justify-center">
-          <Image src="/logo.svg" alt="BUMPIn" width={120} height={24} priority />
+          <Image src="/logo.svg" alt="BUMPIN" width={120} height={24} priority />
         </div>
 
         {/* Icon */}
@@ -209,7 +209,7 @@ export default function BanNotification() {
 
         {/* Footer */}
         <p className="mt-6 text-center text-xs text-[#eaeaf0]/30">
-          BUMPIn enforces strict community guidelines to maintain a safe environment for all users.
+          BUMPIN enforces strict community guidelines to maintain a safe environment for all users.
         </p>
       </motion.div>
     </div>

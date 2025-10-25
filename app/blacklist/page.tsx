@@ -82,7 +82,7 @@ export default function BlacklistPage() {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Image src="/logo.svg" alt="BUMPIn" width={120} height={24} priority />
+              <Image src="/logo.svg" alt="BUMPIN" width={120} height={24} priority />
               <span className="text-[#eaeaf0]/50">|</span>
               <h1 className="font-playfair text-2xl font-bold text-[#eaeaf0]">
                 Blacklist
@@ -118,7 +118,7 @@ export default function BlacklistPage() {
             </h2>
             
             <p className="mx-auto max-w-2xl text-lg text-[#eaeaf0]/70">
-              This is a public record of users who have been permanently banned from BUMPIn due to
+              This is a public record of users who have been permanently banned from BUMPIN due to
               multiple reports of inappropriate behavior. This blacklist exists to maintain community safety
               and enforce real-world consequences for malicious actors.
             </p>
@@ -229,7 +229,7 @@ export default function BlacklistPage() {
       <footer className="border-t border-white/10 bg-black/40 py-12">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
           <p className="text-sm text-[#eaeaf0]/50">
-            This blacklist is maintained by BUMPIn to ensure community safety.
+            This blacklist is maintained by BUMPIN to ensure community safety.
             All bans are reviewed by administrators before being made permanent.
           </p>
           <p className="mt-2 text-xs text-[#eaeaf0]/30">
@@ -240,7 +240,7 @@ export default function BlacklistPage() {
               href="/"
               className="text-sm font-medium text-[#ffc46a] hover:text-[#ffc46a]/80"
             >
-              Return to BUMPIn
+              Return to BUMPIN
             </Link>
           </div>
         </div>

@@ -54,7 +54,7 @@ export function LegalFooter() {
 
           {/* Contact Info */}
           <div className="text-center text-xs text-[#eaeaf0]/40">
-            <p>BUMPIn</p>
+            <p>BUMPIN</p>
             <p>1506 Nolita, Los Angeles, CA 90026</p>
             <p>
               Contact:{' '}
@@ -69,7 +69,7 @@ export function LegalFooter() {
 
           {/* Copyright */}
           <div className="text-xs text-[#eaeaf0]/30">
-            © 2025 BUMPIn. All rights reserved.
+            © 2025 BUMPIN. All rights reserved.
           </div>
         </div>
       </div>

@@ -35,26 +35,26 @@ export const metadata: Metadata = {
     userScalable: false, // Disable pinch zoom
     viewportFit: 'cover', // iOS safe area support
   },
-  title: 'BUMPIn - 1-1 Video Social Network',
+  title: 'BUMPIN - 1-1 Video Social Network',
   description: 'Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.',
   keywords: ['1-1 video social network', 'video chat', 'matchmaking', 'social networking', 'live video'],
-  authors: [{ name: 'BUMPIn' }],
+  authors: [{ name: 'BUMPIN' }],
   icons: {
     icon: '/Love.png',
     apple: '/Love.png',
     shortcut: '/Love.png',
   },
   openGraph: {
-    title: 'BUMPIn - 1-1 Video Social Network',
+    title: 'BUMPIN - 1-1 Video Social Network',
     description: 'Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.',
     url: 'https://bumpin.com',
-    siteName: 'BUMPIn',
+    siteName: 'BUMPIN',
     images: [
       {
         url: '/Love.png',
         width: 1200,
         height: 630,
-        alt: 'BUMPIn',
+        alt: 'BUMPIN',
       },
     ],
     locale: 'en_US',
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'BUMPIn - 1-1 Video Social Network',
+    title: 'BUMPIN - 1-1 Video Social Network',
     description: 'Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.',
     images: ['/Love.png'],
   },

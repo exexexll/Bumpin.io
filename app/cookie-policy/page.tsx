@@ -5,8 +5,8 @@ import { remark } from 'remark';
 import html from 'remark-html';
 
 export const metadata = {
-  title: 'Cookie Policy - BUMPIn',
-  description: 'Cookie Policy for BUMPIn 1-1 Video Social Network',
+  title: 'Cookie Policy - BUMPIN',
+  description: 'Cookie Policy for BUMPIN 1-1 Video Social Network',
 };
 
 async function getCookieContent() {

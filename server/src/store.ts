@@ -1051,11 +1051,17 @@ class DataStore {
             this.ipBans.delete(ip);
           }
         });
-      } else {
+      } else if (newStatus === 'permanent') {
+        // CRITICAL: Permanent ban - update user record and ensure blacklist visibility
         await this.updateUser(userId, {
-          banStatus: newStatus,
+          banStatus: 'permanent',
+          bannedAt: Date.now(),
+          bannedReason: banRecord.bannedReason,
           reviewStatus: 'reviewed_ban',
         });
+        
+        console.log(`[Ban] ✅ User ${user.name} PERMANENTLY BANNED - now on public blacklist`);
+        console.log(`[Ban] Blacklist entry includes: name, selfie, video, ${banRecord.reportCount} reports`);
       }
     }
 

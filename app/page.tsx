@@ -14,11 +14,11 @@ export default function HomePage() {
           <Container>
             <div className="mx-auto max-w-3xl">
               <h2 className="mb-6 font-playfair text-3xl font-bold tracking-tight sm:text-4xl">
-                What is BUMPIn?
+                What is BUMPIN?
               </h2>
               <div className="space-y-4 text-base leading-relaxed text-[#e6e6e9]/90 sm:text-lg">
                 <p>
-                  BUMPIn is a 1-1 Video Social Network built for authentic human connection in an age of endless swiping. Every call lasts up to 500 seconds—no more, no less. When the time runs out, the conversation ends, and you decide if you want to connect again.
+                  BUMPIN is a 1-1 Video Social Network built for authentic human connection in an age of endless swiping. Every call lasts up to 500 seconds—no more, no less. When the time runs out, the conversation ends, and you decide if you want to connect again.
                 </p>
                 <p>
                   No profiles to curate. No photos to judge. Just two people, 500 seconds, and a chance to see if something real can happen. Genuine connection shouldn&apos;t require a perfect bio.

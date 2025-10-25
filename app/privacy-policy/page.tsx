@@ -5,8 +5,8 @@ import { remark } from 'remark';
 import html from 'remark-html';
 
 export const metadata = {
-  title: 'Privacy Policy - BUMPIn',
-  description: 'Privacy Policy for BUMPIn 1-1 Video Social Network',
+  title: 'Privacy Policy - BUMPIN',
+  description: 'Privacy Policy for BUMPIN 1-1 Video Social Network',
 };
 
 async function getPrivacyContent() {

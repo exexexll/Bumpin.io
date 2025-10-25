@@ -54,15 +54,8 @@ export function Header() {
       )}
     >
       <Container className="flex h-full items-center justify-between">
-        <Link href="/" className="focus-ring rounded-md" aria-label="BUMPIn home">
-          <Image
-            src="/logo.svg"
-            alt="BUMPIn"
-            width={160}
-            height={32}
-            priority
-            className="h-8 w-auto"
-          />
+        <Link href="/" className="focus-ring rounded-md" aria-label="BUMPIN home">
+          <h1 className="font-playfair text-2xl font-bold text-white">BUMPIN</h1>
         </Link>
 
         <nav aria-label="Main navigation">

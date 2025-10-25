@@ -5,8 +5,8 @@ import { remark } from 'remark';
 import html from 'remark-html';
 
 export const metadata = {
-  title: 'Terms of Service - BUMPIn',
-  description: 'Terms of Service for BUMPIn 1-1 Video Social Network',
+  title: 'Terms of Service - BUMPIN',
+  description: 'Terms of Service for BUMPIN 1-1 Video Social Network',
 };
 
 async function getTermsContent() {

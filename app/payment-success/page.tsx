@@ -110,7 +110,7 @@ function PaymentSuccessPageContent() {
                 Payment Successful
               </h1>
               <p className="text-sm text-[#eaeaf0]/60">
-                Welcome to BUMPIn
+                Welcome to BUMPIN
               </p>
             </div>
 

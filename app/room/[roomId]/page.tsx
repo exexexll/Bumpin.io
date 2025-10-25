@@ -1416,7 +1416,7 @@ export default function RoomPage() {
       {/* Header */}
       <header className="relative z-20 bg-black/40 backdrop-blur-md">
         <div className="flex items-center justify-between px-4 py-3 sm:px-6">
-          <Image src="/logo.svg" alt="BUMPIn" width={120} height={24} priority />
+          <Image src="/logo.svg" alt="BUMPIN" width={120} height={24} priority />
           
           <div className="font-playfair text-3xl font-bold text-[#eaeaf0] sm:text-4xl">
             {formatTime(timeRemaining)}

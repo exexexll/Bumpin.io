@@ -5,8 +5,8 @@ import { remark } from 'remark';
 import html from 'remark-html';
 
 export const metadata = {
-  title: 'Acceptable Use Policy - BUMPIn',
-  description: 'Acceptable Use Policy for BUMPIn 1-1 Video Social Network',
+  title: 'Acceptable Use Policy - BUMPIN',
+  description: 'Acceptable Use Policy for BUMPIN 1-1 Video Social Network',
 };
 
 async function getAUPContent() {

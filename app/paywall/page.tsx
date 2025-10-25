@@ -192,7 +192,7 @@ function PaywallPageContent() {
           >
             <div>
               <h1 className="font-playfair text-4xl font-bold text-[#eaeaf0] mb-2">
-                Welcome to BUMPIn
+                Welcome to BUMPIN
               </h1>
               <p className="text-[#eaeaf0]/60">
                 One-time $0.50 payment • Keeps bots out

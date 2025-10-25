@@ -801,7 +801,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
                 {/* Social Share Buttons */}
                 <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={() => window.open(`https://twitter.com/intent/tweet?text=Join me on BUMPIn!&url=${encodeURIComponent(referralLink)}`, '_blank')}
+                    onClick={() => window.open(`https://twitter.com/intent/tweet?text=Join me on BUMPIN!&url=${encodeURIComponent(referralLink)}`, '_blank')}
                     className="focus-ring rounded-xl bg-white/10 px-4 py-2 text-sm text-white transition-all hover:bg-white/20"
                   >
                     𝕏 Tweet
@@ -810,7 +810,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
                     onClick={() => {
                       if (navigator.share) {
                         navigator.share({
-                          title: 'Join BUMPIn',
+                          title: 'Join BUMPIN',
                           text: 'Check out this speed-dating platform!',
                           url: referralLink,
                         }).catch(() => {});

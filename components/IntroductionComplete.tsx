@@ -48,7 +48,7 @@ export default function IntroductionComplete({
           </motion.div>
           
           <h1 className="mb-3 font-playfair text-4xl font-bold text-[#eaeaf0]">
-            Welcome to BUMPIn!
+            Welcome to BUMPIN!
           </h1>
           
           <p className="text-lg text-[#eaeaf0]/80">

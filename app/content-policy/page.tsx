@@ -5,8 +5,8 @@ import { remark } from 'remark';
 import html from 'remark-html';
 
 export const metadata = {
-  title: 'Content Policy - BUMPIn',
-  description: 'Content Policy and Consent Agreement for BUMPIn',
+  title: 'Content Policy - BUMPIN',
+  description: 'Content Policy and Consent Agreement for BUMPIN',
 };
 
 async function getContentPolicyContent() {
