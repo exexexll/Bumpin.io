@@ -308,12 +308,21 @@ async function recoverActiveRoomsFromDatabase(): Promise<void> {
     const result = await query(`
       SELECT * FROM active_rooms 
       WHERE status IN ('active', 'grace_period')
-      AND updated_at > NOW() - INTERVAL '10 minutes'
+      AND updated_at > NOW() - INTERVAL '30 seconds'
     `);
     
-    console.log(`[Recovery] Found ${result.rows.length} active rooms in database`);
+    console.log(`[Recovery] Found ${result.rows.length} recent rooms in database (< 30s old)`);
     
     result.rows.forEach((row: any) => {
+      // SECURITY: Only recover if grace period hasn't expired
+      const graceExpiry = row.grace_period_expires ? new Date(row.grace_period_expires).getTime() : null;
+      
+      // Skip if grace period already expired (prevent exploitation)
+      if (graceExpiry && Date.now() > graceExpiry) {
+        console.log(`[Recovery] ⚠️ Skipping expired room ${row.room_id.substring(0, 8)}`);
+        return;
+      }
+      
       const room = {
         user1: row.user_1,
         user2: row.user_2,
@@ -322,13 +331,13 @@ async function recoverActiveRoomsFromDatabase(): Promise<void> {
         duration: row.duration_seconds,
         chatMode: row.chat_mode,
         status: row.status,
-        gracePeriodExpires: row.grace_period_expires ? new Date(row.grace_period_expires).getTime() : undefined,
-        user1Connected: row.user_1_connected,
-        user2Connected: row.user_2_connected,
+        gracePeriodExpires: graceExpiry || undefined, // Convert null to undefined for TypeScript
+        user1Connected: false, // SECURITY: Mark as disconnected, they must rejoin
+        user2Connected: false, // SECURITY: Mark as disconnected, they must rejoin
       };
       
       activeRooms.set(row.room_id, room);
-      console.log(`[Recovery] ✅ Restored room ${row.room_id.substring(0, 8)} (${room.chatMode})`);
+      console.log(`[Recovery] ✅ Restored room ${row.room_id.substring(0, 8)} (${room.chatMode}, both users must reconnect)`);
     });
     
     console.log(`[Recovery] Active rooms loaded: ${activeRooms.size}`);

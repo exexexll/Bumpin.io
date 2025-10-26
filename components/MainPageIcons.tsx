@@ -88,7 +88,7 @@ export function MainPageIcons() {
     let lastTime = performance.now();
     
     const animate = (time: number) => {
-      const delta = (time - lastTime) / 16.67;
+      const delta = Math.min((time - lastTime) / 16.67, 2); // Cap delta to prevent jumps
       lastTime = time;
       
       setPairs(prev => prev.map(pair => {
@@ -99,8 +99,15 @@ export function MainPageIcons() {
           let x = pair.mergedPos.x + pair.mergedVel.x * delta;
           let y = pair.mergedPos.y + pair.mergedVel.y * delta;
           
-          if (y < 0 || y > h - 60) pair.mergedVel.y *= -1;
-          if (x < 0 || x > w - 60) pair.mergedVel.x *= -1;
+          // Bounce with slight randomness for organic feel
+          if (y < 0 || y > h - 60) {
+            y = y < 0 ? 0 : h - 60;
+            pair.mergedVel.y = -pair.mergedVel.y * (0.9 + Math.random() * 0.2);
+          }
+          if (x < 0 || x > w - 60) {
+            x = x < 0 ? 0 : w - 60;
+            pair.mergedVel.x = -pair.mergedVel.x * (0.9 + Math.random() * 0.2);
+          }
           
           return { ...pair, mergedPos: { x, y } };
         }
@@ -110,19 +117,36 @@ export function MainPageIcons() {
         let rx = pair.right.x + pair.rightVel.x * delta;
         let ry = pair.right.y + pair.rightVel.y * delta;
         
-        if (ly < 0 || ly > h - 60) pair.leftVel.y *= -1;
-        if (lx < 0 || lx > w - 60) pair.leftVel.x *= -1;
-        if (ry < 0 || ry > h - 60) pair.rightVel.y *= -1;
-        if (rx < 0 || rx > w - 60) pair.rightVel.x *= -1;
+        // Bounce with randomness
+        if (ly < 0 || ly > h - 60) {
+          ly = ly < 0 ? 0 : h - 60;
+          pair.leftVel.y = -pair.leftVel.y * (0.9 + Math.random() * 0.2);
+        }
+        if (lx < 0 || lx > w - 60) {
+          lx = lx < 0 ? 0 : w - 60;
+          pair.leftVel.x = -pair.leftVel.x * (0.9 + Math.random() * 0.2);
+        }
+        if (ry < 0 || ry > h - 60) {
+          ry = ry < 0 ? 0 : h - 60;
+          pair.rightVel.y = -pair.rightVel.y * (0.9 + Math.random() * 0.2);
+        }
+        if (rx < 0 || rx > w - 60) {
+          rx = rx < 0 ? 0 : w - 60;
+          pair.rightVel.x = -pair.rightVel.x * (0.9 + Math.random() * 0.2);
+        }
         
         const dist = Math.sqrt(Math.pow(rx - lx, 2) + Math.pow(ry - ly, 2));
         
-        if (dist < 50 && !pair.merged) {
+        // Larger collision distance for smoother merge
+        if (dist < 70 && !pair.merged) {
           return {
             ...pair,
             merged: true,
             mergedPos: { x: (lx + rx) / 2, y: (ly + ry) / 2 },
-            mergedVel: { x: (pair.leftVel.x + pair.rightVel.x) / 2, y: (pair.leftVel.y + pair.rightVel.y) / 2 },
+            mergedVel: { 
+              x: (pair.leftVel.x + pair.rightVel.x) / 2, 
+              y: (pair.leftVel.y + pair.rightVel.y) / 2 
+            },
           };
         }
         
@@ -140,28 +164,54 @@ export function MainPageIcons() {
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      {pairs.map(pair => (
-        <div key={pair.id}>
+      {pairs.map((pair, index) => (
+        <motion.div 
+          key={pair.id}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: index * 0.2, duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
+        >
           {!pair.merged ? (
             <>
-              <div style={{ position: 'absolute', left: pair.left.x, top: pair.left.y }}>
+              <motion.div 
+                style={{ position: 'absolute', left: pair.left.x, top: pair.left.y }}
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
                 <PixelIcon type={pair.type} half="left" color="#000000" />
-              </div>
-              <div style={{ position: 'absolute', left: pair.right.x, top: pair.right.y }}>
+              </motion.div>
+              <motion.div 
+                style={{ position: 'absolute', left: pair.right.x, top: pair.right.y }}
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
                 <PixelIcon type={pair.type} half="right" color="#000000" />
-              </div>
+              </motion.div>
             </>
           ) : (
             <motion.div
-              initial={{ scale: 0.5, rotate: -30 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-              style={{ position: 'absolute', left: pair.mergedPos!.x, top: pair.mergedPos!.y }}
+              initial={{ scale: 0.3, opacity: 0 }}
+              animate={{ 
+                scale: [0.3, 1.3, 1.1, 1], 
+                opacity: 1,
+                rotate: [0, 360]
+              }}
+              transition={{ 
+                duration: 1.2,
+                ease: [0.34, 1.56, 0.64, 1],
+              }}
+              whileHover={{ scale: 1.15, rotate: 15 }}
+              style={{ 
+                position: 'absolute', 
+                left: pair.mergedPos!.x, 
+                top: pair.mergedPos!.y,
+                filter: 'drop-shadow(0 0 8px ' + pair.color + ')'
+              }}
             >
               <PixelIcon type={pair.type} half="complete" color={pair.color} />
             </motion.div>
           )}
-        </div>
+        </motion.div>
       ))}
     </div>
   );
