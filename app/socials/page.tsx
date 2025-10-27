@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Container } from '@/components/Container';
 import { getSession } from '@/lib/session';
 import { normalizeSocialHandle, getDisplayURL, updateUserSocials } from '@/lib/socials';
+import { InstagramPostManager } from '@/components/InstagramPostManager';
 import Link from 'next/link';
 
 const SOCIAL_PLATFORMS = [
@@ -24,6 +25,7 @@ export default function SocialsPage() {
   const [normalizedPreviews, setNormalizedPreviews] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [instagramPosts, setInstagramPosts] = useState<string[]>([]);
 
   useEffect(() => {
     const session = getSession();
@@ -32,8 +34,10 @@ export default function SocialsPage() {
       return;
     }
 
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
+    
     // Fetch socials from server
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/user/me`, {
+    fetch(`${API_BASE}/user/me`, {
       headers: { 'Authorization': `Bearer ${session.sessionToken}` },
     })
       .then(res => res.json())
@@ -42,6 +46,9 @@ export default function SocialsPage() {
         const serverSocials = data.socials || {};
         setSocials(serverSocials);
         updatePreviews(serverSocials);
+        
+        // Also load Instagram posts
+        setInstagramPosts(data.instagramPosts || []);
       })
       .catch(err => {
         console.error('[Socials] Failed to load from server:', err);
@@ -186,6 +193,37 @@ export default function SocialsPage() {
           <p className="text-center text-xs text-[#eaeaf0]/40">
             Normalized handles will be used when sharing during video calls
           </p>
+
+          {/* INSTAGRAM POST CAROUSEL MANAGER */}
+          <div className="border-t border-white/10 pt-8 mt-12">
+            <InstagramPostManager
+              initialPosts={instagramPosts}
+              onSave={async (posts) => {
+                const session = getSession();
+                if (!session) throw new Error('Not authenticated');
+                
+                const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
+                
+                const res = await fetch(`${API_BASE}/instagram/posts`, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${session.sessionToken}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ posts })
+                });
+                
+                if (!res.ok) {
+                  const data = await res.json();
+                  throw new Error(data.error || 'Failed to save posts');
+                }
+                
+                // Update local state
+                setInstagramPosts(posts);
+                console.log('[Socials] ✅ Instagram posts saved:', posts.length);
+              }}
+            />
+          </div>
         </motion.div>
       </Container>
     </main>
