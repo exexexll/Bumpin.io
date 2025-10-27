@@ -116,13 +116,25 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             height: 100%;
           }
           
-          /* Let Instagram embed render normally first */
+          /* Hide Instagram's top white section (username/header) */
           .instagram-embed-wrapper :global(.instagram-media) {
             background: #000 !important;
             border: none !important;
             box-shadow: none !important;
             margin: 0 auto !important;
             max-width: 540px !important;
+            padding-top: 0 !important;
+          }
+          
+          /* Hide username header bar */
+          .instagram-embed-wrapper :global(.instagram-media > div:first-child),
+          .instagram-embed-wrapper :global(header) {
+            display: none !important;
+          }
+          
+          /* Move content up to fill space */
+          .instagram-embed-wrapper :global(.instagram-media > div) {
+            margin-top: -56px !important;
           }
           
           /* Ensure iframe is properly sized */
