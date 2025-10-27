@@ -33,29 +33,32 @@ export function FloatingBrowser({ isOpen, url, onClose }: FloatingBrowserProps) 
   }, [url, currentUrl]);
 
   const handleLoad = () => {
-    console.log('[FloatingBrowser] iframe loaded');
+    console.log('[FloatingBrowser] iframe onLoad fired for:', currentUrl);
     
+    // CRITICAL: Most social media sites block iframe embedding
     // Check if iframe actually loaded content or if it's blocked
     setTimeout(() => {
       try {
         // Try to access iframe document
         const iframeDoc = iframeRef.current?.contentDocument;
-        if (!iframeDoc || iframeDoc.body?.innerText === '') {
-          // Empty or blocked - show error
-          setError('This site blocks embedding (X-Frame-Options). Click "Open in New Tab" to view.');
+        if (!iframeDoc) {
+          // Blocked by X-Frame-Options or CSP
+          console.log('[FloatingBrowser] Site blocked embedding (X-Frame-Options)');
+          setError('This site blocks embedding for security (X-Frame-Options). Click "Open in New Tab" to view.');
           setLoading(false);
         } else {
           // Successfully loaded
+          console.log('[FloatingBrowser] Successfully loaded');
           setLoading(false);
           setError(null);
         }
       } catch (e) {
-        // CORS error means site likely loaded but we can't access it
-        // This is actually OK - assume it loaded
+        // CORS/Security error - site is blocking
+        console.log('[FloatingBrowser] CORS/Security error - showing fallback');
+        setError('This site blocks embedding for security. Click "Open in New Tab" to view.');
         setLoading(false);
-        setError(null);
       }
-    }, 1000); // Wait 1 second to let iframe finish loading
+    }, 2000); // Wait 2 seconds for X-Frame-Options to trigger
   };
 
   const handleRefresh = () => {
