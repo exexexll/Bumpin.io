@@ -11,11 +11,10 @@ interface SocialHandlesPreviewProps {
 }
 
 const socialPlatforms = [
-  { key: 'instagram', icon: '📷', label: 'Instagram', baseUrl: 'https://instagram.com/' },
-  { key: 'snapchat', icon: '👻', label: 'Snapchat', baseUrl: 'https://snapchat.com/add/' },
-  { key: 'tiktok', icon: '🎵', label: 'TikTok', baseUrl: 'https://tiktok.com/@' },
-  { key: 'discord', icon: '💬', label: 'Discord', baseUrl: '' }, // Discord doesn't have profile URLs
-  { key: 'phone', icon: '📞', label: 'Phone', baseUrl: 'tel:' },
+  { key: 'instagram', iconPath: '/icons/instagram.png', label: 'Instagram' },
+  { key: 'snapchat', iconPath: '/icons/snapchat.png', label: 'Snapchat' },
+  { key: 'tiktok', iconPath: '/icons/tiktok.png', label: 'TikTok' },
+  { key: 'twitter', iconPath: '/icons/twitter.png', label: 'Twitter/X' },
 ];
 
 export function SocialHandlesPreview({ socials }: SocialHandlesPreviewProps) {
@@ -32,48 +31,52 @@ export function SocialHandlesPreview({ socials }: SocialHandlesPreviewProps) {
     return null;
   }
 
+  // Normalize URL based on platform (research-based best practices)
+  const normalizeUrl = (platform: string, handle: string): string => {
+    // Remove common prefixes: @, http://, https://
+    const clean = handle.replace(/^(@|https?:\/\/(www\.)?)/i, '').trim();
+    
+    switch (platform) {
+      case 'instagram':
+        // Instagram: username only, lowercase recommended
+        return `https://www.instagram.com/${clean.toLowerCase()}/`;
+      
+      case 'snapchat':
+        // Snapchat: add/ endpoint for public profiles
+        return `https://www.snapchat.com/add/${clean}`;
+      
+      case 'tiktok':
+        // TikTok: @ prefix in URL, username as-is
+        return `https://www.tiktok.com/@${clean}`;
+      
+      case 'twitter':
+        // Twitter/X: username only
+        return `https://twitter.com/${clean}`;
+      
+      default:
+        return '#';
+    }
+  };
+
   return (
-    <div className="flex flex-wrap gap-2 mt-2">
-      {availableSocials.map(platform => { // Show ALL socials (not just 3)
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {availableSocials.map(platform => {
         const handle = socials[platform.key];
-        
-        // Normalize URLs properly
-        let url = '';
-        if (platform.key === 'phone') {
-          url = `tel:${handle}`;
-        } else if (platform.key === 'discord') {
-          url = '#'; // Discord has no public profile URL
-        } else if (platform.key === 'instagram') {
-          // Remove @ if present, normalize
-          const cleanHandle = handle.replace(/^@/, '');
-          url = `https://www.instagram.com/${cleanHandle}/`;
-        } else if (platform.key === 'snapchat') {
-          const cleanHandle = handle.replace(/^@/, '');
-          url = `https://www.snapchat.com/add/${cleanHandle}`;
-        } else if (platform.key === 'tiktok') {
-          const cleanHandle = handle.replace(/^@/, '');
-          url = `https://www.tiktok.com/@${cleanHandle}`;
-        }
+        const url = normalizeUrl(platform.key, handle);
 
         return (
           <a
             key={platform.key}
             href={url}
-            onClick={(e) => {
-              if (platform.key === 'discord' || platform.key === 'phone') {
-                // Discord has no URL, phone opens tel:
-                if (platform.key === 'discord') {
-                  e.preventDefault();
-                }
-                // tel: links are handled by OS
-              }
-              // All other links will be intercepted by useLinkInterceptor
-            }}
-            className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-[#eaeaf0] hover:bg-white/20 transition-colors border border-white/20"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 transition-all flex items-center justify-center border border-white/20 hover:scale-110 active:scale-95"
             title={`${platform.label}: ${handle}`}
           >
-            <span>{platform.icon}</span>
-            <span className="max-w-[100px] truncate">{handle}</span>
+            {/* Official app icon - use PNG with transparent background */}
+            <img 
+              src={platform.iconPath} 
+              alt={platform.label}
+              className="w-5 h-5 object-contain"
+            />
           </a>
         );
       })}
