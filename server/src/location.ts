@@ -43,17 +43,18 @@ async function requireAuth(req: any, res: any, next: any) {
 router.post('/update', requireAuth, async (req: any, res) => {
   const { latitude, longitude, accuracy } = req.body;
   
-  // SECURITY: Rate limiting - max 1 update per 5 minutes (reasonable for matchmaking)
+  // SECURITY: Rate limiting - max 1 update per 10 minutes (reasonable for matchmaking)
+  // Users typically don't move far in 10 minutes, and it prevents spam/tracking
   const lastUpdate = locationUpdateLimits.get(req.userId) || 0;
   const timeSinceLastUpdate = Date.now() - lastUpdate;
-  const rateLimit = 300000; // 5 minutes (was 60s - too strict)
+  const rateLimit = 600000; // 10 minutes (5min still caused some 429s)
   
   if (timeSinceLastUpdate < rateLimit) {
-    const waitSeconds = Math.ceil((rateLimit - timeSinceLastUpdate) / 1000);
+    const waitMinutes = Math.ceil((rateLimit - timeSinceLastUpdate) / 60000);
     console.log(`[Location] Rate limited user ${req.userId.substring(0, 8)} - last update ${Math.round(timeSinceLastUpdate/1000)}s ago`);
     return res.status(429).json({ 
-      error: `Location update too frequent. Wait ${waitSeconds}s.`,
-      retryAfter: waitSeconds
+      error: `Location update too frequent. Wait ${waitMinutes} minute(s).`,
+      retryAfter: waitMinutes * 60
     });
   }
   
