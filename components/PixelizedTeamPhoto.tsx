@@ -18,37 +18,37 @@ export function PixelizedTeamPhoto() {
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    // High resolution for detail preservation
-    const pixelGrid = 120; // 120x120 grid (high quality)
+    // HEAVY pixelation like Zuckerberg's icon (barely recognizable)
+    const pixelGrid = 24; // 24x24 grid (like old Facebook icon)
     canvas.width = pixelGrid;
     canvas.height = pixelGrid;
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     
     img.onload = () => {
-      // Draw image at small size (downsampling creates pixelation)
+      console.log('[PixelArt] Image loaded, pixelizing...');
+      // Draw image at tiny size (heavy downsampling = barely recognizable)
       ctx.imageSmoothingEnabled = false; // Critical for pixel art
       ctx.drawImage(img, 0, 0, pixelGrid, pixelGrid);
 
-      // OPTIONAL: Apply color reduction for more pixel art feel
+      // HEAVY color reduction (barely recognizable like Zuckerberg icon)
       const imageData = ctx.getImageData(0, 0, pixelGrid, pixelGrid);
       const data = imageData.data;
 
-      // Reduce color palette (optional - makes it more "pixel art")
+      // Reduce to 16 color steps (256 / 16 = 16 shades per channel)
       for (let i = 0; i < data.length; i += 4) {
-        // Reduce to 32 color steps (256 / 8 = 32 shades per channel)
-        data[i] = Math.floor(data[i] / 8) * 8;       // Red
-        data[i + 1] = Math.floor(data[i + 1] / 8) * 8; // Green
-        data[i + 2] = Math.floor(data[i + 2] / 8) * 8; // Blue
+        data[i] = Math.floor(data[i] / 16) * 16;       // Red
+        data[i + 1] = Math.floor(data[i + 1] / 16) * 16; // Green
+        data[i + 2] = Math.floor(data[i + 2] / 16) * 16; // Blue
       }
 
       ctx.putImageData(imageData, 0, 0);
-      console.log('[PixelArt] High-quality pixelization complete (120x120 grid)');
+      console.log('[PixelArt] Heavy pixelization complete (24x24 grid, barely recognizable)');
     };
 
-    img.onerror = () => {
-      console.warn('[PixelArt] Image not found - using fallback gradient');
+    img.onerror = (e) => {
+      console.error('[PixelArt] Image failed to load:', e);
+      console.error('[PixelArt] Looking for: /team-photo.jpg');
       // Fallback: Draw gradient if image not available
       const gradient = ctx.createRadialGradient(
         pixelGrid / 2, pixelGrid / 2, 0,
@@ -61,25 +61,30 @@ export function PixelizedTeamPhoto() {
       ctx.fillRect(0, 0, pixelGrid, pixelGrid);
     };
 
-    // Load your team photo
-    img.src = '/team-photo.jpg'; // Add your team selfie here
+    // Load team photo (no crossOrigin for same-domain)
+    img.src = '/team-photo.jpg';
   }, []);
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 pointer-events-none">
       {/* Canvas renders at small size, CSS scales it up with pixelated rendering */}
+      {/* Positioned LEFT and BOTTOM like Zuckerberg's icon */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full opacity-[0.15]"
+        className="absolute bottom-0 left-0 opacity-[0.12]"
         style={{
+          width: '40%', // Left 40% of section
+          height: '60%', // Bottom 60% height
+          objectFit: 'cover',
+          objectPosition: 'left center', // Focus on faces (left side of photo)
           imageRendering: 'pixelated', // Critical: prevents blurring on upscale
-          filter: 'brightness(0.5) contrast(1.3)',
+          filter: 'brightness(0.4) contrast(1.4)',
         }}
       />
       
-      {/* Gradient overlay for text readability */}
+      {/* Gradient fade (left to right) for text readability */}
       <div 
-        className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/70 via-transparent to-[#0a0a0c]/70"
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0a0a0c]/60 to-[#0a0a0c]/90"
       />
     </div>
   );
