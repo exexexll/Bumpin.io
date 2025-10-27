@@ -54,10 +54,10 @@ export function PixelizedTeamPhoto() {
       photoDiv.style.zIndex = String(config.zIndex);
       photoDiv.style.animation = `fadeInBounce 0.6s ease-out ${index * 0.1}s both`;
 
-      // Polaroid frame (85% opacity, barely visible overall)
+      // Polaroid frame (clean, minimalist)
       const frame = document.createElement('div');
-      frame.className = 'w-full h-full bg-white/85 p-3';
-      frame.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6), 0 1px 8px rgba(0,0,0,0.4)';
+      frame.className = 'w-full h-full bg-white/90 p-2.5';
+      frame.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2)';
 
       // Image container (regular image, very dim)
       const imgContainer = document.createElement('div');
@@ -67,8 +67,8 @@ export function PixelizedTeamPhoto() {
       imgEl.src = config.src;
       imgEl.alt = 'Team moments';
       imgEl.className = 'w-full h-full object-cover';
-      imgEl.style.opacity = '0.15'; // BARELY visible
-      imgEl.style.filter = 'brightness(0.6) contrast(1.1) grayscale(0.2)';
+      imgEl.style.opacity = '0.35'; // More visible but still subtle
+      imgEl.style.filter = 'brightness(0.75) contrast(1.15) saturate(0.8)'; // Less grayscale, more natural
       
       imgContainer.appendChild(imgEl);
       frame.appendChild(imgContainer);
@@ -81,11 +81,11 @@ export function PixelizedTeamPhoto() {
 
       photoDiv.appendChild(frame);
 
-      // Tape (alternating)
+      // Minimal tape (cleaner look)
       if (index % 2 === 0) {
         const tape = document.createElement('div');
-        tape.className = 'absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-8 bg-yellow-100/20 rotate-2';
-        tape.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.1)';
+        tape.className = 'absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-6 bg-white/25 rotate-1';
+        tape.style.boxShadow = 'inset 0 1px 1px rgba(0,0,0,0.05)';
         photoDiv.appendChild(tape);
       }
 
@@ -119,8 +119,8 @@ export function PixelizedTeamPhoto() {
       {/* Photo Container */}
       <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden" />
       
-      {/* Dark gradient overlay (lighter so photos visible) */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0c]/20 via-[#0a0a0c]/50 to-[#0a0a0c]/75 pointer-events-none" />
+      {/* Subtle vignette for depth */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0c]/15 via-[#0a0a0c]/40 to-[#0a0a0c]/70 pointer-events-none" />
     </>
   );
 }
