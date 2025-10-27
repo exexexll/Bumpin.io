@@ -18,7 +18,7 @@ export default function HomePage() {
               </h2>
               <div className="space-y-6 text-base leading-relaxed text-[#e6e6e9]/90 sm:text-lg">
                 <p>
-                  <strong className="text-[#ffc46a]">BUMPIN</strong> is a networking platform designed to introduce relationships that last. We believe in the power of serendipity and authenticity only few platforms still offer today. Our goal is to provide an algorithm-free, location based matchmaking experience similar to how you bump into people by accidents almost everyday, but now you can do it anywhere, anytime.
+                  <strong className="text-[#ffc46a]">BUMPIN</strong> is a networking platform designed to introduce relationships that last. We believe in the power of serendipity and authenticity only few platforms still offer today. Our goal is to provide an algorithm-free, location based matchmaking experience similar to how you bump into people by accidents, but now you can do it anywhere, anytime.
                 </p>
                 
                 <div className="border-l-4 border-[#ffc46a] pl-6 my-6">
@@ -31,7 +31,7 @@ export default function HomePage() {
                 <div className="border-l-4 border-[#ffc46a] pl-6 my-6">
                   <h3 className="font-bold text-[#eaeaf0] mb-2">No AI.</h3>
                   <p className="text-[#e6e6e9]/80">
-                    BUMPIN swore by the principle and movement of Saying NO to AI, especially using it as a matchmaker. AI shouldn&apos;t come in between human affairs, for privacy and practical reasons.
+                    BUMPIN swore by the principle and movement of NO to AI, especially using it as a matchmaker. AI shouldn&apos;t come in between human affairs, for privacy and practical reasons.
                   </p>
                 </div>
               </div>

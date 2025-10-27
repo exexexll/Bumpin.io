@@ -82,11 +82,11 @@ export default function BlacklistPage() {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Image src="/logo.svg" alt="BUMPIN" width={120} height={24} priority />
+              <h1 className="font-playfair text-2xl font-bold text-white">BUMPIN</h1>
               <span className="text-[#eaeaf0]/50">|</span>
-              <h1 className="font-playfair text-2xl font-bold text-[#eaeaf0]">
+              <h2 className="font-playfair text-2xl font-bold text-[#eaeaf0]">
                 Blacklist
-              </h1>
+              </h2>
             </div>
             <Link
               href="/"

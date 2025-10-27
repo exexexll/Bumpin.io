@@ -445,6 +445,11 @@ setInterval(() => {
                 messages: room.messages || [],
               });
               
+              // CRITICAL: Update user metrics (timerTotal + sessionCount)
+              await store.addToTimer(room.user1, actualDuration);
+              await store.addToTimer(room.user2, actualDuration);
+              console.log(`[Metrics] Updated sessionCount for both users (text inactivity end)`);
+              
               // Set 24h cooldown
               await store.setCooldown(room.user1, room.user2, Date.now() + 24 * 60 * 60 * 1000);
               
