@@ -27,7 +27,7 @@ export function PixelizedTeamPhoto() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Photo configurations - scattered across BOTH sides (not crammed)
+    // Photo configurations - scattered across BOTH sides, BARELY visible
     const photoConfigs = [
       // Left side
       { src: '/team-photo.jpg', width: 240, height: 300, top: '8%', left: '2%', rotation: -8, zIndex: 3 },
@@ -41,93 +41,59 @@ export function PixelizedTeamPhoto() {
       { src: '/team-photo5.jpg', width: 210, height: 260, top: '30%', left: '20%', rotation: -4, zIndex: 5 },
     ];
 
-    // Pixelize each photo using canvas (2004 Facebook style)
+    // Create regular Image elements (NO pixelation, just dim)
     photoConfigs.forEach((config, index) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d', { alpha: false });
-      if (!ctx) return;
+      const photoDiv = document.createElement('div');
+      photoDiv.className = 'absolute polaroid-photo';
+      photoDiv.style.top = config.top;
+      if (config.left !== 'auto') photoDiv.style.left = config.left;
+      if ((config as any).right) photoDiv.style.right = (config as any).right;
+      photoDiv.style.width = `${config.width}px`;
+      photoDiv.style.height = `${config.height}px`;
+      photoDiv.style.transform = `rotate(${config.rotation}deg)`;
+      photoDiv.style.zIndex = String(config.zIndex);
+      photoDiv.style.animation = `fadeInBounce 0.6s ease-out ${index * 0.1}s both`;
 
-      // Slightly more pixelated (40x40 grid - more blocky, visible faces)
-      const pixelSize = 40; // Balance: pixelated but recognizable
-      canvas.width = pixelSize;
-      canvas.height = pixelSize;
+      // Polaroid frame (85% opacity, barely visible overall)
+      const frame = document.createElement('div');
+      frame.className = 'w-full h-full bg-white/85 p-3';
+      frame.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6), 0 1px 8px rgba(0,0,0,0.4)';
 
-      const img = new Image();
-      img.crossOrigin = '';
+      // Image container (regular image, very dim)
+      const imgContainer = document.createElement('div');
+      imgContainer.className = 'relative w-full h-[85%] overflow-hidden bg-black/5';
+      
+      const imgEl = document.createElement('img');
+      imgEl.src = config.src;
+      imgEl.alt = 'Team moments';
+      imgEl.className = 'w-full h-full object-cover';
+      imgEl.style.opacity = '0.15'; // BARELY visible
+      imgEl.style.filter = 'brightness(0.6) contrast(1.1) grayscale(0.2)';
+      
+      imgContainer.appendChild(imgEl);
+      frame.appendChild(imgContainer);
 
-      img.onload = () => {
-        // Downsample to 48x48 (visible contours, still pixelated)
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(img, 0, 0, pixelSize, pixelSize);
+      // Bottom strip
+      const bottom = document.createElement('div');
+      bottom.className = 'h-[15%] flex items-center justify-center';
+      bottom.innerHTML = '<div class="w-2 h-2 rounded-full bg-black/20"></div>';
+      frame.appendChild(bottom);
 
-        // Light color quantization (32 steps - visible details)
-        const imageData = ctx.getImageData(0, 0, pixelSize, pixelSize);
-        const data = imageData.data;
+      photoDiv.appendChild(frame);
 
-        for (let i = 0; i < data.length; i += 4) {
-          data[i] = Math.floor(data[i] / 8) * 8;
-          data[i + 1] = Math.floor(data[i + 1] / 8) * 8;
-          data[i + 2] = Math.floor(data[i + 2] / 8) * 8;
-        }
+      // Tape (alternating)
+      if (index % 2 === 0) {
+        const tape = document.createElement('div');
+        tape.className = 'absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-8 bg-yellow-100/20 rotate-2';
+        tape.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.1)';
+        photoDiv.appendChild(tape);
+      }
 
-        ctx.putImageData(imageData, 0, 0);
-
-        // Add to DOM
-        const photoDiv = document.createElement('div');
-        photoDiv.className = 'absolute polaroid-photo';
-        photoDiv.style.top = config.top;
-        if (config.left) photoDiv.style.left = config.left;
-        if ((config as any).right) photoDiv.style.right = (config as any).right;
-        photoDiv.style.width = `${config.width}px`;
-        photoDiv.style.height = `${config.height}px`;
-        photoDiv.style.transform = `rotate(${config.rotation}deg)`;
-        photoDiv.style.zIndex = String(config.zIndex);
-        photoDiv.style.animation = `fadeInBounce 0.6s ease-out ${index * 0.1}s both`;
-
-        // Polaroid frame (85% opacity)
-        const frame = document.createElement('div');
-        frame.className = 'w-full h-full bg-white/85 p-3';
-        frame.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6), 0 1px 8px rgba(0,0,0,0.4)';
-
-        // Canvas container
-        const canvasContainer = document.createElement('div');
-        canvasContainer.className = 'relative w-full h-[85%] overflow-hidden bg-black/5';
-        
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-        canvas.style.imageRendering = 'pixelated';
-        canvas.style.objectFit = 'cover';
-        
-        canvasContainer.appendChild(canvas);
-        frame.appendChild(canvasContainer);
-
-        // Bottom strip
-        const bottom = document.createElement('div');
-        bottom.className = 'h-[15%] flex items-center justify-center';
-        bottom.innerHTML = '<div class="w-2 h-2 rounded-full bg-black/20"></div>';
-        frame.appendChild(bottom);
-
-        photoDiv.appendChild(frame);
-
-        // Tape (alternating)
-        if (index % 2 === 0) {
-          const tape = document.createElement('div');
-          tape.className = 'absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-8 bg-yellow-100/30 rotate-2';
-          tape.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.1)';
-          photoDiv.appendChild(tape);
-        }
-
-        containerRef.current?.appendChild(photoDiv);
-        
-        console.log(`[PixelArt] Photo ${index + 1} pixelized (40x40 grid)`);
-      };
-
-      img.onerror = () => {
-        console.warn(`[PixelArt] Failed to load: ${config.src}`);
-      };
-
-      img.src = config.src;
+      containerRef.current?.appendChild(photoDiv);
+      
+      console.log(`[Photos] Photo ${index + 1} added (no pixelation, barely visible)`);
     });
+
 
     // Add animation keyframes
     const style = document.createElement('style');
