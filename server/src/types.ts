@@ -51,6 +51,7 @@ export interface User {
   verification_code?: string | null;
   verification_code_expires_at?: number | null;
   verification_attempts?: number;
+  pending_email?: string | null; // Temporary email storage before verification
   phone_number?: string;
   phone_verified?: boolean;
 }

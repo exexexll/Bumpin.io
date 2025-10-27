@@ -47,9 +47,10 @@ router.post('/send', requireAuth, async (req: any, res) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = Date.now() + (15 * 60 * 1000); // 15 minutes
   
-  // CRITICAL: Store email in verification_code field temporarily (not in email field)
+  // CRITICAL: Store email temporarily in pending_email (not in email field)
   // Email will only be saved to email field AFTER successful verification
   await store.updateUser(req.userId, {
+    pending_email: email.toLowerCase(), // Store temporarily for verification
     verification_code: code,
     verification_code_expires_at: expiresAt,
     verification_attempts: currentAttempts + 1,
@@ -71,14 +72,10 @@ router.post('/send', requireAuth, async (req: any, res) => {
 });
 
 router.post('/verify', requireAuth, async (req: any, res) => {
-  const { code, email } = req.body; // Email passed from frontend
+  const { code } = req.body; // Only code needed - email stored in pending_email
   
   const user = await store.getUser(req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
-  
-  if (!email) {
-    return res.status(400).json({ error: 'Email required' });
-  }
   
   if (user.verification_code !== code) {
     return res.status(400).json({ error: 'Invalid code' });
@@ -86,6 +83,12 @@ router.post('/verify', requireAuth, async (req: any, res) => {
   
   if (!user.verification_code_expires_at || Date.now() > user.verification_code_expires_at) {
     return res.status(400).json({ error: 'Code expired' });
+  }
+  
+  // Get email from pending_email (stored when code was sent)
+  const email = user.pending_email;
+  if (!email) {
+    return res.status(400).json({ error: 'No pending email verification found' });
   }
   
   // CRITICAL: Double-check email not already taken (race condition protection)
@@ -98,12 +101,13 @@ router.post('/verify', requireAuth, async (req: any, res) => {
   
   // CRITICAL: NOW save email to user (only after successful verification)
   await store.updateUser(req.userId, {
-    email: email.toLowerCase(), // Save email here (not during signup)
+    email: email.toLowerCase(), // Move from pending_email to email
     email_verified: true,
     accountType: 'permanent', // CRITICAL: Upgrade from guest to permanent
     verification_code: null,
     verification_code_expires_at: null,
     verification_attempts: 0,
+    pending_email: null, // Clear temporary storage
   });
   
   console.log(`[Verification] ✅ Email verified & saved: ${email} - upgraded user ${user.userId.substring(0, 8)} to permanent`);
