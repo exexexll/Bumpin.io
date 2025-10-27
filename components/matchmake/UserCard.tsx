@@ -71,29 +71,10 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   // Detect mobile Safari for compact UI
   const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   
-  // Track if currently on Instagram slide
-  const isOnInstagramSlide = mediaItems[currentMediaIndex]?.type === 'instagram';
-  
-  // CAROUSEL: Navigation handlers (syncs with Instagram when on Instagram slide)
+  // CAROUSEL: Navigation handlers (navigate between POSTS only)
   const handleSwipeLeft = () => {
     if (totalMedia <= 1) return;
     
-    // If on Instagram slide, try to navigate within Instagram first
-    if (isOnInstagramSlide) {
-      console.log('[Carousel] On Instagram - attempting to click Instagram Next button');
-      
-      // Find Instagram's Next button and click it
-      const instagramNextButtons = document.querySelectorAll('.instagram-embed-wrapper button[aria-label*="Next"]');
-      if (instagramNextButtons.length > 0) {
-        (instagramNextButtons[0] as HTMLElement).click();
-        console.log('[Carousel] ✅ Clicked Instagram internal Next button');
-        return; // Stay on same post, just advance photo within post
-      } else {
-        console.log('[Carousel] No Instagram Next button found - moving to next post');
-      }
-    }
-    
-    // Otherwise, navigate to next slide
     const nextIndex = (currentMediaIndex + 1) % totalMedia;
     console.log('[Carousel] Swipe left:', currentMediaIndex, '→', nextIndex);
     setCurrentMediaIndex(nextIndex);
@@ -108,22 +89,6 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   const handleSwipeRight = () => {
     if (totalMedia <= 1) return;
     
-    // If on Instagram slide, try to navigate within Instagram first
-    if (isOnInstagramSlide) {
-      console.log('[Carousel] On Instagram - attempting to click Instagram Previous button');
-      
-      // Find Instagram's Previous button and click it
-      const instagramPrevButtons = document.querySelectorAll('.instagram-embed-wrapper button[aria-label*="Previous"]');
-      if (instagramPrevButtons.length > 0) {
-        (instagramPrevButtons[0] as HTMLElement).click();
-        console.log('[Carousel] ✅ Clicked Instagram internal Previous button');
-        return; // Stay on same post, just go back photo within post
-      } else {
-        console.log('[Carousel] No Instagram Previous button found - moving to previous post');
-      }
-    }
-    
-    // Otherwise, navigate to previous slide
     const prevIndex = currentMediaIndex === 0 ? totalMedia - 1 : currentMediaIndex - 1;
     console.log('[Carousel] Swipe right:', currentMediaIndex, '→', prevIndex);
     setCurrentMediaIndex(prevIndex);

@@ -117,26 +117,27 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             transform-origin: center 40%;
           }
           
-          /* Hide Instagram's UI elements */
+          /* Hide Instagram's UI but keep navigation for multi-photo posts */
           .instagram-embed-wrapper :global(header),
           .instagram-embed-wrapper :global(footer),
-          .instagram-embed-wrapper :global(.instagram-media header),
-          .instagram-embed-wrapper :global(.instagram-media a[href*="instagram.com"]),
-          .instagram-embed-wrapper :global([role="button"]) {
+          .instagram-embed-wrapper :global(.instagram-media header) {
             display: none !important;
           }
           
-          /* Hide Instagram carousel dots but keep arrows */
+          /* Hide Instagram carousel dots */
           .instagram-embed-wrapper :global([role="tablist"]) {
             display: none !important;
           }
           
-          /* Make Instagram's carousel arrows invisible but clickable */
+          /* Style Instagram's multi-photo arrows to match our design */
           .instagram-embed-wrapper :global(button[aria-label*="Next"]),
           .instagram-embed-wrapper :global(button[aria-label*="Previous"]) {
-            opacity: 0 !important;
-            pointer-events: auto !important;
-            z-index: 1 !important;
+            background: rgba(0, 0, 0, 0.6) !important;
+            border-radius: 50% !important;
+            backdrop-filter: blur(4px) !important;
+            width: 40px !important;
+            height: 40px !important;
+            z-index: 20 !important;
           }
           
           /* Ensure iframe is properly sized */
