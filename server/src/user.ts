@@ -50,6 +50,7 @@ router.get('/me', requireAuth, async (req: any, res) => {
     selfieUrl: user.selfieUrl,
     videoUrl: user.videoUrl,
     socials: user.socials,
+    instagramPosts: user.instagramPosts || [], // CRITICAL: Return Instagram posts for carousel
     createdAt: user.createdAt,
     timerTotalSeconds: user.timerTotalSeconds || 0,
     sessionCount: user.sessionCount || 0,
