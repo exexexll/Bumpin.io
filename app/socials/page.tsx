@@ -199,11 +199,22 @@ export default function SocialsPage() {
             <SocialPostManager
               initialPosts={instagramPosts}
               onSave={async (posts) => {
+                console.log('[Socials/onSave] 🚀 Starting save process...');
+                console.log('[Socials/onSave] Posts to save:', posts);
+                
                 const session = getSession();
-                if (!session) throw new Error('Not authenticated');
+                console.log('[Socials/onSave] Session exists:', !!session);
+                
+                if (!session) {
+                  console.error('[Socials/onSave] ❌ No session!');
+                  throw new Error('Not authenticated');
+                }
                 
                 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
+                console.log('[Socials/onSave] API_BASE:', API_BASE);
+                console.log('[Socials/onSave] Session token:', session.sessionToken?.substring(0, 20) + '...');
                 
+                console.log('[Socials/onSave] 📡 Calling API...');
                 const res = await fetch(`${API_BASE}/instagram/posts`, {
                   method: 'POST',
                   headers: {
@@ -213,14 +224,21 @@ export default function SocialsPage() {
                   body: JSON.stringify({ posts })
                 });
                 
+                console.log('[Socials/onSave] API response status:', res.status);
+                
                 if (!res.ok) {
                   const data = await res.json();
+                  console.error('[Socials/onSave] ❌ API error:', data);
                   throw new Error(data.error || 'Failed to save posts');
                 }
                 
+                const responseData = await res.json();
+                console.log('[Socials/onSave] ✅ API success:', responseData);
+                
                 // Update local state
                 setInstagramPosts(posts);
-                console.log('[Socials] ✅ Social posts saved:', posts.length);
+                console.log('[Socials/onSave] ✅ Local state updated');
+                console.log('[Socials] ✅✅✅ Instagram posts saved successfully! Count:', posts.length);
               }}
             />
           </div>

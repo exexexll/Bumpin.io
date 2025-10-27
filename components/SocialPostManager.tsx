@@ -74,17 +74,23 @@ export function SocialPostManager({ initialPosts = [], onSave }: SocialPostManag
   };
 
   const handleSave = async () => {
+    console.log('[SocialPostManager] 🎯 handleSave clicked!');
+    console.log('[SocialPostManager] Posts to save:', posts);
+    
     setSaving(true);
     setError(null);
     
     try {
+      console.log('[SocialPostManager] 📤 Calling onSave callback...');
       await onSave(posts);
-      console.log('[Analytics] Instagram posts saved:', posts.length);
-    } catch (err) {
-      setError('Failed to save posts. Please try again.');
-      console.error('[SocialPostManager] Save failed:', err);
+      console.log('[SocialPostManager] ✅ Save complete! Posts:', posts.length);
+    } catch (err: any) {
+      console.error('[SocialPostManager] ❌ Save failed:', err);
+      console.error('[SocialPostManager] Error details:', err.message);
+      setError(`Failed to save: ${err.message || 'Unknown error'}`);
     } finally {
       setSaving(false);
+      console.log('[SocialPostManager] 🏁 Save process finished');
     }
   };
 
