@@ -121,7 +121,13 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             will-change: transform;
           }
           
-          /* Hide Instagram UI (performance optimized) */
+          /* Disable ALL Instagram links */
+          .instagram-embed-wrapper :global(a) {
+            pointer-events: none !important;
+            cursor: default !important;
+          }
+          
+          /* Hide Instagram UI */
           .instagram-embed-wrapper :global(header),
           .instagram-embed-wrapper :global(footer),
           .instagram-embed-wrapper :global(.instagram-media a[href*="instagram.com"]),
@@ -129,33 +135,22 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             display: none !important;
           }
           
-          /* Position Instagram's multi-photo arrows to overlay ours */
-          .instagram-embed-wrapper :global(button[aria-label*="Next"]) {
-            position: fixed !important;
-            right: calc(50vw - min(470px, 50vw) + 16px) !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
+          /* Instagram multi-photo arrows - Keep visible and functional */
+          .instagram-embed-wrapper :global(button[aria-label*="Next"]),
+          .instagram-embed-wrapper :global(button[aria-label*="Previous"]) {
+            background: rgba(0, 0, 0, 0.6) !important;
+            backdrop-filter: blur(4px) !important;
+            border-radius: 50% !important;
             width: 48px !important;
             height: 48px !important;
-            border-radius: 50% !important;
-            background: transparent !important;
-            z-index: 45 !important;
-            cursor: pointer !important;
-            opacity: 0 !important;
+            z-index: 35 !important;
+            pointer-events: auto !important;
           }
           
-          .instagram-embed-wrapper :global(button[aria-label*="Previous"]) {
-            position: fixed !important;
-            left: calc(50vw - min(470px, 50vw) + 16px) !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            width: 48px !important;
-            height: 48px !important;
-            border-radius: 50% !important;
-            background: transparent !important;
-            z-index: 45 !important;
-            cursor: pointer !important;
-            opacity: 0 !important;
+          /* Hide Instagram's SVG icons, show ours instead */
+          .instagram-embed-wrapper :global(button[aria-label*="Next"] svg),
+          .instagram-embed-wrapper :global(button[aria-label*="Previous"] svg) {
+            display: none !important;
           }
           
           /* Ensure iframe is properly sized */
