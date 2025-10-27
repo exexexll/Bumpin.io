@@ -84,24 +84,6 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   const mediaItems = buildMediaItems();
   const totalMedia = mediaItems.length;
   
-  // ENHANCEMENT: Keyboard navigation for carousel
-  useEffect(() => {
-    if (totalMedia <= 1 || !isActive) return;
-    
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        handleSwipeRight(); // Left arrow = previous
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        handleSwipeLeft(); // Right arrow = next
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [totalMedia, isActive, currentMediaIndex]);
-  
   const videoRef = useRef<HTMLVideoElement>(null);
   const waitTimerRef = useRef<NodeJS.Timeout | null>(null);
   const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -110,6 +92,55 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   
   // Detect mobile Safari for compact UI
   const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+  // CAROUSEL: Navigation handlers (defined early for hooks)
+  const handleSwipeLeft = () => {
+    if (totalMedia <= 1) return;
+    const nextIndex = (currentMediaIndex + 1) % totalMedia;
+    console.log('[Carousel] Swipe left:', currentMediaIndex, '→', nextIndex);
+    setCurrentMediaIndex(nextIndex);
+    if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
+      videoRef.current.pause();
+      setIsVideoPaused(true);
+    }
+  };
+
+  const handleSwipeRight = () => {
+    if (totalMedia <= 1) return;
+    const prevIndex = currentMediaIndex === 0 ? totalMedia - 1 : currentMediaIndex - 1;
+    console.log('[Carousel] Swipe right:', currentMediaIndex, '→', prevIndex);
+    setCurrentMediaIndex(prevIndex);
+    if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
+      videoRef.current.pause();
+      setIsVideoPaused(true);
+    }
+  };
+  
+  // ENHANCEMENT: Swipe gesture handlers (MUST be unconditional)
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: handleSwipeLeft,
+    onSwipedRight: handleSwipeRight,
+    trackMouse: true,
+    preventScrollOnSwipe: true,
+  });
+  
+  // ENHANCEMENT: Keyboard navigation
+  useEffect(() => {
+    if (totalMedia <= 1 || !isActive) return;
+    
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleSwipeRight();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleSwipeLeft();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [totalMedia, isActive, currentMediaIndex, handleSwipeLeft, handleSwipeRight]);
 
   // Detect video orientation when metadata loads
   useEffect(() => {
@@ -250,37 +281,6 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
       }
     };
   }, [isActive, isVideoPaused, overlayOpen, showingModeSelection, user.name]);
-
-  // CAROUSEL: Navigation handlers
-  const handleSwipeLeft = () => {
-    if (totalMedia <= 1) return;
-    
-    // Swipe left = go to next (or wrap to first)
-    const nextIndex = (currentMediaIndex + 1) % totalMedia;
-    console.log('[Carousel] Swipe left:', currentMediaIndex, '→', nextIndex);
-    setCurrentMediaIndex(nextIndex);
-    
-    // Pause video when switching away
-    if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
-      videoRef.current.pause();
-      setIsVideoPaused(true);
-    }
-  };
-
-  const handleSwipeRight = () => {
-    if (totalMedia <= 1) return;
-    
-    // Swipe right = go to previous (or wrap to last)
-    const prevIndex = currentMediaIndex === 0 ? totalMedia - 1 : currentMediaIndex - 1;
-    console.log('[Carousel] Swipe right:', currentMediaIndex, '→', prevIndex);
-    setCurrentMediaIndex(prevIndex);
-    
-    // Pause video when switching away
-    if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
-      videoRef.current.pause();
-      setIsVideoPaused(true);
-    }
-  };
 
   // TikTok-style controls: Mobile = center only, Desktop = 3 zones
   const handleVideoTap = (e: React.MouseEvent) => {
@@ -648,12 +648,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
         {mediaItems.length > 0 ? (
           <div 
             className="relative w-full h-full flex items-center justify-center"
-            {...useSwipeable({
-              onSwipedLeft: handleSwipeLeft,
-              onSwipedRight: handleSwipeRight,
-              trackMouse: true, // Also works with mouse drag on desktop
-              preventScrollOnSwipe: true,
-            })}
+            {...swipeHandlers}
           >
             {/* Current Media Item */}
             <AnimatePresence mode="wait">
