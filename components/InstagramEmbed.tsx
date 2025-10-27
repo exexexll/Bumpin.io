@@ -70,9 +70,11 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
 
   return (
     <>
-      {/* Instagram Platform Script (official, better rendering) */}
+      {/* Instagram Embed Script (OFFICIAL URL) */}
       <Script
-        src="https://platform.instagram.com/en_US/embeds.js"
+        async
+        defer
+        src="https://www.instagram.com/embed.js"
         strategy="afterInteractive"
         onLoad={handleScriptLoad}
       />
@@ -114,43 +116,13 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             height: 100%;
           }
           
-          /* Optimized transform - balanced cropping */
+          /* Let Instagram embed render normally first */
           .instagram-embed-wrapper :global(.instagram-media) {
-            transform: scale(1.6);
-            transform-origin: center 42%;
-            will-change: transform;
-          }
-          
-          /* Disable ALL Instagram links */
-          .instagram-embed-wrapper :global(a) {
-            pointer-events: none !important;
-            cursor: default !important;
-          }
-          
-          /* Hide Instagram UI */
-          .instagram-embed-wrapper :global(header),
-          .instagram-embed-wrapper :global(footer),
-          .instagram-embed-wrapper :global(.instagram-media a[href*="instagram.com"]),
-          .instagram-embed-wrapper :global([role="tablist"]) {
-            display: none !important;
-          }
-          
-          /* Instagram multi-photo arrows - Keep visible and functional */
-          .instagram-embed-wrapper :global(button[aria-label*="Next"]),
-          .instagram-embed-wrapper :global(button[aria-label*="Previous"]) {
-            background: rgba(0, 0, 0, 0.6) !important;
-            backdrop-filter: blur(4px) !important;
-            border-radius: 50% !important;
-            width: 48px !important;
-            height: 48px !important;
-            z-index: 35 !important;
-            pointer-events: auto !important;
-          }
-          
-          /* Hide Instagram's SVG icons, show ours instead */
-          .instagram-embed-wrapper :global(button[aria-label*="Next"] svg),
-          .instagram-embed-wrapper :global(button[aria-label*="Previous"] svg) {
-            display: none !important;
+            background: #000 !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 auto !important;
+            max-width: 540px !important;
           }
           
           /* Ensure iframe is properly sized */
