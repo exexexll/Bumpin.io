@@ -81,6 +81,11 @@ export function SocialHandlesPreview({ socials }: SocialHandlesPreviewProps) {
       {availableSocials.map(platform => {
         const handle = socials[platform.key];
         const url = normalizeUrl(platform.key, handle);
+        
+        // Extract clean username for deep links
+        const cleanHandle = handle.trim()
+          .replace(/^(@|https?:\/\/(www\.)?)/i, '')
+          .replace(/[^a-zA-Z0-9._]/g, '');
 
         return (
           <a
@@ -98,10 +103,10 @@ export function SocialHandlesPreview({ socials }: SocialHandlesPreviewProps) {
               // Try deep link on mobile (opens native app if installed)
               if (typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
                 const deepLinks: Record<string, string> = {
-                  'instagram': `instagram://user?username=${clean}`,
-                  'tiktok': `tiktok://user?username=${clean}`,
-                  'twitter': `twitter://user?screen_name=${clean}`,
-                  'snapchat': `snapchat://add/${clean}`,
+                  'instagram': `instagram://user?username=${cleanHandle}`,
+                  'tiktok': `tiktok://user?username=${cleanHandle}`,
+                  'twitter': `twitter://user?screen_name=${cleanHandle}`,
+                  'snapchat': `snapchat://add/${cleanHandle}`,
                 };
                 
                 if (deepLinks[platform.key]) {
