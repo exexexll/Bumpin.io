@@ -54,10 +54,17 @@ export function PixelizedTeamPhoto() {
       photoDiv.style.zIndex = String(config.zIndex);
       photoDiv.style.animation = `fadeInBounce 0.6s ease-out ${index * 0.1}s both`;
 
-      // Polaroid frame (clean, minimalist)
+      // Polaroid frame (responsive opacity)
       const frame = document.createElement('div');
-      frame.className = 'w-full h-full bg-white/90 p-2.5';
-      frame.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2)';
+      frame.className = 'w-full h-full p-2.5';
+      // Almost invisible on mobile
+      if (window.innerWidth < 768) {
+        frame.style.backgroundColor = 'rgba(255, 255, 255, 0.15)'; // Very dim on mobile
+        frame.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+      } else {
+        frame.style.backgroundColor = 'rgba(255, 255, 255, 0.9)'; // Visible on desktop
+        frame.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2)';
+      }
 
       // Image container (regular image, very dim)
       const imgContainer = document.createElement('div');
@@ -67,8 +74,13 @@ export function PixelizedTeamPhoto() {
       imgEl.src = config.src;
       imgEl.alt = 'Team moments';
       imgEl.className = 'w-full h-full object-cover';
-      imgEl.style.opacity = '0.35'; // More visible but still subtle
-      imgEl.style.filter = 'brightness(0.75) contrast(1.15) saturate(0.8)'; // Less grayscale, more natural
+      // Responsive opacity: almost invisible on mobile, visible on desktop
+      if (window.innerWidth < 768) {
+        imgEl.style.opacity = '0.08'; // Almost invisible on mobile
+      } else {
+        imgEl.style.opacity = '0.35'; // Visible on desktop
+      }
+      imgEl.style.filter = 'brightness(0.75) contrast(1.15) saturate(0.8)';
       
       imgContainer.appendChild(imgEl);
       frame.appendChild(imgContainer);
@@ -119,8 +131,8 @@ export function PixelizedTeamPhoto() {
       {/* Photo Container */}
       <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden" />
       
-      {/* Subtle vignette for depth */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0c]/15 via-[#0a0a0c]/40 to-[#0a0a0c]/70 pointer-events-none" />
+      {/* Responsive gradient: heavier on mobile, lighter on desktop */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0c]/50 via-[#0a0a0c]/70 to-[#0a0a0c]/85 md:from-[#0a0a0c]/15 md:via-[#0a0a0c]/40 md:to-[#0a0a0c]/70 pointer-events-none" />
     </>
   );
 }
