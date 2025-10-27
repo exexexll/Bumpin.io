@@ -129,15 +129,47 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             display: none !important;
           }
           
-          /* Style Instagram's multi-photo arrows to match our design */
-          .instagram-embed-wrapper :global(button[aria-label*="Next"]),
-          .instagram-embed-wrapper :global(button[aria-label*="Previous"]) {
-            background: rgba(0, 0, 0, 0.6) !important;
+          /* Position Instagram's arrows EXACTLY over our visual arrows */
+          .instagram-embed-wrapper :global(button[aria-label*="Next"]) {
+            position: absolute !important;
+            right: 16px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            width: 48px !important;
+            height: 48px !important;
             border-radius: 50% !important;
+            background: rgba(0, 0, 0, 0.6) !important;
             backdrop-filter: blur(4px) !important;
-            width: 40px !important;
-            height: 40px !important;
-            z-index: 20 !important;
+            z-index: 40 !important;
+            cursor: pointer !important;
+            border: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
+          
+          .instagram-embed-wrapper :global(button[aria-label*="Previous"]) {
+            position: absolute !important;
+            left: 16px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            width: 48px !important;
+            height: 48px !important;
+            border-radius: 50% !important;
+            background: rgba(0, 0, 0, 0.6) !important;
+            backdrop-filter: blur(4px) !important;
+            z-index: 40 !important;
+            cursor: pointer !important;
+            border: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
+          
+          /* Hide Instagram's arrow icons, we'll show our own */
+          .instagram-embed-wrapper :global(button[aria-label*="Next"] svg),
+          .instagram-embed-wrapper :global(button[aria-label*="Previous"] svg) {
+            display: none !important;
           }
           
           /* Ensure iframe is properly sized */
