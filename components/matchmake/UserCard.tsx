@@ -735,7 +735,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
               )}
             </AnimatePresence>
             
-            {/* CAROUSEL: Single Arrow + Page Counter */}
+            {/* CAROUSEL: Single Arrow + Page Counter (Mobile & Desktop Adaptive) */}
             {totalMedia > 1 && (
               <>
                 {/* Single Right Arrow - Navigates through ALL photos */}
@@ -744,16 +744,20 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
                     e.stopPropagation();
                     handleSwipeLeft();
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-16 h-16 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-xl border-2 border-white/20"
+                  className={`absolute right-4 top-1/2 -translate-y-1/2 z-30 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-xl border-2 border-white/20 ${
+                    isMobile ? 'w-14 h-14' : 'w-16 h-16'
+                  }`}
                 >
-                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className={isMobile ? 'w-7 h-7 text-white' : 'w-8 h-8 text-white'} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
                 
-                {/* Page Counter */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
-                  <span className="text-white font-medium text-sm">
+                {/* Page Counter - Adaptive sizing */}
+                <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-black/70 backdrop-blur-md rounded-full border border-white/20 ${
+                  isMobile ? 'px-3 py-1.5' : 'px-4 py-2'
+                }`}>
+                  <span className={`text-white font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {currentMediaIndex + 1} / {totalMedia}
                   </span>
                 </div>
