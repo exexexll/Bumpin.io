@@ -3,11 +3,14 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSwipeable } from 'react-swipeable';
 import { generateReferralLink } from '@/lib/api';
 import { getSession } from '@/lib/session';
 import { formatDistance } from '@/lib/distanceCalculation';
 import { SocialHandlesPreview } from '@/components/SocialHandlesPreview';
 import { InstagramEmbed } from '@/components/InstagramEmbed';
+import { TikTokEmbed } from '@/components/TikTokEmbed';
+import { TwitterEmbed } from '@/components/TwitterEmbed';
 
 interface UserCardProps {
   user: {
@@ -48,13 +51,56 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   const [isVideoPaused, setIsVideoPaused] = useState(false);
   const [videoOrientation, setVideoOrientation] = useState<'portrait' | 'landscape' | 'unknown'>('unknown');
   
-  // CAROUSEL: Media index (0 = video, 1+ = Instagram posts)
+  // CAROUSEL: Media index (0 = video, 1+ = Social posts)
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
-  const mediaItems = [
-    { type: 'video' as const, url: user.videoUrl },
-    ...(user.instagramPosts || []).map(url => ({ type: 'instagram' as const, url }))
-  ].filter(item => item.url); // Remove items without URLs
+  
+  // Build media items with explicit typing
+  const buildMediaItems = (): Array<{ type: 'video' | 'instagram' | 'tiktok' | 'twitter'; url: string }> => {
+    const items: Array<{ type: 'video' | 'instagram' | 'tiktok' | 'twitter'; url: string }> = [];
+    
+    // Always add video first (if exists)
+    if (user.videoUrl) {
+      items.push({ type: 'video', url: user.videoUrl });
+    }
+    
+    // Add social posts (detect platform from URL)
+    (user.instagramPosts || []).forEach(url => {
+      let type: 'instagram' | 'tiktok' | 'twitter' = 'instagram';
+      
+      if (url.includes('tiktok.com')) {
+        type = 'tiktok';
+      } else if (url.includes('twitter.com') || url.includes('x.com')) {
+        type = 'twitter';
+      } else if (url.includes('instagram.com')) {
+        type = 'instagram';
+      }
+      
+      items.push({ type, url });
+    });
+    
+    return items;
+  };
+  
+  const mediaItems = buildMediaItems();
   const totalMedia = mediaItems.length;
+  
+  // ENHANCEMENT: Keyboard navigation for carousel
+  useEffect(() => {
+    if (totalMedia <= 1 || !isActive) return;
+    
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleSwipeRight(); // Left arrow = previous
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleSwipeLeft(); // Right arrow = next
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [totalMedia, isActive, currentMediaIndex]);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const waitTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -600,7 +646,15 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
       {/* CAROUSEL: Full Height Video/Instagram Posts - With padding for bottom controls */}
       <div className="relative flex-1 bg-black flex items-center justify-center pb-32">
         {mediaItems.length > 0 ? (
-          <div className="relative w-full h-full flex items-center justify-center">
+          <div 
+            className="relative w-full h-full flex items-center justify-center"
+            {...useSwipeable({
+              onSwipedLeft: handleSwipeLeft,
+              onSwipedRight: handleSwipeRight,
+              trackMouse: true, // Also works with mouse drag on desktop
+              preventScrollOnSwipe: true,
+            })}
+          >
             {/* Current Media Item */}
             <AnimatePresence mode="wait">
               {mediaItems[currentMediaIndex].type === 'video' ? (
@@ -649,7 +703,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
                     </div>
                   )}
                 </motion.div>
-              ) : (
+              ) : mediaItems[currentMediaIndex].type === 'instagram' ? (
                 <motion.div
                   key={`instagram-${currentMediaIndex}`}
                   initial={{ opacity: 0 }}
@@ -659,6 +713,28 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
                   className="absolute inset-0"
                 >
                   <InstagramEmbed postUrl={mediaItems[currentMediaIndex].url} />
+                </motion.div>
+              ) : mediaItems[currentMediaIndex].type === 'tiktok' ? (
+                <motion.div
+                  key={`tiktok-${currentMediaIndex}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute inset-0"
+                >
+                  <TikTokEmbed videoUrl={mediaItems[currentMediaIndex].url} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={`twitter-${currentMediaIndex}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute inset-0"
+                >
+                  <TwitterEmbed tweetUrl={mediaItems[currentMediaIndex].url} />
                 </motion.div>
               )}
             </AnimatePresence>

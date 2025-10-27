@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Container } from '@/components/Container';
 import { getSession } from '@/lib/session';
 import { normalizeSocialHandle, getDisplayURL, updateUserSocials } from '@/lib/socials';
-import { InstagramPostManager } from '@/components/InstagramPostManager';
+import { SocialPostManager } from '@/components/SocialPostManager';
 import Link from 'next/link';
 
 const SOCIAL_PLATFORMS = [
@@ -194,9 +194,9 @@ export default function SocialsPage() {
             Normalized handles will be used when sharing during video calls
           </p>
 
-          {/* INSTAGRAM POST CAROUSEL MANAGER */}
-          <div className="border-t border-white/10 pt-8 mt-12">
-            <InstagramPostManager
+          {/* ENHANCED SOCIAL POST CAROUSEL MANAGER */}
+          <div className="border-t border-white/10 pt-12 mt-12">
+            <SocialPostManager
               initialPosts={instagramPosts}
               onSave={async (posts) => {
                 const session = getSession();
@@ -220,7 +220,7 @@ export default function SocialsPage() {
                 
                 // Update local state
                 setInstagramPosts(posts);
-                console.log('[Socials] ✅ Instagram posts saved:', posts.length);
+                console.log('[Socials] ✅ Social posts saved:', posts.length);
               }}
             />
           </div>
