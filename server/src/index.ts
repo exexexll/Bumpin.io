@@ -1216,13 +1216,20 @@ io.on('connection', (socket) => {
         console.log(`[Room] ✅ Grace period timeout cancelled for room ${roomId.substring(0, 8)} (user reconnected)`);
       }
       
-      // Reconnection successful
-      room.status = 'active';
+      // CRITICAL: Mark user as reconnected and change status back to active
       if (room.user1 === currentUserId) room.user1Connected = true;
       if (room.user2 === currentUserId) room.user2Connected = true;
-      syncRoomToDatabase(roomId, room).catch(() => {}); // Sync reconnection
+      room.status = 'active';
+      room.gracePeriodExpires = undefined;
       
-      // CRITICAL: Reset torch rule activity timestamps on reconnection
+      console.log(`[Room] ✅ Reconnection successful - room back to ACTIVE status`);
+      console.log(`[Room] User ${currentUserId.substring(0, 8)} reconnected to room ${roomId.substring(0, 8)}`);
+      console.log(`[Room] Room status: ${room.status}, User1: ${room.user1Connected}, User2: ${room.user2Connected}`);
+      
+      // Sync to database immediately
+      syncRoomToDatabase(roomId, room).catch(() => {}); // Persist status change
+      
+      // CRITICAL: Reset torch rule activity timestamps on reconnection (TEXT MODE)
       if (room.chatMode === 'text') {
         const activity = textRoomActivity.get(roomId);
         if (activity) {
@@ -1235,19 +1242,13 @@ io.on('connection', (socket) => {
           // Clear any warning that was active
           activity.warningStartedAt = null;
           io.to(roomId).emit('textroom:inactivity-cleared');
+          console.log(`[Room] Torch rule activity reset for reconnected user`);
         }
       }
       
-      console.log(`[Room] ✅ User ${currentUserId.substring(0, 8)} reconnected to room ${roomId.substring(0, 8)}`);
-      
-      // CRITICAL: Change status back to active BEFORE notifying partner
-      room.status = 'active';
-      room.gracePeriodExpires = undefined;
-      syncRoomToDatabase(roomId, room).catch(() => {}); // Sync status change
-      
-      // Notify partner AFTER status change
+      // Notify partner AFTER all status changes
       io.to(roomId).emit('room:partner-reconnected', { userId: currentUserId });
-      console.log(`[Room] Notified partner that ${currentUserId.substring(0, 8)} reconnected`);
+      console.log(`[Room] ✅ Partner notified of reconnection`);
     } else {
       // Normal join - mark as connected
       if (room.user1 === currentUserId) room.user1Connected = true;
