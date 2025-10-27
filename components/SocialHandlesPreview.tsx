@@ -11,10 +11,10 @@ interface SocialHandlesPreviewProps {
 }
 
 const socialPlatforms = [
-  { key: 'instagram', iconPath: '/icons/instagram.png', label: 'Instagram' },
-  { key: 'snapchat', iconPath: '/icons/snapchat.png', label: 'Snapchat' },
-  { key: 'tiktok', iconPath: '/icons/tiktok.png', label: 'TikTok' },
-  { key: 'twitter', iconPath: '/icons/twitter.png', label: 'Twitter/X' },
+  { key: 'instagram', iconPath: '/instagram.png', label: 'Instagram' },
+  { key: 'snapchat', iconPath: '/snapchat.png', label: 'Snapchat' },
+  { key: 'tiktok', iconPath: '/tiktok.png', label: 'TikTok' },
+  { key: 'twitter', iconPath: '/X.png', label: 'Twitter/X' },
 ];
 
 export function SocialHandlesPreview({ socials }: SocialHandlesPreviewProps) {
