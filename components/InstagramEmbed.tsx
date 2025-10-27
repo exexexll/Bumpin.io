@@ -85,11 +85,11 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
         className="w-full h-full flex items-center justify-center overflow-hidden bg-black instagram-embed-wrapper relative"
         style={{ padding: 0 }}
       >
-        {/* BLACK OVERLAY to cover ONLY white header bar */}
+        {/* Minimal overlay - just cover username */}
         <div 
           className="absolute top-0 left-0 right-0 z-50 pointer-events-none"
           style={{
-            height: '60px',
+            height: '56px',
             background: '#000'
           }}
         />

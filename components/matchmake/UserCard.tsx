@@ -699,49 +699,35 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
             {/* CAROUSEL: Smart arrow system - shows ours when Instagram's disappear */}
             {totalMedia > 1 && (
               <>
-                {/* Our Arrows - ALWAYS VISIBLE (navigate between POSTS) */}
-                {/* Left Arrow - Smaller, positioned to not conflict with Instagram */}
+                {/* Arrows - EXACT same on both video and Instagram */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSwipeRight();
                   }}
-                  className={`absolute rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center transition-all ${
-                    isMobile 
-                      ? 'left-2 top-[48%] w-8 h-8' 
-                      : 'left-3 top-[48%] w-9 h-9'
-                  } z-30`}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all hover:scale-105 z-30"
                 >
-                  <svg className={isMobile ? 'w-4 h-4 text-gray-700' : 'w-4 h-4 text-gray-700'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <svg className="w-5 h-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 
-                {/* Right Arrow - Smaller, positioned to not conflict with Instagram */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSwipeLeft();
                   }}
-                  className={`absolute rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center transition-all ${
-                    isMobile 
-                      ? 'right-2 top-[48%] w-8 h-8' 
-                      : 'right-3 top-[48%] w-9 h-9'
-                  } z-30`}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all hover:scale-105 z-30"
                 >
-                  <svg className={isMobile ? 'w-4 h-4 text-gray-700' : 'w-4 h-4 text-gray-700'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <svg className="w-5 h-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
                 
-                {/* Page Counter - Better position for mobile */}
-                <div className={`absolute z-10 bg-black/70 backdrop-blur-md rounded-full border border-white/20 ${
-                  isMobile 
-                    ? 'bottom-20 left-4 px-3 py-1.5' // Mobile: Bottom left, above controls
-                    : 'top-4 left-1/2 -translate-x-1/2 px-4 py-2' // Desktop: Top center
-                }`}>
-                  <span className={`text-white font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                    {currentMediaIndex + 1} / {totalMedia}
+                {/* Page Counter - Simple, always visible */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">
+                  <span className="text-white text-xs font-medium">
+                    {currentMediaIndex + 1}/{totalMedia}
                   </span>
                 </div>
               </>
