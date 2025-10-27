@@ -700,27 +700,40 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
               )}
             </AnimatePresence>
             
-            {/* CAROUSEL: Single Arrow + Page Counter (Mobile & Desktop Adaptive) */}
+            {/* CAROUSEL: Dual Arrows + Page Counter (Mobile & Desktop Adaptive) */}
             {totalMedia > 1 && (
               <>
-                {/* Single Right Arrow - Navigates through ALL photos */}
+                {/* Left Arrow */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSwipeRight();
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm flex items-center justify-center transition-all hover:scale-110"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                {/* Right Arrow */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSwipeLeft();
                   }}
-                  className={`absolute right-4 top-1/2 -translate-y-1/2 z-30 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-xl border-2 border-white/20 ${
-                    isMobile ? 'w-14 h-14' : 'w-16 h-16'
-                  }`}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm flex items-center justify-center transition-all hover:scale-110"
                 >
-                  <svg className={isMobile ? 'w-7 h-7 text-white' : 'w-8 h-8 text-white'} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
                 
-                {/* Page Counter - Adaptive sizing */}
-                <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-black/70 backdrop-blur-md rounded-full border border-white/20 ${
-                  isMobile ? 'px-3 py-1.5' : 'px-4 py-2'
+                {/* Page Counter - Better position for mobile */}
+                <div className={`absolute z-10 bg-black/70 backdrop-blur-md rounded-full border border-white/20 ${
+                  isMobile 
+                    ? 'bottom-20 left-4 px-3 py-1.5' // Mobile: Bottom left, above controls
+                    : 'top-4 left-1/2 -translate-x-1/2 px-4 py-2' // Desktop: Top center
                 }`}>
                   <span className={`text-white font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {currentMediaIndex + 1} / {totalMedia}
