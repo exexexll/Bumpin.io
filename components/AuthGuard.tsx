@@ -27,6 +27,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     // Public routes that don't require authentication
     const publicRoutes = [
       '/', '/onboarding', '/login', '/manifesto', '/blacklist', '/event-wait',
+      '/faq', // FAQ should be public
       '/terms-of-service', '/privacy-policy', '/acceptable-use',
       '/cookie-policy', '/community-guidelines', '/content-policy',
     ];

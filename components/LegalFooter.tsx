@@ -59,10 +59,10 @@ export function LegalFooter() {
             <p>
               Contact:{' '}
               <a 
-                href="mailto:everything@bumpin.com" 
+                href="mailto:everything@napalmsky.com" 
                 className="text-[#ffc46a]/80 hover:text-[#ffc46a] transition-colors"
               >
-                everything@bumpin.com
+                everything@napalmsky.com
               </a>
             </p>
           </div>
