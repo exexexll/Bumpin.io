@@ -18,8 +18,8 @@ export function PixelizedTeamPhoto() {
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    // HEAVY pixelation like Zuckerberg's icon (barely recognizable)
-    const pixelGrid = 24; // 24x24 grid (like old Facebook icon)
+    // Medium pixelation - contours visible, still pixel art aesthetic
+    const pixelGrid = 64; // 64x64 grid (contours visible)
     canvas.width = pixelGrid;
     canvas.height = pixelGrid;
 
@@ -28,23 +28,24 @@ export function PixelizedTeamPhoto() {
     
     img.onload = () => {
       console.log('[PixelArt] ✅ Image loaded successfully, pixelizing...');
-      // Draw image at tiny size (heavy downsampling = barely recognizable)
+      // Draw image at medium size (preserves contours)
       ctx.imageSmoothingEnabled = false; // Critical for pixel art
       ctx.drawImage(img, 0, 0, pixelGrid, pixelGrid);
 
-      // HEAVY color reduction (barely recognizable like Zuckerberg icon)
+      // Light color reduction (keeps contours visible)
       const imageData = ctx.getImageData(0, 0, pixelGrid, pixelGrid);
       const data = imageData.data;
 
-      // Reduce to 16 color steps (256 / 16 = 16 shades per channel)
+      // Reduce to 64 color steps (256 / 4 = 64 shades per channel)
+      // Less reduction = more details visible
       for (let i = 0; i < data.length; i += 4) {
-        data[i] = Math.floor(data[i] / 16) * 16;       // Red
-        data[i + 1] = Math.floor(data[i + 1] / 16) * 16; // Green
-        data[i + 2] = Math.floor(data[i + 2] / 16) * 16; // Blue
+        data[i] = Math.floor(data[i] / 4) * 4;       // Red
+        data[i + 1] = Math.floor(data[i + 1] / 4) * 4; // Green
+        data[i + 2] = Math.floor(data[i + 2] / 4) * 4; // Blue
       }
 
       ctx.putImageData(imageData, 0, 0);
-      console.log('[PixelArt] Heavy pixelization complete (24x24 grid, barely recognizable)');
+      console.log('[PixelArt] Pixelization complete (64x64 grid, contours visible)');
     };
 
     img.onerror = (e) => {
@@ -77,20 +78,20 @@ export function PixelizedTeamPhoto() {
       {/* Positioned LEFT and BOTTOM like Zuckerberg's icon */}
       <canvas
         ref={canvasRef}
-        className="absolute bottom-0 left-0 opacity-[0.12]"
+        className="absolute bottom-0 left-0 opacity-[0.25]"
         style={{
           width: '40%', // Left 40% of section
           height: '60%', // Bottom 60% height
           objectFit: 'cover',
           objectPosition: 'left center', // Focus on faces (left side of photo)
           imageRendering: 'pixelated', // Critical: prevents blurring on upscale
-          filter: 'brightness(0.4) contrast(1.4)',
+          filter: 'brightness(0.7) contrast(1.2)', // Brighter, visible contours
         }}
       />
       
       {/* Gradient fade (left to right) for text readability */}
       <div 
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0a0a0c]/60 to-[#0a0a0c]/90"
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0a0a0c]/40 to-[#0a0a0c]/80"
       />
     </div>
   );
