@@ -1240,8 +1240,14 @@ io.on('connection', (socket) => {
       
       console.log(`[Room] ✅ User ${currentUserId.substring(0, 8)} reconnected to room ${roomId.substring(0, 8)}`);
       
-      // Notify partner
+      // CRITICAL: Change status back to active BEFORE notifying partner
+      room.status = 'active';
+      room.gracePeriodExpires = undefined;
+      syncRoomToDatabase(roomId, room).catch(() => {}); // Sync status change
+      
+      // Notify partner AFTER status change
       io.to(roomId).emit('room:partner-reconnected', { userId: currentUserId });
+      console.log(`[Room] Notified partner that ${currentUserId.substring(0, 8)} reconnected`);
     } else {
       // Normal join - mark as connected
       if (room.user1 === currentUserId) room.user1Connected = true;
