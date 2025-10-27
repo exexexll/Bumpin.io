@@ -79,15 +79,20 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
         onLoad={handleScriptLoad}
       />
 
-      {/* Instagram Embed - Edgeless, photo-only display */}
+      {/* Instagram Embed Container with Black Top Overlay */}
       <div 
         ref={containerRef} 
-        className="w-full h-full flex items-center justify-center overflow-hidden bg-black instagram-embed-wrapper"
-        style={{ 
-          padding: 0,
-          position: 'relative'
-        }}
+        className="w-full h-full flex items-center justify-center overflow-hidden bg-black instagram-embed-wrapper relative"
+        style={{ padding: 0 }}
       >
+        {/* BLACK OVERLAY to cover Instagram's white header */}
+        <div 
+          className="absolute top-0 left-0 right-0 z-50 pointer-events-none"
+          style={{
+            height: '120px',
+            background: 'linear-gradient(to bottom, #000 0%, #000 70%, transparent 100%)'
+          }}
+        />
         <style jsx>{`
           /* Container styling */
           .instagram-embed-wrapper {
@@ -116,29 +121,13 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             height: 100%;
           }
           
-          /* AGGRESSIVE: Hide white header with scale/crop */
+          /* Instagram embed basic styling */
           .instagram-embed-wrapper :global(.instagram-media) {
             background: #000 !important;
             border: none !important;
             box-shadow: none !important;
             margin: 0 auto !important;
             max-width: 540px !important;
-            transform: scale(1.3);
-            transform-origin: center 38%;
-            overflow: hidden !important;
-          }
-          
-          /* Black overlay to cover any remaining white */
-          .instagram-embed-wrapper::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 100px;
-            background: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
-            z-index: 5;
-            pointer-events: none;
           }
           
           /* Ensure iframe is properly sized */
