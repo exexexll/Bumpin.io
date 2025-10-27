@@ -69,12 +69,15 @@ router.post('/verify', requireAuth, async (req: any, res) => {
   
   await store.updateUser(req.userId, {
     email_verified: true,
+    accountType: 'permanent', // CRITICAL: Upgrade from guest to permanent
     verification_code: null,
     verification_code_expires_at: null,
     verification_attempts: 0,
   });
   
-  res.json({ success: true });
+  console.log(`[Verification] ✅ Email verified - upgraded user ${user.userId.substring(0, 8)} to permanent account`);
+  
+  res.json({ success: true, accountType: 'permanent' });
 });
 
 export default router;
