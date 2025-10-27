@@ -724,13 +724,14 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
             {/* CAROUSEL: Smart arrow system - shows ours when Instagram's disappear */}
             {totalMedia > 1 && (
               <>
-                {/* Arrows - EXACT same on both video and Instagram */}
+                {/* Arrows - Instagram exact match */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSwipeRight();
                   }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all hover:scale-105 z-30"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 hover:bg-white flex items-center justify-center transition-all z-30"
+                  style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
                 >
                   <svg className="w-5 h-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -742,7 +743,8 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
                     e.stopPropagation();
                     handleSwipeLeft();
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all hover:scale-105 z-30"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 hover:bg-white flex items-center justify-center transition-all z-30"
+                  style={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
                 >
                   <svg className="w-5 h-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
