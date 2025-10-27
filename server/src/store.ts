@@ -284,6 +284,7 @@ class DataStore {
           if (updates.selfieUrl !== undefined) { setClauses.push(`selfie_url = $${paramIndex++}`); values.push(updates.selfieUrl); }
           if (updates.videoUrl !== undefined) { setClauses.push(`video_url = $${paramIndex++}`); values.push(updates.videoUrl); }
           if (updates.socials !== undefined) { setClauses.push(`socials = $${paramIndex++}`); values.push(JSON.stringify(updates.socials)); }
+          if (updates.instagramPosts !== undefined) { setClauses.push(`instagram_posts = $${paramIndex++}`); values.push(updates.instagramPosts); }
           if (updates.paidStatus !== undefined) { setClauses.push(`paid_status = $${paramIndex++}`); values.push(updates.paidStatus); }
           if (updates.paidAt !== undefined) { setClauses.push(`paid_at = $${paramIndex++}`); values.push(updates.paidAt ? new Date(updates.paidAt) : null); }
           if (updates.paymentId !== undefined) { setClauses.push(`payment_id = $${paramIndex++}`); values.push(updates.paymentId); }
