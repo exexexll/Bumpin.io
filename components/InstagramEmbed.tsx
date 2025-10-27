@@ -70,7 +70,9 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
 
   return (
     <>
-      {/* Instagram Embed Script (OFFICIAL URL) */}
+      {/* Instagram Embed Script (OFFICIAL URL - Preloaded) */}
+      <link rel="preconnect" href="https://www.instagram.com" />
+      <link rel="dns-prefetch" href="https://www.instagram.com" />
       <Script
         async
         defer

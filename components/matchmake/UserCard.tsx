@@ -62,6 +62,31 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   ];
   const totalMedia = mediaItems.length;
   
+  // OPTIMIZATION: Preload next/previous Instagram embeds
+  useEffect(() => {
+    if (mediaItems.length <= 1) return;
+    
+    // Preload next slide
+    const nextIndex = (currentMediaIndex + 1) % totalMedia;
+    if (mediaItems[nextIndex]?.type === 'instagram') {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = mediaItems[nextIndex].url;
+      document.head.appendChild(link);
+      console.log('[Carousel] 🚀 Preloading next:', mediaItems[nextIndex].url);
+    }
+    
+    // Preload previous slide
+    const prevIndex = currentMediaIndex === 0 ? totalMedia - 1 : currentMediaIndex - 1;
+    if (mediaItems[prevIndex]?.type === 'instagram') {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = mediaItems[prevIndex].url;
+      document.head.appendChild(link);
+      console.log('[Carousel] 🚀 Preloading previous:', mediaItems[prevIndex].url);
+    }
+  }, [currentMediaIndex, mediaItems, totalMedia]);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const waitTimerRef = useRef<NodeJS.Timeout | null>(null);
   const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);

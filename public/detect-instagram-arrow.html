@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detect Instagram Arrow Position</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #000; color: #fff; font-family: monospace; }
+        #info { background: #222; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .highlight { color: #0f0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Instagram Arrow Detection</h1>
+    <div id="info">Detecting...</div>
+    
+    <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DQSwm1piN00/" data-instgrm-version="14"></blockquote>
+    <script async src="https://www.instagram.com/embed.js"></script>
+    
+    <script>
+        setTimeout(() => {
+            console.log('🔍 Detecting Instagram arrows...');
+            
+            // Find Instagram's carousel arrows
+            const nextBtn = document.querySelector('button[aria-label*="Next"]');
+            const prevBtn = document.querySelector('button[aria-label*="Previous"]');
+            
+            const info = document.getElementById('info');
+            
+            if (nextBtn) {
+                const rect = nextBtn.getBoundingClientRect();
+                const styles = window.getComputedStyle(nextBtn);
+                
+                info.innerHTML = `
+                    <h2>✅ Instagram Next Arrow Detected!</h2>
+                    <p><span class="highlight">Position from Right:</span> ${window.innerWidth - rect.right}px</p>
+                    <p><span class="highlight">Position from Top:</span> ${rect.top}px</p>
+                    <p><span class="highlight">Width:</span> ${rect.width}px</p>
+                    <p><span class="highlight">Height:</span> ${rect.height}px</p>
+                    <p><span class="highlight">Top (CSS):</span> ${styles.top}</p>
+                    <p><span class="highlight">Right (CSS):</span> ${styles.right}</p>
+                    <p><span class="highlight">Border Radius:</span> ${styles.borderRadius}</p>
+                    <p><span class="highlight">Background:</span> ${styles.background}</p>
+                    <hr>
+                    <h3>🎯 Use These Values:</h3>
+                    <code>
+                        right: ${window.innerWidth - rect.right}px;<br>
+                        top: 50%;<br>
+                        transform: translateY(-50%);<br>
+                        width: ${Math.round(rect.width)}px;<br>
+                        height: ${Math.round(rect.height)}px;<br>
+                    </code>
+                `;
+                
+                console.log('Instagram Arrow Position:', {
+                    fromRight: window.innerWidth - rect.right,
+                    fromTop: rect.top,
+                    width: rect.width,
+                    height: rect.height,
+                    computed: {
+                        top: styles.top,
+                        right: styles.right,
+                        borderRadius: styles.borderRadius
+                    }
+                });
+            } else {
+                info.innerHTML = '<p>⚠️ No Instagram arrows found yet. Wait for embed to load...</p>';
+                setTimeout(arguments.callee, 1000);
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
+

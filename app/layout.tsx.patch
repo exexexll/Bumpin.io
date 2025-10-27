@@ -1,0 +1,6 @@
+// Add to app/layout.tsx in <head> section for global preloading:
+
+<link rel="preconnect" href="https://www.instagram.com" />
+<link rel="dns-prefetch" href="https://www.instagram.com" />
+<link rel="preload" href="https://www.instagram.com/embed.js" as="script" />
+
