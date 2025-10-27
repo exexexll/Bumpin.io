@@ -14,16 +14,28 @@ export default function HomePage() {
           <Container>
             <div className="mx-auto max-w-3xl">
               <h2 className="mb-6 font-playfair text-3xl font-bold tracking-tight sm:text-4xl">
-                What is BUMPIN?
+                Meet people near you. Make friends IRL.
               </h2>
-              <div className="space-y-4 text-base leading-relaxed text-[#e6e6e9]/90 sm:text-lg">
+              <div className="space-y-6 text-base leading-relaxed text-[#e6e6e9]/90 sm:text-lg">
                 <p>
-                  BUMPIN is a 1-1 Video Social Network built for authentic human connection in an age of endless swiping. Every call lasts up to 500 seconds—no more, no less. When the time runs out, the conversation ends, and you decide if you want to connect again.
+                  <strong className="text-[#ffc46a]">BUMPIN</strong> is a networking platform designed to introduce relationships that last. We believe in the power of serendipity and authenticity only few platforms still offer today. Our goal is to provide an algorithm-free, location based matchmaking experience similar to how you bump into people by accidents almost everyday, but now you can do it anywhere, anytime.
                 </p>
-                <p>
-                  No profiles to curate. No photos to judge. Just two people, 500 seconds, and a chance to see if something real can happen. Genuine connection shouldn&apos;t require a perfect bio.
-                </p>
+                
+                <div className="border-l-4 border-[#ffc46a] pl-6 my-6">
+                  <h3 className="font-bold text-[#eaeaf0] mb-2">Up to 500 seconds.</h3>
+                  <p className="text-[#e6e6e9]/80">
+                    Most conversations should happen offline. Omegle made the mistake of allowing up to infinite hours of talking with strangers online who ended up living across states or even countries—that's time wasted. BUMPIN is strictly a meet and greet site that's helpful when you are searching for friends nearby.
+                  </p>
+                </div>
+
+                <div className="border-l-4 border-[#ffc46a] pl-6 my-6">
+                  <h3 className="font-bold text-[#eaeaf0] mb-2">No AI.</h3>
+                  <p className="text-[#e6e6e9]/80">
+                    BUMPIN swore by the principle and movement of Saying NO to AI, especially using it as a matchmaker. AI shouldn't come in between human affairs, for privacy and practical reasons.
+                  </p>
+                </div>
               </div>
+              
               <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                 <Button variant="primary" href="/onboarding">
                   Start connecting
@@ -33,6 +45,19 @@ export default function HomePage() {
                   className="text-sm font-medium text-[#eaeaf0]/70 hover:text-[#ffc46a] transition-colors"
                 >
                   Already have an account? Login
+                </Link>
+              </div>
+              
+              {/* FAQ Link */}
+              <div className="mt-8 text-center">
+                <Link 
+                  href="/faq"
+                  className="inline-flex items-center gap-2 text-[#ffc46a] hover:underline transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Have questions? Check out our FAQ
                 </Link>
               </div>
             </div>

@@ -60,7 +60,7 @@ const faqs: FAQItem[] = [
   {
     category: 'features',
     question: 'What is the Torch Rule in text mode?',
-    answer: 'Text mode has unlimited duration but requires activity. If neither user sends a message for 2 minutes, you get a 60-second warning. Send any message to "relight the torch" and continue. If the full 3 minutes of inactivity passes, the chat ends automatically.'
+    answer: "Text mode has unlimited duration but requires activity. If neither user sends a message for 2 minutes, you get a 60-second warning. Send any message to \"relight the torch\" and continue. If the full 3 minutes of inactivity passes, the chat ends automatically."
   },
   {
     category: 'features',
