@@ -115,6 +115,7 @@ router.get('/queue', requireAuth, requirePayment, requireEventAccess, async (req
         selfieUrl: user.selfieUrl,
         videoUrl: user.videoUrl,
         socials: user.socials || {}, // Include social handles for preview
+        instagramPosts: user.instagramPosts || [], // Include Instagram posts for carousel
         hasCooldown,
         cooldownExpiry,
         wasIntroducedToMe,

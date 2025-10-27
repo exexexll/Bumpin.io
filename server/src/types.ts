@@ -15,6 +15,7 @@ export interface User {
   selfieUrl?: string;
   videoUrl?: string;
   socials?: Record<string, string>; // Normalized social handles
+  instagramPosts?: string[]; // Array of Instagram post URLs for carousel
   createdAt: number;
   // Metrics for Block 6
   timerTotalSeconds?: number;

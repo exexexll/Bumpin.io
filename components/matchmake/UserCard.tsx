@@ -7,6 +7,7 @@ import { generateReferralLink } from '@/lib/api';
 import { getSession } from '@/lib/session';
 import { formatDistance } from '@/lib/distanceCalculation';
 import { SocialHandlesPreview } from '@/components/SocialHandlesPreview';
+import { InstagramEmbed } from '@/components/InstagramEmbed';
 
 interface UserCardProps {
   user: {
@@ -15,6 +16,7 @@ interface UserCardProps {
     gender: 'female' | 'male' | 'nonbinary' | 'unspecified';
     selfieUrl?: string;
     videoUrl?: string;
+    instagramPosts?: string[]; // NEW: Instagram post URLs for carousel
     wasIntroducedToMe?: boolean;
     introducedBy?: string | null;
     distance?: number | null;
@@ -45,6 +47,15 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   const [hasMounted, setHasMounted] = useState(false); // Track if component has mounted
   const [isVideoPaused, setIsVideoPaused] = useState(false);
   const [videoOrientation, setVideoOrientation] = useState<'portrait' | 'landscape' | 'unknown'>('unknown');
+  
+  // CAROUSEL: Media index (0 = video, 1+ = Instagram posts)
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const mediaItems = [
+    { type: 'video' as const, url: user.videoUrl },
+    ...(user.instagramPosts || []).map(url => ({ type: 'instagram' as const, url }))
+  ].filter(item => item.url); // Remove items without URLs
+  const totalMedia = mediaItems.length;
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const waitTimerRef = useRef<NodeJS.Timeout | null>(null);
   const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -193,6 +204,37 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
       }
     };
   }, [isActive, isVideoPaused, overlayOpen, showingModeSelection, user.name]);
+
+  // CAROUSEL: Navigation handlers
+  const handleSwipeLeft = () => {
+    if (totalMedia <= 1) return;
+    
+    // Swipe left = go to next (or wrap to first)
+    const nextIndex = (currentMediaIndex + 1) % totalMedia;
+    console.log('[Carousel] Swipe left:', currentMediaIndex, '→', nextIndex);
+    setCurrentMediaIndex(nextIndex);
+    
+    // Pause video when switching away
+    if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
+      videoRef.current.pause();
+      setIsVideoPaused(true);
+    }
+  };
+
+  const handleSwipeRight = () => {
+    if (totalMedia <= 1) return;
+    
+    // Swipe right = go to previous (or wrap to last)
+    const prevIndex = currentMediaIndex === 0 ? totalMedia - 1 : currentMediaIndex - 1;
+    console.log('[Carousel] Swipe right:', currentMediaIndex, '→', prevIndex);
+    setCurrentMediaIndex(prevIndex);
+    
+    // Pause video when switching away
+    if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
+      videoRef.current.pause();
+      setIsVideoPaused(true);
+    }
+  };
 
   // TikTok-style controls: Mobile = center only, Desktop = 3 zones
   const handleVideoTap = (e: React.MouseEvent) => {
@@ -555,55 +597,124 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
         </motion.div>
       </motion.div>
 
-      {/* Full Height Video - With padding for bottom controls */}
+      {/* CAROUSEL: Full Height Video/Instagram Posts - With padding for bottom controls */}
       <div className="relative flex-1 bg-black flex items-center justify-center pb-32">
-        {user.videoUrl ? (
-          <div 
-            className="relative w-full h-full flex items-center justify-center"
-            onClick={handleVideoTap}
-          >
-            <video
-              ref={videoRef}
-              src={user.videoUrl}
-              loop
-              playsInline
-              className="w-full h-full pointer-events-none"
-              style={{
-                objectFit: 'contain',
-                objectPosition: 'center'
-              }}
-            />
+        {mediaItems.length > 0 ? (
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Current Media Item */}
+            <AnimatePresence mode="wait">
+              {mediaItems[currentMediaIndex].type === 'video' ? (
+                <motion.div
+                  key="video"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute inset-0 flex items-center justify-center"
+                  onClick={handleVideoTap}
+                >
+                  <video
+                    ref={videoRef}
+                    src={user.videoUrl}
+                    loop
+                    playsInline
+                    className="w-full h-full pointer-events-none"
+                    style={{
+                      objectFit: 'contain',
+                      objectPosition: 'center'
+                    }}
+                  />
+                  
+                  {/* Pause indicator */}
+                  {isVideoPaused && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                      <svg className="h-20 w-20 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  {/* Desktop: Click zone hints */}
+                  {!isMobile && (
+                    <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
+                        <p className="text-xs text-white/80">Double-tap: ⏪ -10s</p>
+                      </div>
+                      <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
+                        <p className="text-xs text-white/80">Double-tap: ⏸/▶</p>
+                      </div>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
+                        <p className="text-xs text-white/80">Double-tap: +10s ⏩</p>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={`instagram-${currentMediaIndex}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute inset-0"
+                >
+                  <InstagramEmbed postUrl={mediaItems[currentMediaIndex].url} />
+                </motion.div>
+              )}
+            </AnimatePresence>
             
-            {/* Pause indicator with desktop click zones guide */}
-            {isVideoPaused && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-                <svg className="h-20 w-20 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-            )}
-            
-            {/* Desktop: Click zone hints (fade in on hover, hidden on mobile) */}
-            {!isMobile && (
-              <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
-                {/* Left zone hint */}
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
-                  <p className="text-xs text-white/80">Double-tap: ⏪ -10s</p>
+            {/* CAROUSEL: Navigation Arrows (only if multiple items) */}
+            {totalMedia > 1 && (
+              <>
+                {/* Left Arrow */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSwipeRight(); // Right swipe = previous
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm flex items-center justify-center transition-all hover:scale-110"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                {/* Right Arrow */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSwipeLeft(); // Left swipe = next
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm flex items-center justify-center transition-all hover:scale-110"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                
+                {/* Carousel Dots */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+                  {mediaItems.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentMediaIndex(index);
+                      }}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        index === currentMediaIndex
+                          ? 'bg-white w-6'
+                          : 'bg-white/40 hover:bg-white/60'
+                      }`}
+                    />
+                  ))}
                 </div>
-                {/* Center hint */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
-                  <p className="text-xs text-white/80">Double-tap: ⏸/▶</p>
-                </div>
-                {/* Right zone hint */}
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
-                  <p className="text-xs text-white/80">Double-tap: +10s ⏩</p>
-                </div>
-              </div>
+              </>
             )}
           </div>
         ) : (
           <div className="flex h-full items-center justify-center bg-black/80">
-            <p className="text-lg text-white/50">No intro video</p>
+            <p className="text-lg text-white/50">No media</p>
           </div>
         )}
       </div>
