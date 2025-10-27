@@ -77,11 +77,14 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
         onLoad={handleScriptLoad}
       />
 
-      {/* Instagram Embed - Hide white UI, show content only */}
+      {/* Instagram Embed - Edgeless, photo-only display */}
       <div 
         ref={containerRef} 
         className="w-full h-full flex items-center justify-center overflow-hidden bg-black instagram-embed-wrapper"
-        style={{ padding: 0 }}
+        style={{ 
+          padding: 0,
+          position: 'relative'
+        }}
       >
         <style jsx>{`
           /* Container styling */
@@ -111,10 +114,22 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             height: 100%;
           }
           
-          /* Transform embed to show only photo area */
+          /* Transform embed to show ONLY photo (aggressive cropping) */
           .instagram-embed-wrapper :global(.instagram-media) {
-            transform: scale(1.8);
-            transform-origin: center 40%;
+            transform: scale(2.2);
+            transform-origin: center 38%;
+            overflow: hidden !important;
+          }
+          
+          /* Hide all white sections and text */
+          .instagram-embed-wrapper :global(.instagram-media div[style*="background"]) {
+            background: #000 !important;
+          }
+          
+          .instagram-embed-wrapper :global(.instagram-media a),
+          .instagram-embed-wrapper :global(.instagram-media p),
+          .instagram-embed-wrapper :global(.instagram-media span) {
+            display: none !important;
           }
           
           /* Hide Instagram's UI but keep navigation for multi-photo posts */
