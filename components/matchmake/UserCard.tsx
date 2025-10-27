@@ -96,18 +96,29 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   // Detect mobile Safari for compact UI
   const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   
-  // CAROUSEL: Navigation handlers (navigate between POSTS only)
+  // CAROUSEL: Navigation handlers with video autoplay
   const handleSwipeLeft = () => {
     if (totalMedia <= 1) return;
     
     const nextIndex = (currentMediaIndex + 1) % totalMedia;
     console.log('[Carousel] Swipe left:', currentMediaIndex, '→', nextIndex);
-    setCurrentMediaIndex(nextIndex);
     
-    // Pause video when leaving
+    // Pause current video
     if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
       videoRef.current.pause();
       setIsVideoPaused(true);
+    }
+    
+    setCurrentMediaIndex(nextIndex);
+    
+    // Autoplay if navigating TO video
+    if (mediaItems[nextIndex]?.type === 'video') {
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.play().catch(() => console.log('[Carousel] Autoplay blocked'));
+          setIsVideoPaused(false);
+        }
+      }, 100);
     }
   };
 
@@ -116,12 +127,23 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     
     const prevIndex = currentMediaIndex === 0 ? totalMedia - 1 : currentMediaIndex - 1;
     console.log('[Carousel] Swipe right:', currentMediaIndex, '→', prevIndex);
-    setCurrentMediaIndex(prevIndex);
     
-    // Pause video when leaving
+    // Pause current video
     if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
       videoRef.current.pause();
       setIsVideoPaused(true);
+    }
+    
+    setCurrentMediaIndex(prevIndex);
+    
+    // Autoplay if navigating TO video
+    if (mediaItems[prevIndex]?.type === 'video') {
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.play().catch(() => console.log('[Carousel] Autoplay blocked'));
+          setIsVideoPaused(false);
+        }
+      }, 100);
     }
   };
   
@@ -721,24 +743,24 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
               )}
             </AnimatePresence>
             
-            {/* CAROUSEL: Next Post button (bottom-right, always visible) */}
+            {/* CAROUSEL: Next Post button (dynamic positioning to avoid UI overlap) */}
             {totalMedia > 1 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleSwipeLeft(); // Always advance (loops back to start)
                 }}
-                className={`absolute z-30 rounded-xl bg-white/95 hover:bg-white shadow-lg flex items-center gap-2 transition-all hover:scale-105 active:scale-95 ${
+                className={`absolute z-20 rounded-xl bg-white/95 hover:bg-white shadow-lg flex items-center gap-2 transition-all hover:scale-105 active:scale-95 ${
                   isMobile 
-                    ? 'bottom-24 right-4 px-4 py-2'
-                    : 'bottom-8 right-6 px-5 py-3'
+                    ? 'bottom-[88px] right-4 px-3 py-1.5' // Mobile: Above bottom controls, compact
+                    : 'top-4 right-4 px-4 py-2' // Desktop: Top-right, out of way
                 }`}
               >
-                <span className={`text-gray-800 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
-                  Next Post
+                <span className={`text-gray-800 font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  Next
                 </span>
-                <svg className={isMobile ? 'w-4 h-4 text-gray-800' : 'w-5 h-5 text-gray-800'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                <svg className={isMobile ? 'w-3 h-3 text-gray-800' : 'w-4 h-4 text-gray-800'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             )}
