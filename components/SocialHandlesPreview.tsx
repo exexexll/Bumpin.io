@@ -92,39 +92,14 @@ export function SocialHandlesPreview({ socials }: SocialHandlesPreviewProps) {
             key={platform.key}
             href={url}
             onClick={(e) => {
-              // CRITICAL: Skip FloatingBrowser for social media
-              // These sites block iframes (X-Frame-Options)
-              // Open directly instead
+              // CRITICAL: Always open directly (no FloatingBrowser)
               e.preventDefault();
               e.stopPropagation();
               
-              console.log(`[Social] Opening ${platform.label} directly:`, url);
+              console.log(`[Social] Opening ${platform.label}:`, url);
               
-              // Try deep link on mobile (opens native app if installed)
-              if (typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                const deepLinks: Record<string, string> = {
-                  'instagram': `instagram://user?username=${cleanHandle}`,
-                  'tiktok': `tiktok://user?username=${cleanHandle}`,
-                  'twitter': `twitter://user?screen_name=${cleanHandle}`,
-                  'snapchat': `snapchat://add/${cleanHandle}`,
-                };
-                
-                if (deepLinks[platform.key]) {
-                  // Try deep link
-                  window.location.href = deepLinks[platform.key];
-                  
-                  // Fallback to web after 500ms if app not installed
-                  setTimeout(() => {
-                    window.open(url, '_blank', 'noopener,noreferrer');
-                  }, 500);
-                } else {
-                  // No deep link, open web
-                  window.open(url, '_blank', 'noopener,noreferrer');
-                }
-              } else {
-                // Desktop: Open in new tab
-                window.open(url, '_blank', 'noopener,noreferrer');
-              }
+              // Just open in new tab/app (simple and reliable)
+              window.open(url, '_blank', 'noopener,noreferrer');
             }}
             className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 transition-all flex items-center justify-center border border-white/20 hover:scale-110 active:scale-95 cursor-pointer"
             title={`${platform.label}: ${handle}`}

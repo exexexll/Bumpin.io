@@ -11,6 +11,8 @@ export interface ReelUser {
   gender: 'female' | 'male' | 'nonbinary' | 'unspecified';
   selfieUrl?: string;
   videoUrl?: string;
+  socials?: Record<string, string>; // Social media handles
+  instagramPosts?: string[]; // Instagram post URLs for carousel
   hasCooldown?: boolean;
   cooldownExpiry?: number | null;
   wasIntroducedToMe?: boolean;
