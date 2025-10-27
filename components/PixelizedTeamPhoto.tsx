@@ -27,13 +27,18 @@ export function PixelizedTeamPhoto() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Photo configurations - scattered placement
+    // Photo configurations - scattered across BOTH sides (not crammed)
     const photoConfigs = [
-      { src: '/team-photo.jpg', width: 280, height: 350, top: '5%', left: '3%', rotation: -8, zIndex: 3 },
-      { src: '/team-photo2.jpg', width: 300, height: 380, top: '15%', left: '18%', rotation: 5, zIndex: 2 },
-      { src: '/team-photo3.jpg', width: 260, height: 330, top: '45%', left: '8%', rotation: -12, zIndex: 4 },
-      { src: '/team-photo4.jpg', width: 290, height: 360, top: '60%', left: '22%', rotation: 7, zIndex: 1 },
-      { src: '/team-photo5.jpg', width: 270, height: 340, top: '25%', left: '32%', rotation: -5, zIndex: 5 },
+      // Left side
+      { src: '/team-photo.jpg', width: 240, height: 300, top: '8%', left: '2%', rotation: -8, zIndex: 3 },
+      { src: '/team-photo2.jpg', width: 220, height: 280, top: '55%', left: '5%', rotation: 6, zIndex: 2 },
+      
+      // Right side  
+      { src: '/team-photo3.jpg', width: 230, height: 290, top: '5%', right: '3%', left: 'auto', rotation: -10, zIndex: 4 },
+      { src: '/team-photo4.jpg', width: 250, height: 310, top: '50%', right: '8%', left: 'auto', rotation: 8, zIndex: 1 },
+      
+      // Middle/floating
+      { src: '/team-photo5.jpg', width: 210, height: 260, top: '30%', left: '20%', rotation: -4, zIndex: 5 },
     ];
 
     // Pixelize each photo using canvas (2004 Facebook style)
@@ -42,8 +47,8 @@ export function PixelizedTeamPhoto() {
       const ctx = canvas.getContext('2d', { alpha: false });
       if (!ctx) return;
 
-      // HEAVY pixelation like 2004 Facebook (32x32 grid)
-      const pixelSize = 32; // Low-res like original Facebook profile pics
+      // Medium pixelation (48x48 grid - less blocky, contours visible)
+      const pixelSize = 48; // Sweet spot between detail and pixel art
       canvas.width = pixelSize;
       canvas.height = pixelSize;
 
@@ -51,18 +56,18 @@ export function PixelizedTeamPhoto() {
       img.crossOrigin = '';
 
       img.onload = () => {
-        // Downsample to 32x32 (blocky, mosaic effect)
+        // Downsample to 48x48 (visible contours, still pixelated)
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(img, 0, 0, pixelSize, pixelSize);
 
-        // Color quantization (16 steps - very blocky)
+        // Light color quantization (32 steps - visible details)
         const imageData = ctx.getImageData(0, 0, pixelSize, pixelSize);
         const data = imageData.data;
 
         for (let i = 0; i < data.length; i += 4) {
-          data[i] = Math.floor(data[i] / 16) * 16;
-          data[i + 1] = Math.floor(data[i + 1] / 16) * 16;
-          data[i + 2] = Math.floor(data[i + 2] / 16) * 16;
+          data[i] = Math.floor(data[i] / 8) * 8;
+          data[i + 1] = Math.floor(data[i + 1] / 8) * 8;
+          data[i + 2] = Math.floor(data[i + 2] / 8) * 8;
         }
 
         ctx.putImageData(imageData, 0, 0);
@@ -71,16 +76,17 @@ export function PixelizedTeamPhoto() {
         const photoDiv = document.createElement('div');
         photoDiv.className = 'absolute polaroid-photo';
         photoDiv.style.top = config.top;
-        photoDiv.style.left = config.left;
+        if (config.left) photoDiv.style.left = config.left;
+        if ((config as any).right) photoDiv.style.right = (config as any).right;
         photoDiv.style.width = `${config.width}px`;
         photoDiv.style.height = `${config.height}px`;
         photoDiv.style.transform = `rotate(${config.rotation}deg)`;
         photoDiv.style.zIndex = String(config.zIndex);
         photoDiv.style.animation = `fadeInBounce 0.6s ease-out ${index * 0.1}s both`;
 
-        // Polaroid frame
+        // Polaroid frame (dimmer)
         const frame = document.createElement('div');
-        frame.className = 'w-full h-full bg-white/90 p-3';
+        frame.className = 'w-full h-full bg-white/70 p-3'; // Reduced from /90 to /70
         frame.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6), 0 1px 8px rgba(0,0,0,0.4)';
 
         // Canvas container
@@ -113,7 +119,7 @@ export function PixelizedTeamPhoto() {
 
         containerRef.current?.appendChild(photoDiv);
         
-        console.log(`[PixelArt] Photo ${index + 1} pixelized (32x32 - Facebook 2004 style)`);
+        console.log(`[PixelArt] Photo ${index + 1} pixelized (48x48 - visible contours)`);
       };
 
       img.onerror = () => {
