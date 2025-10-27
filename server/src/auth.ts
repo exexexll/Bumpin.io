@@ -113,12 +113,18 @@ export function createAuthRoutes(
 
   // Determine paid status based on code type
   let paidStatus: 'unpaid' | 'paid' | 'qr_verified' | 'qr_grace_period' = 'unpaid';
+  let isAdminCode = false;
+  let uscEmailForVerification: string | undefined;
+  
   if (codeVerified) {
     const codeInfo = await store.getInviteCode(codeUsed!);
     if (codeInfo?.type === 'admin') {
-      // Admin code users (USC students) get PAID status directly
-      paidStatus = 'paid';
-      console.log('[Auth] Admin code user - setting as PAID (no grace period)');
+      isAdminCode = true;
+      // SECURITY: Admin code users are 'qr_grace_period' until email verified
+      // They'll be upgraded to 'paid' AFTER email verification
+      paidStatus = 'qr_grace_period';
+      uscEmailForVerification = email?.toLowerCase(); // Store for pending verification
+      console.log('[Auth] Admin code user - requires USC email verification for PAID status');
     } else {
       // Regular invite codes get grace period (need 4 sessions)
       paidStatus = 'qr_grace_period';
@@ -134,6 +140,7 @@ export function createAuthRoutes(
     banStatus: 'none',
     // CRITICAL: Email is NOT stored here - only after verification
     // This prevents duplicate email errors and ensures proper verification flow
+    pending_email: uscEmailForVerification || null, // Store USC email for verification
     paidStatus,
     inviteCodeUsed: codeUsed,
     // New user's own invite code (if they were verified)
@@ -218,6 +225,9 @@ export function createAuthRoutes(
     // Paywall status
     paidStatus: user.paidStatus,
     requiresPayment: !codeVerified, // If not verified by code, needs payment
+    // SECURITY: Admin codes require email verification
+    requiresEmailVerification: isAdminCode && !!uscEmailForVerification,
+    pendingEmail: uscEmailForVerification || null, // Email waiting for verification
   });
 });
 

@@ -99,11 +99,16 @@ router.post('/verify', requireAuth, async (req: any, res) => {
     });
   }
   
+  // Check if this is an admin code user (USC student)
+  const isAdminCodeUser = user.inviteCodeUsed && user.paidStatus === 'qr_grace_period';
+  
   // CRITICAL: NOW save email to user (only after successful verification)
   await store.updateUser(req.userId, {
     email: email.toLowerCase(), // Move from pending_email to email
     email_verified: true,
     accountType: 'permanent', // CRITICAL: Upgrade from guest to permanent
+    // SECURITY: Admin code users upgrade to 'paid' after email verification
+    paidStatus: isAdminCodeUser ? 'paid' : user.paidStatus,
     verification_code: null,
     verification_code_expires_at: null,
     verification_attempts: 0,
