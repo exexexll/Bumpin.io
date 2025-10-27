@@ -129,8 +129,13 @@ export function Hero() {
           </h1>
 
           {/* Subtitle */}
-          <p className="mb-8 font-inter text-base font-medium text-white/95 sm:text-lg lg:text-xl">
+          <p className="mb-2 font-inter text-base font-medium text-white/95 sm:text-lg lg:text-xl">
             Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.
+          </p>
+          
+          {/* Venture Credit */}
+          <p className="mb-8 text-xs text-white/40">
+            A Napalmsky Venture
           </p>
 
           {/* CTAs */}
