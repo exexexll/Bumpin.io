@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { MatchmakeOverlay } from '@/components/matchmake/MatchmakeOverlay';
 import { ReferralNotifications } from '@/components/ReferralNotifications';
-import { DVDScreensaver } from '@/components/DVDScreensaver';
+// Animation removed for cleaner main page
 import { FloatingUserNames } from '@/components/FloatingUserNames';
 import DirectMatchInput from '@/components/DirectMatchInput';
 import { API_BASE } from '@/lib/config';
@@ -126,9 +126,6 @@ function MainPageContent() {
         backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 40px, #ffc46a 40px, #ffc46a 41px), repeating-linear-gradient(90deg, transparent, transparent 40px, #ffc46a 40px, #ffc46a 41px)`,
         zIndex: 0,
       }} />
-
-      {/* DVD Screensaver Animation */}
-      <DVDScreensaver />
 
       {/* Floating User Names (behind buttons) */}
       <FloatingUserNames />

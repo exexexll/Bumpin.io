@@ -151,7 +151,7 @@ export function AnimatedHearts() {
   }, [leftHeart, rightHeart, merged]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
       {!merged ? (
         <>
           <motion.div
