@@ -43,11 +43,11 @@ async function requireAuth(req: any, res: any, next: any) {
 router.post('/update', requireAuth, async (req: any, res) => {
   const { latitude, longitude, accuracy } = req.body;
   
-  // SECURITY: Rate limiting - max 1 update per 10 minutes (reasonable for matchmaking)
-  // Users typically don't move far in 10 minutes, and it prevents spam/tracking
+  // SECURITY: Rate limiting - max 1 update per 15 minutes
+  // More lenient to prevent 429 errors on normal usage
   const lastUpdate = locationUpdateLimits.get(req.userId) || 0;
   const timeSinceLastUpdate = Date.now() - lastUpdate;
-  const rateLimit = 600000; // 10 minutes (5min still caused some 429s)
+  const rateLimit = 900000; // 15 minutes (10min still triggering 429s)
   
   if (timeSinceLastUpdate < rateLimit) {
     const waitMinutes = Math.ceil((rateLimit - timeSinceLastUpdate) / 60000);

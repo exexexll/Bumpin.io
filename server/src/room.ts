@@ -114,6 +114,7 @@ router.get('/queue', requireAuth, requirePayment, requireEventAccess, async (req
         gender: user.gender,
         selfieUrl: user.selfieUrl,
         videoUrl: user.videoUrl,
+        socials: user.socials || {}, // Include social handles for preview
         hasCooldown,
         cooldownExpiry,
         wasIntroducedToMe,
