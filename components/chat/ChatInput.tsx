@@ -100,10 +100,22 @@ export function ChatInput({
             onChange={(e) => {
               setMessage(e.target.value);
               
-              // Emit typing event (throttled to once per 2 seconds)
+              // IMPROVED: Emit typing on EVERY keystroke (real-time feedback)
               if (onTyping && e.target.value.length > 0) {
                 const now = Date.now();
-                if (now - lastTypingEmitRef.current > 2000) {
+                // Reduced throttle: 2s → 500ms (more responsive)
+                if (now - lastTypingEmitRef.current > 500) {
+                  onTyping();
+                  lastTypingEmitRef.current = now;
+                }
+              }
+            }}
+            onKeyDown={(e) => {
+              // CRITICAL: Track keyboard activity at all times
+              if (onTyping && e.key.length === 1) {
+                // Single character key = typing
+                const now = Date.now();
+                if (now - lastTypingEmitRef.current > 500) {
                   onTyping();
                   lastTypingEmitRef.current = now;
                 }
