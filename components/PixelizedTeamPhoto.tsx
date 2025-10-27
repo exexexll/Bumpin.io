@@ -24,9 +24,10 @@ export function PixelizedTeamPhoto() {
     canvas.height = pixelGrid;
 
     const img = new Image();
+    img.crossOrigin = ''; // Allow same-origin images in canvas
     
     img.onload = () => {
-      console.log('[PixelArt] Image loaded, pixelizing...');
+      console.log('[PixelArt] ✅ Image loaded successfully, pixelizing...');
       // Draw image at tiny size (heavy downsampling = barely recognizable)
       ctx.imageSmoothingEnabled = false; // Critical for pixel art
       ctx.drawImage(img, 0, 0, pixelGrid, pixelGrid);
