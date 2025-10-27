@@ -121,10 +121,22 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
           .instagram-embed-wrapper :global(header),
           .instagram-embed-wrapper :global(footer),
           .instagram-embed-wrapper :global(.instagram-media header),
-          .instagram-embed-wrapper :global(.instagram-media a),
-          .instagram-embed-wrapper :global([role="button"]),
-          .instagram-embed-wrapper :global(button) {
+          .instagram-embed-wrapper :global(.instagram-media a[href*="instagram.com"]),
+          .instagram-embed-wrapper :global([role="button"]) {
             display: none !important;
+          }
+          
+          /* Hide Instagram carousel dots but keep arrows */
+          .instagram-embed-wrapper :global([role="tablist"]) {
+            display: none !important;
+          }
+          
+          /* Make Instagram's carousel arrows invisible but clickable */
+          .instagram-embed-wrapper :global(button[aria-label*="Next"]),
+          .instagram-embed-wrapper :global(button[aria-label*="Previous"]) {
+            opacity: 0 !important;
+            pointer-events: auto !important;
+            z-index: 1 !important;
           }
           
           /* Ensure iframe is properly sized */
