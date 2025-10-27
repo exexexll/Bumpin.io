@@ -114,77 +114,48 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             height: 100%;
           }
           
-          /* Transform embed to show ONLY photo (aggressive cropping) */
+          /* Optimized transform - balanced cropping */
           .instagram-embed-wrapper :global(.instagram-media) {
-            transform: scale(2.2);
-            transform-origin: center 38%;
-            overflow: hidden !important;
+            transform: scale(1.6);
+            transform-origin: center 42%;
+            will-change: transform;
           }
           
-          /* Hide all white sections and text */
-          .instagram-embed-wrapper :global(.instagram-media div[style*="background"]) {
-            background: #000 !important;
-          }
-          
-          .instagram-embed-wrapper :global(.instagram-media a),
-          .instagram-embed-wrapper :global(.instagram-media p),
-          .instagram-embed-wrapper :global(.instagram-media span) {
-            display: none !important;
-          }
-          
-          /* Hide Instagram's UI but keep navigation for multi-photo posts */
+          /* Hide Instagram UI (performance optimized) */
           .instagram-embed-wrapper :global(header),
           .instagram-embed-wrapper :global(footer),
-          .instagram-embed-wrapper :global(.instagram-media header) {
-            display: none !important;
-          }
-          
-          /* Hide Instagram carousel dots */
+          .instagram-embed-wrapper :global(.instagram-media a[href*="instagram.com"]),
           .instagram-embed-wrapper :global([role="tablist"]) {
             display: none !important;
           }
           
-          /* Position Instagram's arrows EXACTLY over our visual arrows */
+          /* Position Instagram's multi-photo arrows to overlay ours */
           .instagram-embed-wrapper :global(button[aria-label*="Next"]) {
-            position: absolute !important;
-            right: 16px !important;
+            position: fixed !important;
+            right: calc(50vw - min(470px, 50vw) + 16px) !important;
             top: 50% !important;
             transform: translateY(-50%) !important;
             width: 48px !important;
             height: 48px !important;
             border-radius: 50% !important;
-            background: rgba(0, 0, 0, 0.6) !important;
-            backdrop-filter: blur(4px) !important;
-            z-index: 40 !important;
+            background: transparent !important;
+            z-index: 45 !important;
             cursor: pointer !important;
-            border: none !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+            opacity: 0 !important;
           }
           
           .instagram-embed-wrapper :global(button[aria-label*="Previous"]) {
-            position: absolute !important;
-            left: 16px !important;
+            position: fixed !important;
+            left: calc(50vw - min(470px, 50vw) + 16px) !important;
             top: 50% !important;
             transform: translateY(-50%) !important;
             width: 48px !important;
             height: 48px !important;
             border-radius: 50% !important;
-            background: rgba(0, 0, 0, 0.6) !important;
-            backdrop-filter: blur(4px) !important;
-            z-index: 40 !important;
+            background: transparent !important;
+            z-index: 45 !important;
             cursor: pointer !important;
-            border: none !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-          }
-          
-          /* Hide Instagram's arrow icons, we'll show our own */
-          .instagram-embed-wrapper :global(button[aria-label*="Next"] svg),
-          .instagram-embed-wrapper :global(button[aria-label*="Previous"] svg) {
-            display: none !important;
+            opacity: 0 !important;
           }
           
           /* Ensure iframe is properly sized */
