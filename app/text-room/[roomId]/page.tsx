@@ -6,11 +6,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { getSession } from '@/lib/session';
 import { connectSocket } from '@/lib/socket';
+import { reportUser } from '@/lib/api';
 import { MessageBubble } from '@/components/chat/MessageBubble';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { GIFPicker } from '@/components/chat/GIFPicker';
 import { FloatingBrowser } from '@/components/FloatingBrowser';
 import { useLinkInterceptor } from '@/lib/useLinkInterceptor';
+
+type ViewState = 'chat' | 'ended';
 
 interface Message {
   messageId: string;
@@ -39,6 +42,9 @@ export default function TextChatRoom() {
   const peerSelfie = searchParams.get('peerSelfie') || '';
 
   // State
+  const [viewState, setViewState] = useState<ViewState>('chat');
+  const [sessionId, setSessionId] = useState('');
+  const [sessionDuration, setSessionDuration] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
   // TORCH RULE: No fixed timer for text mode - unlimited time based on activity
   const [inactivityWarning, setInactivityWarning] = useState(false);
@@ -54,6 +60,10 @@ export default function TextChatRoom() {
   const [reconnectCountdown, setReconnectCountdown] = useState(10);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [showReportConfirm, setShowReportConfirm] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+  const [reportError, setReportError] = useState('');
   
   // Floating browser state
   const [browserUrl, setBrowserUrl] = useState('');
@@ -426,9 +436,10 @@ export default function TextChatRoom() {
     });
 
     // Listen for session end
-    socket.on('session:finalized', () => {
-      console.log('[TextChat] Session ended');
-      router.push('/history');
+    socket.on('session:finalized', ({ sessionId: sid }: any) => {
+      console.log('[TextChat] 🎬 SESSION FINALIZED:', sid);
+      setSessionId(sid);
+      setViewState('ended');
     });
 
     return () => {
@@ -502,14 +513,24 @@ export default function TextChatRoom() {
     };
   }, []);
 
+  // Track session duration
+  useEffect(() => {
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      setSessionDuration(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
   // CRITICAL: End session client-side when countdown reaches 0
   // Don't wait for server (which checks every 30s) - more responsive UX
   useEffect(() => {
     if (inactivityWarning && inactivityCountdown <= 0) {
       alert('Session ended due to inactivity');
-      router.push('/history');
+      setViewState('ended');
     }
-  }, [inactivityCountdown, inactivityWarning, router]);
+  }, [inactivityCountdown, inactivityWarning]);
 
   // Format time mm:ss
   const formatTime = (seconds: number) => {
@@ -614,6 +635,38 @@ export default function TextChatRoom() {
     socketRef.current.emit('textchat:mark-read', { messageId });
   };
 
+  // Report user handler
+  const handleReportUser = async () => {
+    console.log('[TextRoom] Reporting user:', peerUserId);
+    
+    const session = getSession();
+    if (!session) {
+      setReportError('Session expired. Please refresh the page.');
+      return;
+    }
+
+    if (!peerUserId) {
+      setReportError('Unable to identify user to report');
+      return;
+    }
+
+    try {
+      await reportUser(
+        session.sessionToken,
+        peerUserId,
+        reportReason || 'No reason provided',
+        roomId
+      );
+      
+      setReportSubmitted(true);
+      setShowReportConfirm(false);
+      console.log('[TextRoom] ✅ User reported successfully');
+    } catch (error: any) {
+      console.error('[TextRoom] ❌ Failed to report user:', error);
+      setReportError(error.message || 'Failed to submit report');
+    }
+  };
+
   useEffect(() => {
     const messagesDiv = document.querySelector('.messages-area');
     if (messagesDiv) {
@@ -635,6 +688,133 @@ export default function TextChatRoom() {
       }
     };
   }, []);
+
+  // Ending Dashboard (like video mode)
+  if (viewState === 'ended') {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#0a0a0c] p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md space-y-6 rounded-2xl bg-white/5 p-8 text-center shadow-2xl"
+        >
+          <h1 className="font-playfair text-4xl font-bold text-[#eaeaf0]">
+            Chat ended
+          </h1>
+          
+          <div className="space-y-2">
+            <p className="text-lg text-[#eaeaf0]/70">
+              Conversation with <span className="font-bold text-[#eaeaf0]">{peerName}</span>
+            </p>
+            <p className="text-sm text-[#eaeaf0]/50">
+              Duration: {formatTime(sessionDuration)}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={() => router.push(`/history`)}
+              className="focus-ring w-full rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90"
+            >
+              View Past Chats
+            </button>
+            <button
+              onClick={() => router.push('/main')}
+              className="focus-ring w-full rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
+            >
+              Return to dashboard
+            </button>
+            
+            {!reportSubmitted && (
+              <button
+                onClick={() => setShowReportConfirm(true)}
+                className="focus-ring w-full rounded-xl bg-red-500/20 px-6 py-3 font-medium text-red-300 transition-all hover:bg-red-500/30 border border-red-500/30"
+              >
+                Report & Block User
+              </button>
+            )}
+
+            {reportSubmitted && (
+              <div className="rounded-xl bg-green-500/10 px-6 py-3 border border-green-500/30">
+                <p className="text-center text-sm text-green-300">
+                  ✓ Report submitted successfully
+                </p>
+              </div>
+            )}
+
+            {reportError && (
+              <div className="rounded-xl bg-red-500/10 px-6 py-3 border border-red-500/30">
+                <p className="text-center text-sm text-red-300">
+                  {reportError}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <p className="text-xs text-[#eaeaf0]/40">
+            No re-connect in-app. Share socials during a call if you want to continue elsewhere.
+          </p>
+        </motion.div>
+
+        {/* Report Confirm Modal */}
+        {showReportConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-w-md rounded-2xl bg-[#0a0a0c] p-8 shadow-2xl border border-white/10"
+            >
+              <h3 className="mb-4 font-playfair text-2xl font-bold text-[#eaeaf0]">
+                Report {peerName}?
+              </h3>
+              <p className="mb-4 text-[#eaeaf0]/70">
+                This will report {peerName} for inappropriate behavior. Each user can only report another user once.
+                If a user receives 4 or more reports from different users, they will be temporarily banned pending review.
+              </p>
+              
+              <div className="mb-6">
+                <label className="mb-2 block text-sm font-medium text-[#eaeaf0]/70">
+                  Reason (optional)
+                </label>
+                <textarea
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Describe the issue..."
+                  rows={3}
+                  className="w-full rounded-xl bg-white/10 px-4 py-3 text-sm text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+
+              {reportError && (
+                <div className="mb-4 rounded-xl bg-red-500/10 px-4 py-3 border border-red-500/30">
+                  <p className="text-sm text-red-300">{reportError}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowReportConfirm(false);
+                    setReportReason('');
+                    setReportError('');
+                  }}
+                  className="focus-ring flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReportUser}
+                  className="focus-ring flex-1 rounded-xl bg-red-500/80 px-6 py-3 font-medium text-white transition-opacity hover:opacity-90"
+                >
+                  Submit Report
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </main>
+    );
+  }
 
   return (
     <main className="fixed inset-0 flex flex-col bg-[#0a0a0c] overflow-hidden z-50" style={{ 
@@ -1034,10 +1214,12 @@ export default function TextChatRoom() {
                 </button>
                 <button
                   onClick={() => {
+                    console.log('[TextRoom] Ending chat via button');
                     if (socketRef.current) {
                       socketRef.current.emit('call:end', { roomId });
                     }
-                    router.push('/history');
+                    setShowEndConfirm(false);
+                    // Don't push to history immediately - wait for session:finalized
                   }}
                   className="flex-1 rounded-xl bg-red-500 px-6 py-3 font-medium text-white hover:opacity-90 transition-opacity"
                 >
