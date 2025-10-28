@@ -755,14 +755,18 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
 
       {/* Status Banner - Removed for minimal UI */}
 
-      {/* Next Post Button - Bottom-right, always visible */}
+      {/* Next Post Button - Moves up when controls expand */}
       {totalMedia > 1 && (
-        <button
+        <motion.button
           onClick={(e) => {
             e.stopPropagation();
             handleSwipeLeft();
           }}
-          className="absolute bottom-28 right-4 z-25 rounded-full bg-white/95 hover:bg-white shadow-lg px-4 py-2 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+          className="absolute right-4 z-25 rounded-full bg-white/95 hover:bg-white shadow-lg px-4 py-2 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+          animate={{
+            bottom: isHovered ? (isMobile ? '110px' : '140px') : (isMobile ? '110px' : '110px')
+          }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
         >
           <span className="text-gray-800 font-semibold text-sm">
             Next
@@ -770,7 +774,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
           <svg className="w-4 h-4 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
-        </button>
+        </motion.button>
       )}
 
       {/* Controls - Bottom (Animates based on hover) */}

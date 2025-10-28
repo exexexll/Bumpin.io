@@ -87,7 +87,8 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
         className="w-full h-full flex items-center justify-center overflow-hidden bg-black instagram-embed-wrapper relative"
         style={{ padding: 0 }}
       >
-        {/* Let Instagram show naturally - no blocking */}
+        {/* Black bar covers Instagram's white header (username/profile) */}
+        <div className="absolute top-0 left-0 right-0 h-14 bg-black z-[15] pointer-events-none" />
         
         <style jsx>{`
           /* Container styling */
