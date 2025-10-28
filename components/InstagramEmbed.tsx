@@ -98,33 +98,14 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             height: 100%;
           }
           
-          /* Make Instagram embed fill container */
-          .instagram-embed-wrapper :global(.instagram-media) {
-            background: #000 !important;
-            border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            max-width: 100% !important;
-            min-width: 100% !important;
-            width: 100% !important;
-            height: 100% !important;
-            margin: 0 !important;
-          }
-          
-          /* Hide EVERYTHING except the photo */
-          .instagram-embed-wrapper :global(.instagram-media > div) {
-            position: relative;
-            width: 100%;
-            height: 100%;
-          }
-          
-          /* Instagram embed basic styling */
+          /* SCALE UP to crop out white header (WORKING FIX) */
           .instagram-embed-wrapper :global(.instagram-media) {
             background: #000 !important;
             border: none !important;
             box-shadow: none !important;
             margin: 0 auto !important;
             max-width: 540px !important;
+            transform: scale(1.3) translateY(-40px) !important;
           }
           
           /* Ensure iframe is properly sized */
