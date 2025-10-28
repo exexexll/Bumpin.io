@@ -154,7 +154,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        // Navigate Instagram photos();
+        handleSwipeRight();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
         handleSwipeLeft();

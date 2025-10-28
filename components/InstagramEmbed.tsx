@@ -98,14 +98,14 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             height: 100%;
           }
           
-          /* SCALE UP to crop out white header (WORKING FIX) */
+          /* AGGRESSIVE SCALE to hide ALL white content */
           .instagram-embed-wrapper :global(.instagram-media) {
             background: #000 !important;
             border: none !important;
             box-shadow: none !important;
             margin: 0 auto !important;
             max-width: 540px !important;
-            transform: scale(1.3) translateY(-40px) !important;
+            transform: scale(1.5) translateY(-60px) !important;
           }
           
           /* Ensure iframe is properly sized */
