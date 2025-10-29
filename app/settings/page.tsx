@@ -41,9 +41,10 @@ export default function SettingsPage() {
       .then(res => res.json())
       .then(data => {
         console.log('[Settings] Payment status received:', data);
+        console.log('[Settings] Account type:', data.accountType);
+        console.log('[Settings] Expires at:', data.accountExpiresAt);
         console.log('[Settings] Has invite code?', !!data.myInviteCode);
         console.log('[Settings] Paid status:', data.paidStatus);
-        console.log('[Settings] Uses remaining:', data.inviteCodeUsesRemaining);
         setPaymentStatus(data);
       })
       .catch(err => console.error('Failed to fetch payment status:', err))
@@ -165,6 +166,41 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+
+          {/* Guest Account Upgrade Section */}
+          {!loadingPayment && paymentStatus?.accountType === 'guest' && paymentStatus?.accountExpiresAt && (
+            <div className="rounded-xl border-2 border-yellow-500/30 bg-yellow-500/10 p-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-yellow-300">⏰ Guest Account</h2>
+                  <span className="text-sm font-medium text-yellow-200">
+                    {(() => {
+                      const now = new Date();
+                      const expiry = new Date(paymentStatus.accountExpiresAt);
+                      const daysLeft = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                      return daysLeft > 0 ? `${daysLeft} days left` : 'Expired';
+                    })()}
+                  </span>
+                </div>
+                
+                <p className="text-sm text-yellow-200/80">
+                  Your guest account expires in {(() => {
+                    const now = new Date();
+                    const expiry = new Date(paymentStatus.accountExpiresAt);
+                    const daysLeft = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                    return daysLeft;
+                  })()} days. Upgrade to a permanent account to keep your data forever.
+                </p>
+                
+                <button
+                  onClick={() => setShowMakePermanent(true)}
+                  className="w-full rounded-xl bg-[#ffc46a] px-6 py-3 font-bold text-[#0a0a0c] hover:opacity-90 transition-opacity"
+                >
+                  🎓 Upgrade to Permanent Account
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Debug: Show payment status */}
           {!loadingPayment && paymentStatus && (
