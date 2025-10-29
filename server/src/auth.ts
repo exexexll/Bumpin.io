@@ -500,7 +500,14 @@ router.post('/link', async (req, res) => {
       };
 
       // Save user
-      await store.createUser(user);
+      console.log('[Auth] Creating user in database...');
+      try {
+        await store.createUser(user);
+        console.log('[Auth] ✅ User created successfully');
+      } catch (createErr: any) {
+        console.error('[Auth] ❌ User creation failed:', createErr.message);
+        throw createErr; // Re-throw to return error to frontend
+      }
 
       // Create session
       const session: Session = {

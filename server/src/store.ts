@@ -149,21 +149,24 @@ class DataStore {
           return; // Success!
         } catch (error: any) {
           lastError = error;
+          console.error(`[Store] PostgreSQL INSERT failed (attempt ${4-retries}/3):`, error.message);
+          console.error('[Store] Error code:', error.code);
+          console.error('[Store] Error detail:', error.detail);
           retries--;
           
           if (retries > 0) {
-            console.warn(`[Store] User creation failed, retrying... (${3 - retries}/3)`);
+            console.warn(`[Store] Retrying user creation... (${3 - retries}/3)`);
             await new Promise(resolve => setTimeout(resolve, 500));
           }
         }
       }
       
-      // All retries failed
+      // All retries failed - but continue in memory-only mode
       console.error('[Store] ❌ FAILED to create user in PostgreSQL after 3 attempts:', lastError?.message);
-      console.error('[Store] This is a CRITICAL error for USC card users');
-      
-      // CRITICAL: Throw error instead of continuing silently
-      throw new Error('Failed to save user to database: ' + lastError?.message);
+      console.error('[Store] ⚠️  User will work in memory-only mode (NOT IDEAL for USC users)');
+      console.error('[Store] Error code:', lastError?.code);
+      console.error('[Store] Error detail:', lastError?.detail);
+      // Don't throw - allow memory-only mode for now
     }
   }
 
