@@ -463,6 +463,20 @@ router.post('/link', async (req, res) => {
       codeVerified = true;
     }
 
+    // CRITICAL: Generate 4-use invite code for verified USC card users (same as regular users)
+    let newUserInviteCode: string | undefined;
+    if (codeVerified) {
+      const crypto = require('crypto');
+      const randomBytes = crypto.randomBytes(8);
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = '';
+      for (let i = 0; i < 16; i++) {
+        code += chars[randomBytes[i] % chars.length];
+      }
+      newUserInviteCode = code;
+      console.log(`[Auth] Will generate 4-use invite code for USC user ${name}: ${newUserInviteCode}`);
+    }
+
     try {
       // Create guest user (expires in 7 days)
       // USC card will be linked later after onboarding complete
@@ -477,6 +491,8 @@ router.post('/link', async (req, res) => {
         banStatus: 'none',
         paidStatus: codeVerified ? 'qr_verified' : 'unpaid',
         inviteCodeUsed: inviteCode || undefined,
+        myInviteCode: newUserInviteCode, // User's own QR code (4 uses)
+        inviteCodeUsesRemaining: newUserInviteCode ? 4 : 0,
         qrUnlocked: false,
         successfulSessions: 0,
         accountExpiresAt: expiresAt.getTime(),
@@ -497,6 +513,24 @@ router.post('/link', async (req, res) => {
         lastActiveAt: Date.now(),
       };
       await store.createSession(session);
+      
+      // Create invite code in database (after user exists)
+      if (codeVerified && newUserInviteCode) {
+        const newInviteCode: import('./types').InviteCode = {
+          code: newUserInviteCode,
+          createdBy: userId,
+          createdByName: name.trim(),
+          createdAt: Date.now(),
+          type: 'user',
+          maxUses: 4,
+          usesRemaining: 4,
+          usedBy: [],
+          isActive: true,
+        };
+        
+        await store.createInviteCode(newInviteCode);
+        console.log(`[Auth] ✅ Generated 4-use invite code for USC user ${name}: ${newUserInviteCode}`);
+      }
 
       console.log(`[Auth] USC guest account created: ${name}, user ${userId.substring(0, 8)}, expires: ${expiresAt.toISOString()}`);
 
@@ -507,6 +541,8 @@ router.post('/link', async (req, res) => {
         expiresAt: expiresAt.toISOString(),
         paidStatus: user.paidStatus,
         inviteCodeUsed: codeVerified,
+        myInviteCode: newUserInviteCode, // Return user's QR code
+        inviteCodeUsesRemaining: newUserInviteCode ? 4 : 0,
       });
     } catch (err: any) {
       console.error('[Auth] USC guest creation failed:', err);

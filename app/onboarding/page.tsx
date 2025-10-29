@@ -786,7 +786,13 @@ function OnboardingPageContent() {
   // Auto-start camera for selfie step and cleanup properly
   useEffect(() => {
     if (step === 'selfie') {
-      startCamera();
+      // CRITICAL: Wait 500ms to ensure Quagga fully released camera
+      const cameraTimeout = setTimeout(() => {
+        console.log('[Onboarding] Starting selfie camera...');
+        startCamera();
+      }, 500);
+      
+      return () => clearTimeout(cameraTimeout);
     } else if (step !== 'video') {
       // Clean up camera when leaving selfie step (but not when moving to video)
       // This prevents multiple camera streams from being active
