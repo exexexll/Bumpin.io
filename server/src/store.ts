@@ -134,7 +134,7 @@ class DataStore {
             [
               user.userId, user.name, user.gender, user.accountType, user.email || null,
               user.password_hash || null, user.selfieUrl || null, user.videoUrl || null,
-              JSON.stringify(user.socials || {}), JSON.stringify(user.instagramPosts || []),
+              user.socials || {}, user.instagramPosts || [], // JSONB - don't stringify
               user.paidStatus || 'unpaid',
               user.paidAt ? new Date(user.paidAt) : null, user.paymentId || null,
               user.inviteCodeUsed || null, user.myInviteCode || null, user.inviteCodeUsesRemaining || 0,
@@ -142,7 +142,7 @@ class DataStore {
               user.introducedViaCode || null, user.qrUnlocked || false, user.successfulSessions || 0,
               user.accountExpiresAt ? new Date(user.accountExpiresAt) : null,
               user.timerTotalSeconds || 0, user.sessionCount || 0, 
-              JSON.stringify(user.lastSessions || []), user.streakDays || 0
+              user.lastSessions || [], user.streakDays || 0 // JSONB - don't stringify
             ]
           );
           console.log('[Store] ✅ User created in PostgreSQL:', user.userId.substring(0, 8));

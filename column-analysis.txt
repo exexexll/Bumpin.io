@@ -1,0 +1,59 @@
+POSTGRESQL INSERT ANALYSIS - EXACT COLUMN MATCHING
+===================================================
+
+INSERT Query (line 121-125):
+Columns: 27 total
+1. user_id
+2. name
+3. gender
+4. account_type
+5. email
+6. password_hash
+7. selfie_url
+8. video_url
+9. socials
+10. instagram_posts
+11. paid_status
+12. paid_at
+13. payment_id
+14. invite_code_used
+15. my_invite_code
+16. invite_code_uses_remaining
+17. ban_status
+18. introduced_to
+19. introduced_by
+20. introduced_via_code
+21. qr_unlocked
+22. successful_sessions
+23. account_expires_at
+24. timer_total_seconds
+25. session_count
+26. last_sessions
+27. streak_days
+
+VALUES: 27 parameters ($1-$27)
+
+Database has these additional columns:
+- banned_at (NOT in INSERT - default NULL ✓)
+- banned_reason (NOT in INSERT - default NULL ✓)
+- can_access_outside_events (NOT in INSERT - default NULL ✓)
+- created_at (NOT in INSERT - DEFAULT NOW() ✓)
+- updated_at (NOT in INSERT - DEFAULT NOW() ✓)
+- expiry_warning_sent (NOT in INSERT - DEFAULT FALSE ✓)
+- location_consent (NOT in INSERT - default NULL ✓)
+- location_last_shared (NOT in INSERT - default NULL ✓)
+- pending_email (NOT in INSERT - default NULL ✓)
+- qr_unlocked_at (NOT in INSERT - default NULL ✓)
+- referral_code (NOT in INSERT - default NULL ✓)
+- referred_by (NOT in INSERT - default NULL ✓)
+- review_status (NOT in INSERT - default NULL ✓)
+- usc_id (NOT in INSERT - default NULL, set later ✓)
+- usc_verified_at (NOT in INSERT - default NULL, set later ✓)
+- verification_attempts (NOT in INSERT - DEFAULT 0 ✓)
+- verification_code (NOT in INSERT - default NULL ✓)
+- verification_code_expires_at (NOT in INSERT - default NULL ✓)
+
+All defaults are acceptable - these columns don't need to be in INSERT.
+
+CHECKING VALUES (line 131-145):
+Need to count: Should be exactly 27 values matching 27 columns
