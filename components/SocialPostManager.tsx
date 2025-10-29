@@ -116,21 +116,21 @@ export function SocialPostManager({ initialPosts = [], onSave }: SocialPostManag
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* Header */}
+      {/* Header - Instagram minimal style */}
       <div>
         <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-          <img src="/instagram.png" alt="Instagram" className="w-8 h-8 object-contain" />
+          <span className="text-2xl">📸</span>
           Instagram Posts
-          <span className="text-sm font-normal px-3 py-1 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full">
+          <span className="text-sm font-normal px-3 py-1 bg-white/10 rounded-full border border-white/20">
             {posts.length}/10
           </span>
         </h2>
         <p className="text-gray-400">
-          Add Instagram posts to your profile. They&apos;ll appear in your matchmaking carousel after your intro video.
+          Add Instagram posts to your profile. They&apos;ll display after your intro video.
         </p>
       </div>
 
-      {/* Add Post Input */}
+      {/* Add Post Input - Instagram minimal style */}
       <div className="space-y-3">
         <div className="flex gap-2">
           <input
@@ -142,12 +142,12 @@ export function SocialPostManager({ initialPosts = [], onSave }: SocialPostManag
             }}
             onKeyPress={(e) => e.key === 'Enter' && handleAddPost()}
             placeholder="Paste Instagram post URL (e.g., https://www.instagram.com/p/ABC123/)"
-            className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"
+            className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-white/40 focus:bg-white/[0.15]"
           />
           <button
             onClick={handleAddPost}
             disabled={posts.length >= 10}
-            className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg text-white font-medium hover:from-pink-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+            className="px-6 py-3 bg-white/90 hover:bg-white rounded-lg text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             Add
           </button>
@@ -168,7 +168,7 @@ export function SocialPostManager({ initialPosts = [], onSave }: SocialPostManag
 
         <div className="flex items-center justify-between text-sm">
           <p className="text-gray-500">
-            Carousel order: Video → Post 1 → Post 2 → ...
+            Display order: Video → Post 1 → Post 2 → ...
           </p>
           <p className="text-gray-400">
             {posts.length}/10 posts
@@ -187,10 +187,10 @@ export function SocialPostManager({ initialPosts = [], onSave }: SocialPostManag
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 layout
-                className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-xl hover:border-pink-500/30 hover:bg-white/10 transition-all group"
+                className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 hover:bg-white/[0.08] transition-all group"
               >
-                {/* Position Badge */}
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white font-bold border-2 border-white/20">
+                {/* Position Badge - Instagram minimal style */}
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-bold border border-white/20">
                   {index + 1}
                 </div>
 
@@ -200,12 +200,12 @@ export function SocialPostManager({ initialPosts = [], onSave }: SocialPostManag
                     href={postUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-white hover:text-pink-400 truncate transition-colors font-mono text-sm"
+                    className="block text-white hover:text-white/70 truncate transition-colors font-mono text-sm"
                   >
                     {postUrl}
                   </a>
                   <p className="text-xs text-gray-500 mt-1">
-                    Will appear as slide {index + 2} (after intro video)
+                    Position {index + 2} (after intro video)
                   </p>
                 </div>
 
@@ -250,20 +250,20 @@ export function SocialPostManager({ initialPosts = [], onSave }: SocialPostManag
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center py-16 space-y-4 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-xl border border-purple-500/10"
+            className="text-center py-16 space-y-4 bg-white/5 rounded-xl border border-white/10"
           >
             <div className="text-6xl mb-4">📷</div>
             <p className="text-gray-400 text-lg font-medium">
               No Instagram posts yet
             </p>
             <p className="text-gray-600 text-sm max-w-md mx-auto">
-              Add Instagram posts to showcase your best content in the matchmaking carousel
+              Add Instagram posts to display after your intro video
             </p>
             
-            {/* How to get URL */}
+            {/* How to get URL - minimal style */}
             <div className="mt-6 p-4 bg-white/5 rounded-lg max-w-md mx-auto border border-white/10">
               <p className="text-white font-medium mb-2 flex items-center justify-center gap-2">
-                <svg className="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 How to get post URL
@@ -279,7 +279,7 @@ export function SocialPostManager({ initialPosts = [], onSave }: SocialPostManag
         )}
       </AnimatePresence>
 
-      {/* Save Button */}
+      {/* Save Button - Instagram minimal style */}
       {posts.length > 0 && (
         <motion.button
           initial={{ scale: 0.95 }}
@@ -288,25 +288,19 @@ export function SocialPostManager({ initialPosts = [], onSave }: SocialPostManag
           whileTap={{ scale: 0.98 }}
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-600 to-pink-500 rounded-xl text-white font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 transition-all relative overflow-hidden group"
+          className="w-full py-4 bg-white/90 hover:bg-white rounded-xl text-black font-bold text-lg shadow-lg disabled:opacity-50 transition-all"
         >
-          {/* Animated background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-          
-          {/* Button text */}
-          <span className="relative z-10">
-            {saving ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Saving...
-              </span>
-            ) : (
-              `Save ${posts.length} Post${posts.length === 1 ? '' : 's'} to Carousel`
-            )}
-          </span>
+          {saving ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Saving...
+            </span>
+          ) : (
+            `Save ${posts.length} Post${posts.length === 1 ? '' : 's'}`
+          )}
         </motion.button>
       )}
     </div>

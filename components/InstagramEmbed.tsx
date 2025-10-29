@@ -108,14 +108,21 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             height: 100%;
           }
           
-          /* AGGRESSIVE SCALE to hide white header while keeping content visible */
+          /* Scale to hide white header - adjusted to prevent content leak */
           .instagram-embed-wrapper :global(.instagram-media) {
             background: #000 !important;
             border: none !important;
             box-shadow: none !important;
             margin: 0 auto !important;
             max-width: 540px !important;
-            transform: scale(1.5) translateY(-60px) !important;
+            transform: scale(1.35) translateY(-45px) !important;
+            overflow: hidden !important;
+          }
+          
+          /* Hide white borders and padding that might leak */
+          .instagram-embed-wrapper :global(.instagram-media) > :global(div:first-child) {
+            background: #000 !important;
+            padding: 0 !important;
           }
           
           /* Ensure iframe is properly sized and FULLY INTERACTIVE */
@@ -140,6 +147,20 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             pointer-events: auto !important;
             cursor: pointer !important;
             touch-action: auto !important;
+          }
+          
+          /* CRITICAL: Make Instagram's carousel navigation arrows visible */
+          .instagram-embed-wrapper :global(.coreSpriteLeftChevron),
+          .instagram-embed-wrapper :global(.coreSpriteRightChevron),
+          .instagram-embed-wrapper :global([aria-label*="Next"]),
+          .instagram-embed-wrapper :global([aria-label*="Previous"]),
+          .instagram-embed-wrapper :global([aria-label*="Go to"]) {
+            display: block !important;
+            pointer-events: auto !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            cursor: pointer !important;
+            z-index: 1000 !important;
           }
           
           /* Ensure video controls are visible */

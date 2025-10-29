@@ -49,7 +49,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   const [isVideoPaused, setIsVideoPaused] = useState(false);
   const [videoOrientation, setVideoOrientation] = useState<'portrait' | 'landscape' | 'unknown'>('unknown');
   
-  // CAROUSEL: Media index (0 = video, 1+ = Instagram photos)
+  // MEDIA DISPLAY: Current index (0 = video, 1+ = Instagram posts)
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   
   // Build media items (video first, then Instagram posts)
@@ -74,7 +74,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
         link.href = item.url;
         link.as = 'document';
         document.head.appendChild(link);
-        console.log('[Carousel] 🚀 Preloading post', index, ':', item.url);
+        console.log('[PostDisplay] 🚀 Preloading post', index, ':', item.url);
       }
     });
   }, [mediaItems, currentMediaIndex]);
@@ -88,12 +88,12 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   // Detect mobile Safari for compact UI
   const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   
-  // CAROUSEL: Navigation handlers with video autoplay
+  // Navigation handlers for switching posts (with video autoplay)
   const handleSwipeLeft = () => {
     if (totalMedia <= 1) return;
     
     const nextIndex = (currentMediaIndex + 1) % totalMedia;
-    console.log('[Carousel] Swipe left:', currentMediaIndex, '→', nextIndex);
+    console.log('[PostDisplay] Next post:', currentMediaIndex, '→', nextIndex);
     
     // Pause current video
     if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
@@ -107,7 +107,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     if (mediaItems[nextIndex]?.type === 'video') {
       setTimeout(() => {
         if (videoRef.current) {
-          videoRef.current.play().catch(() => console.log('[Carousel] Autoplay blocked'));
+          videoRef.current.play().catch(() => console.log('[PostDisplay] Autoplay blocked'));
           setIsVideoPaused(false);
         }
       }, 100);
@@ -118,7 +118,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     if (totalMedia <= 1) return;
     
     const prevIndex = currentMediaIndex === 0 ? totalMedia - 1 : currentMediaIndex - 1;
-    console.log('[Carousel] Swipe right:', currentMediaIndex, '→', prevIndex);
+    console.log('[PostDisplay] Previous post:', currentMediaIndex, '→', prevIndex);
     
     // Pause current video
     if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
@@ -132,7 +132,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
     if (mediaItems[prevIndex]?.type === 'video') {
       setTimeout(() => {
         if (videoRef.current) {
-          videoRef.current.play().catch(() => console.log('[Carousel] Autoplay blocked'));
+          videoRef.current.play().catch(() => console.log('[PostDisplay] Autoplay blocked'));
           setIsVideoPaused(false);
         }
       }, 100);
@@ -666,7 +666,7 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
         </motion.div>
       </motion.div>
 
-      {/* CAROUSEL: Full Height Video/Instagram Posts - With padding for bottom controls */}
+      {/* MEDIA DISPLAY: Full Height Video/Instagram Posts - With padding for bottom controls */}
       <div className="relative flex-1 bg-black flex items-center justify-center pb-32">
         {mediaItems.length > 0 ? (
           <div 
