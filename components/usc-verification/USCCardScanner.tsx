@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Quagga from '@ericblade/quagga2';
 
 interface USCCardScannerProps {
   onSuccess: (uscId: string, rawValue: string) => void;
@@ -45,6 +44,11 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
     const initScanner = async () => {
       try {
         setScanState('initializing');
+        
+        // CRITICAL: Dynamic import for Next.js compatibility
+        const Quagga = (await import('@ericblade/quagga2')).default;
+        
+        console.log('[Quagga] Loaded dynamically');
         
         // Initialize Quagga2 with Codabar support
         await Quagga.init({
@@ -112,10 +116,11 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
         Quagga.onDetected(handleDetected);
 
         // Timeout after 2 minutes
-        timeoutRef.current = setTimeout(() => {
+        timeoutRef.current = setTimeout(async () => {
           if (mountedRef.current && scanState !== 'success') {
             setError('Scan timeout. Please try again or use email verification.');
             setScanState('error');
+            const Quagga = (await import('@ericblade/quagga2')).default;
             Quagga.stop();
           }
         }, 120000);
@@ -131,8 +136,13 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
 
     return () => {
       mountedRef.current = false;
-      Quagga.stop();
-      Quagga.offDetected(handleDetected);
+      
+      // Cleanup with dynamic import
+      import('@ericblade/quagga2').then(({ default: Quagga }) => {
+        Quagga.stop();
+        Quagga.offDetected(handleDetected);
+      }).catch(() => {});
+      
       window.removeEventListener('popstate', preventBack);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -141,7 +151,7 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleDetected = (result: any) => {
+  const handleDetected = async (result: any) => {
     if (processingRef.current || !mountedRef.current) {
       return;
     }
@@ -170,6 +180,7 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
     setScanState('processing');
     
     // Stop scanner immediately
+    const Quagga = (await import('@ericblade/quagga2')).default;
     Quagga.stop();
     
     // Extract USC ID
@@ -182,8 +193,9 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
       processingRef.current = false;
       
       // Restart after 2 seconds
-      setTimeout(() => {
+      setTimeout(async () => {
         if (mountedRef.current) {
+          const Quagga = (await import('@ericblade/quagga2')).default;
           setScanState('initializing');
           setError(null);
           Quagga.start();
@@ -200,8 +212,9 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
       setConsecutiveReads([]);
       processingRef.current = false;
       
-      setTimeout(() => {
+      setTimeout(async () => {
         if (mountedRef.current) {
+          const Quagga = (await import('@ericblade/quagga2')).default;
           setScanState('initializing');
           setError(null);
           Quagga.start();
