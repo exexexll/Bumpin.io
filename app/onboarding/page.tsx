@@ -858,13 +858,22 @@ function OnboardingPageContent() {
                   setStep('name');
                 }}
                 onSkipToEmail={() => {
-                  // Fallback to email verification
-                  setNeedsUSCEmail(true);  // Switch to email path
+                  console.log('[Onboarding] User skipped card scanner - switching to email verification');
+                  
+                  // CRITICAL: Switch to email verification path
+                  setNeedsUSCEmail(true);   // Email now REQUIRED
                   setNeedsUSCCard(false);   // No longer need card
-                  setUscId(null);
+                  setUscId(null);           // Clear USC ID
+                  setUscEmail('');          // Clear email field
+                  
+                  // Clear all USC card temp data
                   sessionStorage.removeItem('temp_usc_id');
                   sessionStorage.removeItem('temp_usc_barcode');
-                  setStep('name'); // Go to name, will show email input
+                  sessionStorage.removeItem('usc_card_verified');
+                  
+                  console.log('[Onboarding] ✅ Email verification REQUIRED - needsUSCEmail=TRUE, uscId=NULL');
+                  
+                  setStep('name'); // Go to name page (email input will show)
                 }}
               />
             )}
