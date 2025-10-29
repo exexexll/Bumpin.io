@@ -120,13 +120,14 @@ class DataStore {
           await query(
             `INSERT INTO users (user_id, name, gender, account_type, email, password_hash, selfie_url, video_url, 
              socials, paid_status, paid_at, payment_id, invite_code_used, my_invite_code, invite_code_uses_remaining,
-             ban_status, introduced_to, introduced_by, introduced_via_code, qr_unlocked, successful_sessions)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+             ban_status, introduced_to, introduced_by, introduced_via_code, qr_unlocked, successful_sessions, account_expires_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
              ON CONFLICT (user_id) DO UPDATE SET
                name = EXCLUDED.name,
                paid_status = EXCLUDED.paid_status,
                qr_unlocked = EXCLUDED.qr_unlocked,
-               successful_sessions = EXCLUDED.successful_sessions`,
+               successful_sessions = EXCLUDED.successful_sessions,
+               account_expires_at = EXCLUDED.account_expires_at`,
             [
               user.userId, user.name, user.gender, user.accountType, user.email || null,
               user.password_hash || null, user.selfieUrl || null, user.videoUrl || null,
@@ -134,7 +135,8 @@ class DataStore {
               user.paidAt ? new Date(user.paidAt) : null, user.paymentId || null,
               user.inviteCodeUsed || null, user.myInviteCode || null, user.inviteCodeUsesRemaining || 0,
               user.banStatus || 'none', user.introducedTo || null, user.introducedBy || null,
-              user.introducedViaCode || null, user.qrUnlocked || false, user.successfulSessions || 0
+              user.introducedViaCode || null, user.qrUnlocked || false, user.successfulSessions || 0,
+              user.accountExpiresAt ? new Date(user.accountExpiresAt) : null
             ]
           );
           console.log('[Store] ✅ User created in PostgreSQL:', user.userId.substring(0, 8));
@@ -152,7 +154,10 @@ class DataStore {
       
       // All retries failed
       console.error('[Store] ❌ FAILED to create user in PostgreSQL after 3 attempts:', lastError?.message);
-      console.warn('[Store] ⚠️  User will work in memory-only mode (data lost on restart)');
+      console.error('[Store] This is a CRITICAL error for USC card users');
+      
+      // CRITICAL: Throw error instead of continuing silently
+      throw new Error('Failed to save user to database: ' + lastError?.message);
     }
   }
 
