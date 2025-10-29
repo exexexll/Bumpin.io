@@ -379,8 +379,8 @@ function OnboardingPageContent() {
       console.log('[Onboarding] Proceeding to profile setup');
       setStep('selfie');
     } catch (err: any) {
-      // Check if error is USC email requirement
-      if (err.message?.includes('@usc.edu') || err.requiresUSCEmail) {
+      // Check if error is USC email requirement (ONLY if no card was scanned)
+      if (!uscId && (err.message?.includes('@usc.edu') || err.requiresUSCEmail)) {
         setNeedsUSCEmail(true);
         setError('This QR code requires a USC email address');
         return; // Stay on name step to collect email

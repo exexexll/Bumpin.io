@@ -67,20 +67,29 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
           },
           decoder: {
             readers: [
-              'codabar_reader',    // PRIMARY: USC cards use Codabar
+              {
+                format: 'codabar',
+                config: {
+                  supplements: [],
+                }
+              },
               'code_128_reader',   // Fallback
               'code_39_reader',    // Fallback
-              'code_39_vin_reader', // Fallback
-              'i2of5_reader',      // Fallback (Interleaved 2 of 5)
             ],
             multiple: false, // Only one barcode needed
+            debug: {
+              drawBoundingBox: true, // Visual feedback
+              showFrequency: false,
+              drawScanline: true, // Show scan line for user feedback
+              showPattern: false,
+            },
           },
           locate: true, // Auto-locate barcodes
           locator: {
-            patchSize: 'medium',
-            halfSample: true, // Performance optimization
+            patchSize: 'large', // Better detection for various sizes
+            halfSample: false, // Better quality (slower but more accurate)
           },
-          frequency: 10, // Scan 10 times per second
+          frequency: 5, // 5 scans per second (better accuracy than 10)
         }, (err) => {
           if (err) {
             console.error('[Quagga] Init error:', err);
