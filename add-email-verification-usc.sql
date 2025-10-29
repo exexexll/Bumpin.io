@@ -20,10 +20,16 @@
 -- - users.verification_code_expires_at (expiry timestamp)
 -- - users.verification_attempts (rate limiting)
 
+-- Email verification columns (add if not exists)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS pending_email VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code VARCHAR(6);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code_expires_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_attempts INTEGER DEFAULT 0;
+
 COMMENT ON COLUMN users.pending_email IS 'Temporary email storage before verification (includes USC emails for card users)';
 COMMENT ON COLUMN users.verification_code IS 'Email verification code (6 digits, for both regular and USC email verification)';
 
--- Add index for email verification queries
+-- Add indexes for email verification queries
 CREATE INDEX IF NOT EXISTS idx_users_pending_email ON users(pending_email) WHERE pending_email IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_users_verification_code ON users(verification_code, verification_code_expires_at) 
   WHERE verification_code IS NOT NULL;
