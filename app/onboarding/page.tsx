@@ -839,13 +839,20 @@ function OnboardingPageContent() {
             {step === 'usc-scan' && (
               <USCCardScanner
                 onSuccess={(scannedUSCId, rawValue) => {
-                  console.log('[Onboarding] USC Card scanned successfully');
-                  // Store USC ID temporarily (will save to DB after onboarding complete)
+                  console.log('[Onboarding] ✅ USC Card scanned successfully: ******' + scannedUSCId.slice(-4));
+                  
+                  // CRITICAL: Set all state immediately to prevent email requirement
                   setUscId(scannedUSCId);
-                  setNeedsUSCEmail(false); // CRITICAL: Turn off email requirement
-                  setNeedsUSCCard(false);  // Card scan complete
+                  setNeedsUSCEmail(false);  // Turn OFF email requirement
+                  setNeedsUSCCard(false);   // Card scan complete
+                  setUscEmail('');          // Clear any email input
+                  
+                  // Store temp (will save to DB after onboarding)
                   sessionStorage.setItem('temp_usc_id', scannedUSCId);
                   sessionStorage.setItem('temp_usc_barcode', rawValue);
+                  
+                  console.log('[Onboarding] State: uscId=' + (scannedUSCId ? 'SET' : 'NULL') + ', needsUSCEmail=false');
+                  
                   setStep('name'); // Proceed to name/gender
                 }}
                 onSkipToEmail={() => {
