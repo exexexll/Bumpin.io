@@ -6,11 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Container } from '@/components/Container';
 import { login } from '@/lib/api';
 import { saveSession } from '@/lib/session';
+import { USCCardScanner } from '@/components/usc-verification/USCCardScanner';
 import Link from 'next/link';
 
 function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [loginMethod, setLoginMethod] = useState<'email' | 'card'>('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -73,10 +75,37 @@ function LoginPageContent() {
               Welcome back
             </h1>
             <p className="mt-4 text-lg text-[#eaeaf0]/70">
-              Login to your permanent account
+              Login to your account
             </p>
           </div>
 
+          {/* Login Method Tabs */}
+          <div className="flex gap-2 p-1 bg-white/5 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setLoginMethod('email')}
+              className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                loginMethod === 'email'
+                  ? 'bg-[#ffc46a] text-[#0a0a0c]'
+                  : 'text-[#eaeaf0]/70 hover:text-[#eaeaf0]'
+              }`}
+            >
+              📧 Email
+            </button>
+            <button
+              type="button"
+              onClick={() => setLoginMethod('card')}
+              className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                loginMethod === 'card'
+                  ? 'bg-[#ffc46a] text-[#0a0a0c]'
+                  : 'text-[#eaeaf0]/70 hover:text-[#eaeaf0]'
+              }`}
+            >
+              🎓 USC Card
+            </button>
+          </div>
+
+          {loginMethod === 'email' ? (
           <form onSubmit={handleSubmit} className="space-y-6" name="login-form">
             <div>
               <label htmlFor="login-email" className="mb-2 block text-sm font-medium text-[#eaeaf0]">
@@ -137,6 +166,56 @@ function LoginPageContent() {
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
+          ) : (
+          <div className="space-y-6">
+            <USCCardScanner
+              onSuccess={async (uscId, rawValue) => {
+                setLoading(true);
+                setError('');
+                
+                try {
+                  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
+                  const res = await fetch(`${API_BASE}/usc/login-card`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rawBarcodeValue: rawValue }),
+                  });
+                  
+                  if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Login failed');
+                  }
+                  
+                  const data = await res.json();
+                  
+                  saveSession({
+                    sessionToken: data.sessionToken,
+                    userId: data.userId,
+                    accountType: data.accountType,
+                  });
+                  
+                  console.log('[Login] USC card login successful');
+                  
+                  if (referralCode) {
+                    router.push(`/main?openMatchmaking=true&ref=${referralCode}`);
+                  } else {
+                    router.push('/main');
+                  }
+                } catch (err: any) {
+                  setError(err.message);
+                  setLoading(false);
+                }
+              }}
+              onSkipToEmail={() => setLoginMethod('email')}
+            />
+            
+            {error && (
+              <div className="rounded-xl bg-red-500/10 p-4 text-sm text-red-400">
+                {error}
+              </div>
+            )}
+          </div>
+          )}
 
           <div className="text-center space-y-3">
             <p className="text-sm text-[#eaeaf0]/70">
