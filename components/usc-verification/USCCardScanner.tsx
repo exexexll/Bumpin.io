@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import Quagga from '@ericblade/quagga2';
 
 interface USCCardScannerProps {
   onSuccess: (uscId: string, rawValue: string) => void;
@@ -13,120 +13,131 @@ type ScanState = 'initializing' | 'scanning' | 'processing' | 'success' | 'error
 
 /**
  * USC Campus Card Barcode Scanner
+ * Uses Quagga2 with Codabar support (similar to Inlite TBR Code 103)
  * Scans Codabar barcode on back of USC card
  * Format: 14 digits (10-digit USC ID + 4-digit card number)
+ * 
+ * Reference: https://how-to.inliteresearch.com/barcode-reading-howto/tbr/
+ * Using similar algorithm to Inlite's Online Barcode Reader (TBR 103)
  */
 export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps) {
   const [scanState, setScanState] = useState<ScanState>('initializing');
   const [error, setError] = useState<string | null>(null);
   const [consecutiveReads, setConsecutiveReads] = useState<string[]>([]);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
-  const processingRef = useRef(false); // Prevent duplicate processing
+  const processingRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    let mounted = true;
+    mountedRef.current = true;
     
     const initScanner = async () => {
-      if (!mounted) return;
-      await startScanner();
-      
-      // OPTIMIZATION: Timeout after 2 minutes of no success
-      if (mounted) {
+      try {
+        setScanState('initializing');
+        
+        // Initialize Quagga2 with Codabar support
+        await Quagga.init({
+          inputStream: {
+            name: 'Live',
+            type: 'LiveStream',
+            target: document.querySelector('#usc-scanner-reader') as HTMLElement,
+            constraints: {
+              width: { min: 640, ideal: 1920 },
+              height: { min: 480, ideal: 1080 },
+              facingMode: 'environment', // Back camera
+              aspectRatio: { ideal: 16/9 },
+            },
+            area: { // Scan area (90% x 70% - large area for easy scanning)
+              top: '15%',
+              right: '5%',
+              left: '5%',
+              bottom: '15%',
+            },
+          },
+          decoder: {
+            readers: [
+              'codabar_reader',    // PRIMARY: USC cards use Codabar
+              'code_128_reader',   // Fallback
+              'code_39_reader',    // Fallback
+              'code_39_vin_reader', // Fallback
+              'i2of5_reader',      // Fallback (Interleaved 2 of 5)
+            ],
+            multiple: false, // Only one barcode needed
+          },
+          locate: true, // Auto-locate barcodes
+          locator: {
+            patchSize: 'medium',
+            halfSample: true, // Performance optimization
+          },
+          frequency: 10, // Scan 10 times per second
+        }, (err) => {
+          if (err) {
+            console.error('[Quagga] Init error:', err);
+            setError(err.message || 'Failed to initialize scanner');
+            setScanState('error');
+            return;
+          }
+
+          if (!mountedRef.current) return;
+
+          console.log('[Quagga] ✅ Initialized successfully');
+          
+          // Start scanning
+          Quagga.start();
+          setScanState('scanning');
+          console.log('[Quagga] 📷 Scanner started - Codabar mode active');
+        });
+
+        // Set up detection handler
+        Quagga.onDetected(handleDetected);
+
+        // Timeout after 2 minutes
         timeoutRef.current = setTimeout(() => {
-          if (scanState !== 'success' && scanState !== 'processing') {
+          if (mountedRef.current && scanState !== 'success') {
             setError('Scan timeout. Please try again or use email verification.');
             setScanState('error');
-            stopScanner();
+            Quagga.stop();
           }
-        }, 120000); // 2 minutes
+        }, 120000);
+
+      } catch (err: any) {
+        console.error('[Quagga] Setup error:', err);
+        setError(err.message || 'Failed to start camera');
+        setScanState('error');
       }
     };
-    
+
     initScanner();
-    
+
     return () => {
-      mounted = false;
-      stopScanner();
+      mountedRef.current = false;
+      Quagga.stop();
+      Quagga.offDetected(handleDetected);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  }, []);
 
-  const startScanner = async () => {
-    try {
-      setScanState('initializing');
-      
-      const scanner = new Html5Qrcode('usc-scanner-reader');
-      scannerRef.current = scanner;
-
-      const config = {
-        fps: 10, // Scan 10 times per second for faster detection
-        qrbox: function(viewfinderWidth: number, viewfinderHeight: number) {
-          // Use 90% of viewfinder for scanning (much larger area)
-          // This allows card to be anywhere in frame, not just a small box
-          const boxWidth = Math.floor(viewfinderWidth * 0.9);
-          const boxHeight = Math.floor(viewfinderHeight * 0.7);
-          return { width: boxWidth, height: boxHeight };
-        },
-        aspectRatio: 1.777778, // 16:9
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.CODABAR,      // USC CARD FORMAT
-          Html5QrcodeSupportedFormats.CODE_128,     // Fallback
-          Html5QrcodeSupportedFormats.CODE_39,      // Fallback
-          Html5QrcodeSupportedFormats.ITF,          // Fallback
-        ],
-      };
-
-      await scanner.start(
-        { facingMode: 'environment' }, // Back camera
-        config,
-        handleScanSuccess,
-        handleScanError
-      );
-
-      setScanState('scanning');
-      console.log('[USCScanner] ✅ Scanner started');
-    } catch (err: any) {
-      console.error('[USCScanner] Failed to start:', err);
-      setError(err.message || 'Failed to start camera');
-      setScanState('error');
-    }
-  };
-
-  const stopScanner = async () => {
-    if (scannerRef.current) {
-      try {
-        await scannerRef.current.stop();
-        scannerRef.current.clear();
-        scannerRef.current = null;
-        console.log('[USCScanner] Stopped');
-      } catch (err) {
-        console.error('[USCScanner] Error stopping:', err);
-      }
-    }
-  };
-
-  const handleScanSuccess = (decodedText: string, decodedResult: any) => {
-    // CRITICAL: Prevent processing if already processing
-    if (processingRef.current) {
-      console.log('[USCScanner] Already processing, ignoring scan');
+  const handleDetected = (result: any) => {
+    if (processingRef.current || !mountedRef.current) {
       return;
     }
-    
-    console.log('[USCScanner] Detected barcode');
 
-    // Multi-read validation (require 3 consecutive identical reads)
+    const code = result.codeResult.code;
+    const format = result.codeResult.format;
+    
+    console.log('[Quagga] Detected:', format, 'Code:', code);
+
+    // Multi-read validation
     setConsecutiveReads((prev) => {
-      const newReads = [...prev, decodedText].slice(-3);
+      const newReads = [...prev, code].slice(-3);
       
-      // Check if all 3 match
       if (newReads.length === 3 && newReads.every(r => r === newReads[0])) {
-        console.log('[USCScanner] ✅ Confirmed after 3 reads');
-        processingRef.current = true; // Lock processing
-        processConfirmedScan(decodedText);
+        console.log('[Quagga] ✅ Confirmed after 3 identical reads');
+        processingRef.current = true;
+        processConfirmedScan(code);
         return [];
       }
       
@@ -134,67 +145,69 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
     });
   };
 
-  const handleScanError = (errorMessage: string) => {
-    // Ignore NotFoundException (normal when no barcode in view)
-    if (!errorMessage.includes('NotFoundException')) {
-      console.warn('[USCScanner] Error:', errorMessage);
-    }
-  };
-
   const processConfirmedScan = async (rawValue: string) => {
     setScanState('processing');
     
-    // CRITICAL: Stop scanner immediately to prevent duplicate processing
-    await stopScanner();
+    // Stop scanner immediately
+    Quagga.stop();
     
-    // Extract USC ID from 14-digit barcode
+    // Extract USC ID
     const uscId = extractUSCId(rawValue);
     
     if (!uscId) {
-      setError('Invalid barcode. Please try again.');
+      setError('Invalid barcode. Please scan the barcode on the back of your USC card.');
       setScanState('error');
       setConsecutiveReads([]);
-      processingRef.current = false; // CRITICAL: Reset lock
-      // Restart scanner after 2 seconds
+      processingRef.current = false;
+      
+      // Restart after 2 seconds
       setTimeout(() => {
-        setScanState('initializing');
-        setError(null);
-        startScanner();
+        if (mountedRef.current) {
+          setScanState('initializing');
+          setError(null);
+          Quagga.start();
+          setScanState('scanning');
+        }
       }, 2000);
       return;
     }
-    
-    // Validate USC ID format
+
+    // Validate format
     if (!/^[0-9]{10}$/.test(uscId)) {
-      setError('Invalid USC ID format. Please scan the barcode on the back of your card.');
+      setError('Invalid USC ID format. Please try again.');
       setScanState('error');
       setConsecutiveReads([]);
-      processingRef.current = false; // CRITICAL: Reset lock
-      // Restart scanner after 2 seconds
+      processingRef.current = false;
+      
       setTimeout(() => {
-        setScanState('initializing');
-        setError(null);
-        startScanner();
+        if (mountedRef.current) {
+          setScanState('initializing');
+          setError(null);
+          Quagga.start();
+          setScanState('scanning');
+        }
       }, 2000);
       return;
     }
-    
+
     // Success!
     setScanState('success');
-    console.log('[USCScanner] ✅ Valid USC ID: ******' + uscId.slice(-4)); // Redacted for privacy
+    console.log('[Quagga] ✅ Valid USC ID: ******' + uscId.slice(-4));
     
-    // Small delay for success animation, then callback
     setTimeout(() => {
-      onSuccess(uscId, rawValue);
+      if (mountedRef.current) {
+        onSuccess(uscId, rawValue);
+      }
     }, 1500);
   };
 
-  // Extract USC ID from barcode
+  // Extract USC ID from Codabar barcode
   // USC format: 12683060215156 (14 digits) = 1268306021 (USC ID) + 5156 (card#)
+  // Verified using Inlite Online Barcode Reader
   const extractUSCId = (raw: string): string | null => {
     const digits = raw.replace(/\D/g, '');
     
-    // 14 digits: USC ID + card number
+    // 14 digits: USC card (ID + card number)
     if (digits.length === 14) {
       return digits.substring(0, 10);
     }
@@ -224,7 +237,13 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
       {/* Scanner */}
       <div className="flex-1 flex items-center justify-center px-4 pb-8">
         <div className="w-full max-w-2xl">
-          <div id="usc-scanner-reader" className="rounded-2xl overflow-hidden shadow-2xl"></div>
+          <div 
+            id="usc-scanner-reader" 
+            className="rounded-2xl overflow-hidden shadow-2xl bg-black"
+            style={{ minHeight: '400px' }}
+          >
+            {/* Quagga2 will inject video and canvas here */}
+          </div>
         </div>
       </div>
 
@@ -255,7 +274,7 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
                 className="text-white"
               >
                 <span className="text-2xl mr-2">📷</span>
-                Scanning... {consecutiveReads.length > 0 && `(${consecutiveReads.length}/3 reads)`}
+                Scanning Codabar... {consecutiveReads.length > 0 && `(${consecutiveReads.length}/3 reads)`}
               </motion.div>
             )}
 
@@ -303,13 +322,14 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
         {/* Tips */}
         <div className="rounded-xl bg-white/5 p-4 border border-white/10">
           <p className="text-[#eaeaf0]/60 text-sm text-center mb-3">
-            💡 <strong>Tips for best results:</strong>
+            💡 <strong>Scanning Tips:</strong>
           </p>
           <ul className="text-[#eaeaf0]/50 text-xs space-y-1">
-            <li>• Use bright, even lighting (avoid shadows)</li>
-            <li>• Hold card 6-12 inches from camera</li>
-            <li>• Keep card steady - scanner auto-detects anywhere in frame</li>
-            <li>• Barcode is on the back of your USC card (horizontal black lines)</li>
+            <li>• <strong>Bright lighting</strong> - Use desk lamp or natural light</li>
+            <li>• <strong>Hold steady</strong> - 8-10 inches from camera</li>
+            <li>• <strong>Barcode on back</strong> - Flip card to back side</li>
+            <li>• <strong>Horizontal alignment</strong> - Black lines should be horizontal</li>
+            <li>• <strong>Wait 2-3 seconds</strong> - Scanner reads automatically</li>
           </ul>
         </div>
 
@@ -324,4 +344,3 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
     </main>
   );
 }
-
