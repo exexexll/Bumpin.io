@@ -418,8 +418,28 @@ router.post('/finalize-registration', async (req: any, res) => {
     }
     
     if (!userInDb && userInMemory) {
-      console.warn('[USC] User found in MEMORY but NOT in database - memory-only mode');
-      console.log('[USC] Proceeding with memory-only user:', userInMemory.name);
+      console.warn('[USC] User found in MEMORY but NOT in database');
+      console.log('[USC] Attempting to save user to database first...');
+      
+      // Try to save user to database (required for foreign key)
+      try {
+        await store.createUser(userInMemory);
+        console.log('[USC] ✅ User saved to database');
+        // Re-check if user now exists
+        const recheck = await query('SELECT user_id FROM users WHERE user_id = $1', [userId]);
+        if (recheck.rows.length === 0) {
+          // Still not in database - can't proceed
+          console.error('[USC] User still not in database after createUser');
+          return res.status(500).json({ 
+            error: 'Failed to save user to database. Please try again or contact support.' 
+          });
+        }
+      } catch (saveErr: any) {
+        console.error('[USC] Failed to save user to database:', saveErr.message);
+        return res.status(500).json({ 
+          error: 'Database error. Please try again.' 
+        });
+      }
     } else {
       console.log('[USC] User exists in database:', userInDb.name, 'paidStatus:', userInDb.paid_status);
     }
