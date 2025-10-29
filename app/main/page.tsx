@@ -52,6 +52,20 @@ function MainPageContent() {
     
     Promise.all([paymentPromise, eventPromise])
       .then(([paymentData, eventData]) => {
+        // CRITICAL: Check if guest account expired
+        if (paymentData.accountType === 'guest' && paymentData.accountExpiresAt) {
+          const expiryDate = new Date(paymentData.accountExpiresAt);
+          if (expiryDate < new Date()) {
+            console.log('[Main] Guest account expired - redirecting to landing page');
+            alert('Your guest account has expired after 7 days. Please register again.');
+            // Clear session
+            localStorage.removeItem('bumpin_session');
+            sessionStorage.clear();
+            router.push('/');
+            return;
+          }
+        }
+        
         const hasPaid = paymentData.paidStatus === 'paid' || 
                         paymentData.paidStatus === 'qr_verified' || 
                         paymentData.paidStatus === 'qr_grace_period';
