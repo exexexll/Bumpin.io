@@ -119,24 +119,30 @@ class DataStore {
         try {
           await query(
             `INSERT INTO users (user_id, name, gender, account_type, email, password_hash, selfie_url, video_url, 
-             socials, paid_status, paid_at, payment_id, invite_code_used, my_invite_code, invite_code_uses_remaining,
-             ban_status, introduced_to, introduced_by, introduced_via_code, qr_unlocked, successful_sessions, account_expires_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+             socials, instagram_posts, paid_status, paid_at, payment_id, invite_code_used, my_invite_code, invite_code_uses_remaining,
+             ban_status, introduced_to, introduced_by, introduced_via_code, qr_unlocked, successful_sessions, account_expires_at,
+             timer_total_seconds, session_count, last_sessions, streak_days)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
              ON CONFLICT (user_id) DO UPDATE SET
                name = EXCLUDED.name,
                paid_status = EXCLUDED.paid_status,
                qr_unlocked = EXCLUDED.qr_unlocked,
                successful_sessions = EXCLUDED.successful_sessions,
-               account_expires_at = EXCLUDED.account_expires_at`,
+               account_expires_at = EXCLUDED.account_expires_at,
+               timer_total_seconds = EXCLUDED.timer_total_seconds,
+               session_count = EXCLUDED.session_count`,
             [
               user.userId, user.name, user.gender, user.accountType, user.email || null,
               user.password_hash || null, user.selfieUrl || null, user.videoUrl || null,
-              JSON.stringify(user.socials || {}), user.paidStatus || 'unpaid',
+              JSON.stringify(user.socials || {}), JSON.stringify(user.instagramPosts || []),
+              user.paidStatus || 'unpaid',
               user.paidAt ? new Date(user.paidAt) : null, user.paymentId || null,
               user.inviteCodeUsed || null, user.myInviteCode || null, user.inviteCodeUsesRemaining || 0,
               user.banStatus || 'none', user.introducedTo || null, user.introducedBy || null,
               user.introducedViaCode || null, user.qrUnlocked || false, user.successfulSessions || 0,
-              user.accountExpiresAt ? new Date(user.accountExpiresAt) : null
+              user.accountExpiresAt ? new Date(user.accountExpiresAt) : null,
+              user.timerTotalSeconds || 0, user.sessionCount || 0, 
+              JSON.stringify(user.lastSessions || []), user.streakDays || 0
             ]
           );
           console.log('[Store] ✅ User created in PostgreSQL:', user.userId.substring(0, 8));
