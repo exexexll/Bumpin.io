@@ -542,10 +542,25 @@
         }
         
         async function startBarcodeDetection() {
-            codeReader = new BrowserMultiFormatReader();
+            // Create hints map for better detection
+            const hints = new Map();
             
-            console.log('🔍 ZXing BrowserMultiFormatReader initialized');
-            console.log('📹 Starting continuous decode from video...');
+            // TRY_HARDER = spend more time finding barcodes (CRITICAL for accuracy)
+            hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+            
+            // Specify which barcode formats to look for (improves speed & accuracy)
+            hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+                ZXing.BarcodeFormat.CODE_128,
+                ZXing.BarcodeFormat.CODE_39,
+                ZXing.BarcodeFormat.CODE_93,
+                ZXing.BarcodeFormat.ITF,
+            ]);
+            
+            // Initialize reader with hints
+            codeReader = new BrowserMultiFormatReader(hints);
+            
+            console.log('🔍 ZXing BrowserMultiFormatReader initialized with TRY_HARDER');
+            console.log('📹 Starting continuous decode...');
             
             // Configure video constraints
             const constraints = {
@@ -557,28 +572,51 @@
             };
             
             try {
-                // ZXing handles everything: camera request, video start, and continuous scanning
+                // ZXing continuous scanning from video
+                // Debug: Log every scan attempt
+                let scanAttemptCount = 0;
+                
                 await codeReader.decodeFromConstraints(
                     constraints,
                     'video', // Video element ID
                     (result, error) => {
+                        scanAttemptCount++;
+                        
+                        // Update scan rate every second
+                        if (scanAttemptCount % 5 === 0) {
+                            document.getElementById('scanRate').textContent = '~5 fps';
+                            console.log(`📊 Scan attempts: ${scanAttemptCount}`);
+                        }
+                        
                         if (result) {
                             // Success - barcode detected
-                            console.log('📊 Barcode detected:', result.text);
+                            console.log('━'.repeat(80));
+                            console.log('✅ BARCODE DETECTED!');
+                            console.log('📊 Text:', result.text);
+                            console.log('📊 Format:', result.format);
+                            console.log('━'.repeat(80));
                             handleBarcodeDetected(result);
                         }
-                        // Errors are normal when no barcode in view
-                        // Don't log NotFoundException spam
+                        
+                        // Log all errors for debugging
+                        if (error) {
+                            // Only log non-NotFoundException errors every 20 attempts
+                            if (error.name !== 'NotFoundException' && scanAttemptCount % 20 === 0) {
+                                console.warn('⚠️ Scan error:', error.name, error.message);
+                            }
+                        }
                     }
                 );
                 
                 isScanning = true;
-                document.getElementById('scanStatus').textContent = '🔍 Scanning for barcodes...';
-                console.log('✅ ZXing continuous scanning started');
+                document.getElementById('scanStatus').textContent = '🔍 Scanning... Hold barcode in guide';
+                console.log('✅ ZXing continuous scanning active');
+                console.log('📷 Hold USC card barcode in the white rectangle');
                 
             } catch (err) {
-                console.error('❌ ZXing scan error:', err);
-                document.getElementById('scanStatus').textContent = 'Scanner error: ' + err.message;
+                console.error('❌ ZXing initialization failed:', err);
+                console.error('Full error:', err);
+                document.getElementById('scanStatus').textContent = 'Error: ' + err.message;
                 alert(`Scanner Error: ${err.message}\n\nPlease allow camera permission and try again.`);
                 
                 // Re-enable start button
