@@ -132,11 +132,18 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
     return () => {
       mountedRef.current = false;
       
-      // Cleanup with dynamic import
+      // CRITICAL: Full cleanup to release camera for selfie step
       import('@ericblade/quagga2').then(({ default: Quagga }) => {
-        Quagga.stop();
         Quagga.offDetected(handleDetected);
-      }).catch(() => {});
+        Quagga.stop();
+        
+        // CRITICAL: Force release camera stream
+        Quagga.CameraAccess.release();
+        
+        console.log('[USCScanner] ✅ Camera fully released for next step');
+      }).catch(err => {
+        console.warn('[USCScanner] Cleanup error:', err);
+      });
       
       window.removeEventListener('popstate', preventBack);
       if (timeoutRef.current) {
@@ -223,6 +230,12 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
     setScanState('success');
     setDetectedUSCId(uscId); // Show confirmation
     console.log('[Quagga] ✅ Valid USC ID: ******' + uscId.slice(-4));
+    
+    // CRITICAL: Release camera before moving to next step
+    const QuaggaCleanup = (await import('@ericblade/quagga2')).default;
+    QuaggaCleanup.offDetected(handleDetected);
+    QuaggaCleanup.CameraAccess.release();
+    console.log('[Quagga] Camera released for selfie step');
     
     setTimeout(() => {
       if (mountedRef.current) {
