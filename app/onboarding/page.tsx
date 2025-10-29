@@ -650,12 +650,14 @@ function OnboardingPageContent() {
    * Step 4: Skip permanent account step - go to main
    */
   const handleSkip = async () => {
-    // CRITICAL: Finalize USC card registration if card was scanned
-    if (uscId) {
-      const tempBarcode = sessionStorage.getItem('temp_usc_barcode');
-      
+    // CRITICAL: Use sessionStorage as source of truth (state may be lost)
+    const tempUscId = uscId || sessionStorage.getItem('temp_usc_id');
+    const tempBarcode = sessionStorage.getItem('temp_usc_barcode');
+    
+    // Finalize USC card registration if card was scanned
+    if (tempUscId) {
       try {
-        console.log('[Onboarding] Finalizing USC card registration');
+        console.log('[Onboarding] Finalizing USC card registration for:', '******' + tempUscId.slice(-4));
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/usc/finalize-registration`, {
           method: 'POST',
           headers: { 
@@ -663,8 +665,8 @@ function OnboardingPageContent() {
             'Authorization': `Bearer ${sessionToken}`,
           },
           body: JSON.stringify({
-            uscId,
-            rawBarcodeValue: tempBarcode || uscId,
+            uscId: tempUscId,
+            rawBarcodeValue: tempBarcode || tempUscId,
             barcodeFormat: 'CODABAR',
             userId,
           }),
@@ -681,7 +683,12 @@ function OnboardingPageContent() {
         sessionStorage.removeItem('temp_usc_barcode');
       } catch (err: any) {
         console.error('[Onboarding] USC card registration failed:', err);
-        alert('Warning: Failed to link USC card to account. You may need to re-verify later.');
+        console.error('[Onboarding] Full error:', err.message);
+        
+        // CRITICAL: Don't continue if USC card fails to save
+        setError('Failed to register USC card: ' + err.message);
+        setLoading(false);
+        return; // STOP - don't go to main without USC card saved
       }
     }
     
@@ -752,12 +759,14 @@ function OnboardingPageContent() {
       
       await linkAccount(sessionToken, email, password);
       
-      // CRITICAL: Finalize USC card registration if card was scanned
-      if (uscId) {
-        const tempBarcode = sessionStorage.getItem('temp_usc_barcode');
-        
+      // CRITICAL: Use sessionStorage as source of truth (state may be lost)
+      const tempUscId = uscId || sessionStorage.getItem('temp_usc_id');
+      const tempBarcode = sessionStorage.getItem('temp_usc_barcode');
+      
+      // Finalize USC card registration if card was scanned
+      if (tempUscId) {
         try {
-          console.log('[Onboarding] Finalizing USC card registration');
+          console.log('[Onboarding] Finalizing USC card registration for:', '******' + tempUscId.slice(-4));
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/usc/finalize-registration`, {
             method: 'POST',
             headers: { 
@@ -765,8 +774,8 @@ function OnboardingPageContent() {
               'Authorization': `Bearer ${sessionToken}`,
             },
             body: JSON.stringify({
-              uscId,
-              rawBarcodeValue: tempBarcode || uscId,
+              uscId: tempUscId,
+              rawBarcodeValue: tempBarcode || tempUscId,
               barcodeFormat: 'CODABAR',
               userId,
             }),

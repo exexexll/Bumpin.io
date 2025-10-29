@@ -289,12 +289,16 @@ router.post('/finalize-registration', async (req: any, res) => {
   const { uscId, rawBarcodeValue, barcodeFormat, userId } = req.body;
   const ip = req.ip || req.socket?.remoteAddress || 'unknown';
   
+  console.log('[USC] Finalize registration request:', { uscId: uscId ? '******' + uscId.slice(-4) : 'NULL', userId: userId?.substring(0, 8) });
+  
   // Validate inputs
   if (!uscId || !/^[0-9]{10}$/.test(uscId)) {
+    console.error('[USC] Invalid USC ID:', uscId);
     return res.status(400).json({ error: 'Invalid USC ID' });
   }
   
   if (!userId) {
+    console.error('[USC] Missing user ID');
     return res.status(400).json({ error: 'User ID required' });
   }
   
@@ -305,6 +309,21 @@ router.post('/finalize-registration', async (req: any, res) => {
   }
   
   try {
+    // CRITICAL: Check if user exists in database first
+    const userCheck = await query(
+      'SELECT user_id, name, paid_status FROM users WHERE user_id = $1',
+      [userId]
+    );
+    
+    if (userCheck.rows.length === 0) {
+      console.error('[USC] User not found in database:', userId);
+      return res.status(404).json({ 
+        error: 'User not found. Please complete onboarding first.'
+      });
+    }
+    
+    console.log('[USC] User exists:', userCheck.rows[0].name, 'paidStatus:', userCheck.rows[0].paid_status);
+    
     // ATOMIC: Check duplicate and insert in transaction
     await query('BEGIN');
     
@@ -315,10 +334,13 @@ router.post('/finalize-registration', async (req: any, res) => {
     
     if (existing.rows.length > 0) {
       await query('ROLLBACK');
+      console.log('[USC] Card already registered');
       return res.status(409).json({ 
         error: 'USC Card already registered to another account'
       });
     }
+    
+    console.log('[USC] Inserting USC card registration...');
     
     // Register USC card
     const uscIdHash = hashUSCId(uscId);
@@ -337,12 +359,23 @@ router.post('/finalize-registration', async (req: any, res) => {
       barcodeFormat || 'CODABAR',
     ]);
     
+    console.log('[USC] USC card inserted, updating user...');
+    
     // Update user with USC ID
-    await query(`
+    const updateResult = await query(`
       UPDATE users 
       SET usc_id = $1, usc_verified_at = NOW(), verification_method = 'usc_card'
       WHERE user_id = $2
+      RETURNING user_id
     `, [uscId, userId]);
+    
+    if (updateResult.rows.length === 0) {
+      await query('ROLLBACK');
+      console.error('[USC] User update failed - user not found');
+      return res.status(404).json({ error: 'User not found for update' });
+    }
+    
+    console.log('[USC] User updated with USC ID');
     
     await query('COMMIT');
     
@@ -361,7 +394,16 @@ router.post('/finalize-registration', async (req: any, res) => {
     }
     
     console.error('[USC] Finalize registration failed:', err);
-    res.status(500).json({ error: 'Failed to register USC card' });
+    console.error('[USC] Error details:', {
+      message: err.message,
+      code: err.code,
+      detail: err.detail,
+      stack: err.stack?.split('\n').slice(0, 3)
+    });
+    
+    res.status(500).json({ 
+      error: 'Failed to register USC card: ' + err.message 
+    });
   }
 });
 
