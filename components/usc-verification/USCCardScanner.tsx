@@ -280,7 +280,17 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
       
     } catch (err: any) {
       console.error('[Scanner] Backend validation failed:', err.message);
-      setError(err.message || 'Failed to validate USC card');
+      setFailedAttempts(prev => prev + 1);
+      
+      // After 3 failed attempts, stop auto-retry
+      if (failedAttempts >= 2) {
+        setError((err.message || 'Failed to validate USC card') + ' (max attempts reached)');
+        setScanState('error');
+        processingRef.current = false;
+        return;
+      }
+      
+      setError(`${err.message || 'Failed to validate USC card'} (attempt ${failedAttempts + 1}/3)`);
       setScanState('error');
       processingRef.current = false;
       
@@ -291,8 +301,9 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
           setError(null);
           Quagga.start();
           setScanState('scanning');
+          processingRef.current = false;
         }
-      }, 2000);
+      }, 3000);
       return;
     }
 
