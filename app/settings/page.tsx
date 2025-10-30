@@ -83,6 +83,14 @@ export default function SettingsPage() {
 
     if (!session) return;
 
+    // CRITICAL: USC card users MUST use @usc.edu email
+    // Check if user has USC card (from payment status or session)
+    const hasUSCCard = paymentStatus?.uscId || session.uscId;
+    if (hasUSCCard && !email.trim().toLowerCase().endsWith('@usc.edu')) {
+      alert('USC card users must use @usc.edu email address for permanent account');
+      return;
+    }
+
     setMakingPermanent(true);
     try {
       const res = await fetch(`${API_BASE}/auth/link`, {

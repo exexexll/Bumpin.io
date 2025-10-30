@@ -461,6 +461,7 @@ router.get('/status', requireAuth, async (req: any, res) => {
     qrUnlockedAt: user.qrUnlockedAt,
     accountType: user.accountType, // CRITICAL: Don't default to 'permanent' - breaks guest upgrade UI
     accountExpiresAt: user.accountExpiresAt, // For guest account expiry check
+    uscId: user.uscId, // CRITICAL: Include for USC email validation in settings
   });
 });
 
