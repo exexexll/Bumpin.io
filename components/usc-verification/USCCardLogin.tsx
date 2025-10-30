@@ -21,8 +21,10 @@ export function USCCardLogin({ onSuccess, onSkipToEmail }: USCCardLoginProps) {
   const [error, setError] = useState<string | null>(null);
   const [consecutiveReads, setConsecutiveReads] = useState<string[]>([]);
   const [detectedUSCId, setDetectedUSCId] = useState<string | null>(null);
+  const [flashlightOn, setFlashlightOn] = useState(false);
   const processingRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -87,6 +89,17 @@ export function USCCardLogin({ onSuccess, onSkipToEmail }: USCCardLoginProps) {
 
           if (!mountedRef.current) return;
 
+          // Get video track for flashlight control
+          const videoElement = document.querySelector('#usc-login-scanner video') as HTMLVideoElement;
+          if (videoElement && videoElement.srcObject) {
+            const mediaStream = videoElement.srcObject as MediaStream;
+            const videoTracks = mediaStream.getVideoTracks();
+            if (videoTracks.length > 0) {
+              videoTrackRef.current = videoTracks[0];
+              console.log('[USC Login] Video track available for flashlight');
+            }
+          }
+
           Quagga.start();
           setScanState('scanning');
         });
@@ -112,6 +125,7 @@ export function USCCardLogin({ onSuccess, onSkipToEmail }: USCCardLoginProps) {
 
     return () => {
       mountedRef.current = false;
+      videoTrackRef.current = null;
       
       import('@ericblade/quagga2').then(({ default: Quagga }) => {
         Quagga.offDetected(handleDetected);
@@ -126,6 +140,27 @@ export function USCCardLogin({ onSuccess, onSkipToEmail }: USCCardLoginProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const toggleFlashlight = async () => {
+    if (!videoTrackRef.current) return;
+    
+    try {
+      const track = videoTrackRef.current;
+      const capabilities: any = track.getCapabilities();
+      
+      if (capabilities.torch) {
+        await track.applyConstraints({
+          advanced: [{ torch: !flashlightOn } as any]
+        });
+        setFlashlightOn(!flashlightOn);
+        console.log('[Flashlight]', !flashlightOn ? 'ON' : 'OFF');
+      } else {
+        console.warn('[Flashlight] Not supported on this device');
+      }
+    } catch (err) {
+      console.error('[Flashlight] Error:', err);
+    }
+  };
 
   const handleDetected = async (result: any) => {
     if (processingRef.current || !mountedRef.current) {
@@ -194,9 +229,20 @@ export function USCCardLogin({ onSuccess, onSkipToEmail }: USCCardLoginProps) {
     <div className="space-y-6">
       <div 
         id="usc-login-scanner" 
-        className="rounded-2xl overflow-hidden shadow-2xl bg-black"
+        className="rounded-2xl overflow-hidden shadow-2xl bg-black relative"
         style={{ width: '100%', aspectRatio: '16/9', maxHeight: '60vh' }}
-      />
+      >
+        {/* Flashlight Toggle Button */}
+        {scanState === 'scanning' && (
+          <button
+            onClick={toggleFlashlight}
+            className="absolute top-4 right-4 z-10 rounded-full bg-black/70 backdrop-blur-sm p-3 text-2xl hover:bg-black/90 transition-all border border-white/20 shadow-lg"
+            aria-label="Toggle flashlight"
+          >
+            {flashlightOn ? '🔦' : '💡'}
+          </button>
+        )}
+      </div>
       
       <div className="text-center">
         <AnimatePresence mode="wait">

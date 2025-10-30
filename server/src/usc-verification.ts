@@ -341,7 +341,11 @@ router.post('/login-card', async (req: any, res) => {
     return res.status(403).json({ error: 'Account suspended' });
   }
   
-  // Create session (proper Session object)
+  // CRITICAL: Invalidate all other sessions (single session enforcement)
+  await store.invalidateUserSessions(user.user_id);
+  console.log('[USC Login] Invalidated previous sessions for user');
+  
+  // Create NEW session (proper Session object)
   const sessionToken = crypto.randomBytes(32).toString('hex');
   const session = {
     sessionToken,
@@ -353,6 +357,7 @@ router.post('/login-card', async (req: any, res) => {
     lastActiveAt: Date.now(),
   };
   await store.createSession(session);
+  console.log('[USC Login] New session created');
   
   // Update login time (best effort - column may not exist in older schemas)
   try {
