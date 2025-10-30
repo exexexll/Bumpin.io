@@ -457,7 +457,7 @@ router.get('/status', requireAuth, async (req: any, res) => {
     qrUnlocked: user.qrUnlocked || false,
     successfulSessions: user.successfulSessions || 0,
     qrUnlockedAt: user.qrUnlockedAt,
-    accountType: user.accountType || 'permanent', // For guest account expiry check
+    accountType: user.accountType, // CRITICAL: Don't default to 'permanent' - breaks guest upgrade UI
     accountExpiresAt: user.accountExpiresAt, // For guest account expiry check
   });
 });
