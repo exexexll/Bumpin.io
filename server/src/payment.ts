@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { store } from './store';
 import { InviteCode } from './types';
 import { requireAdmin } from './admin-auth';
+import { query } from './database';
 
 const router = express.Router();
 
@@ -511,25 +512,50 @@ router.post('/admin/generate-code', requireAdmin, async (req: any, res) => {
 
 /**
  * GET /payment/admin/codes
- * Admin: List all invite codes
+ * Admin: List all invite codes (from PostgreSQL)
  */
 router.get('/admin/codes', requireAdmin, async (req: any, res) => {
-  const allCodes = Array.from(store['inviteCodes'].values())
-    .sort((a, b) => b.createdAt - a.createdAt);
+  try {
+    // CRITICAL FIX: Load from PostgreSQL, not memory (memory is lost on restart)
+    const result = await query(
+      'SELECT * FROM invite_codes ORDER BY created_at DESC'
+    );
+    
+    const allCodes = result.rows.map((row: any) => ({
+      code: row.code,
+      type: row.type,
+      createdBy: row.created_by_name,
+      createdAt: new Date(row.created_at).getTime(),
+      maxUses: row.max_uses,
+      usesRemaining: row.uses_remaining,
+      totalUsed: typeof row.used_by === 'string' ? JSON.parse(row.used_by).length : (row.used_by?.length || 0),
+      isActive: row.is_active,
+    }));
 
-  res.json({
-    codes: allCodes.map(code => ({
-      code: code.code,
-      type: code.type,
-      createdBy: code.createdByName,
-      createdAt: code.createdAt,
-      maxUses: code.maxUses,
-      usesRemaining: code.usesRemaining,
-      totalUsed: code.usedBy.length,
-      isActive: code.isActive,
-    })),
-    total: allCodes.length,
-  });
+    res.json({
+      codes: allCodes,
+      total: allCodes.length,
+    });
+  } catch (error) {
+    console.error('[Admin] Failed to load codes from database:', error);
+    // Fallback to memory
+    const allCodes = Array.from(store['inviteCodes'].values())
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    res.json({
+      codes: allCodes.map(code => ({
+        code: code.code,
+        type: code.type,
+        createdBy: code.createdByName,
+        createdAt: code.createdAt,
+        maxUses: code.maxUses,
+        usesRemaining: code.usesRemaining,
+        totalUsed: code.usedBy.length,
+        isActive: code.isActive,
+      })),
+      total: allCodes.length,
+    });
+  }
 });
 
 /**
