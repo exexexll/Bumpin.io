@@ -341,23 +341,30 @@ router.post('/login-card', async (req: any, res) => {
     return res.status(403).json({ error: 'Account suspended' });
   }
   
-  // CRITICAL: Invalidate all other sessions (single session enforcement)
-  await store.invalidateUserSessions(user.user_id);
-  console.log('[USC Login] Invalidated previous sessions for user');
-  
-  // Create NEW session (proper Session object)
+  // CRITICAL FIX: Use transaction-like sequence to prevent race condition
   const sessionToken = crypto.randomBytes(32).toString('hex');
-  const session = {
-    sessionToken,
-    userId: user.user_id,
-    createdAt: Date.now(),
-    expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
-    ipAddress: ip,
-    isActive: true,
-    lastActiveAt: Date.now(),
-  };
-  await store.createSession(session);
-  console.log('[USC Login] New session created');
+  
+  try {
+    // CRITICAL: Invalidate all other sessions (single session enforcement)
+    await store.invalidateUserSessions(user.user_id);
+    console.log('[USC Login] Invalidated previous sessions for user');
+    
+    // Create NEW session (proper Session object)
+    const session = {
+      sessionToken,
+      userId: user.user_id,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+      ipAddress: ip,
+      isActive: true,
+      lastActiveAt: Date.now(),
+    };
+    await store.createSession(session);
+    console.log('[USC Login] New session created');
+  } catch (sessionErr: any) {
+    console.error('[USC Login] Session creation failed:', sessionErr);
+    throw new Error('Failed to create session: ' + sessionErr.message);
+  }
   
   // Update login time (best effort - column may not exist in older schemas)
   try {
