@@ -103,6 +103,30 @@ export default function TextChatRoom() {
     enabled: !browserOpen, // Disable when browser is open
   });
 
+  // CRITICAL: Exit protection (prevent accidental close/back)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'Are you sure you want to leave this chat?';
+      return e.returnValue;
+    };
+    
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, '', window.location.href);
+      setShowEndConfirm(true); // Show confirmation modal instead
+    };
+    
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
   // Initialize socket and load message history
   useEffect(() => {
     const session = getSession();

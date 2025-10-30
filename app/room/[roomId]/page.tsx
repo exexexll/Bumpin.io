@@ -33,7 +33,7 @@ export default function RoomPage() {
   const peerName = searchParams.get('peerName') || 'Partner';
   const isInitiator = searchParams.get('initiator') === 'true';
 
-  // Prevent mobile viewport juggling
+  // Prevent mobile viewport juggling + Exit protection
   useEffect(() => {
     // Lock viewport height to prevent address bar show/hide from causing layout shifts
     const setViewportHeight = () => {
@@ -50,8 +50,27 @@ export default function RoomPage() {
     document.body.style.width = '100%';
     document.body.style.height = '100%';
     
+    // CRITICAL: Prevent accidental exit (tab close, back button, refresh)
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'Are you sure you want to leave this video call?';
+      return e.returnValue;
+    };
+    
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, '', window.location.href);
+      setShowLeaveConfirm(true); // Show confirmation modal instead
+    };
+    
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    
     return () => {
       window.removeEventListener('resize', setViewportHeight);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.width = '';
