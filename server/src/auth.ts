@@ -432,6 +432,8 @@ router.post('/link', async (req, res) => {
     const { name, gender, inviteCode } = req.body;
     const ip = req.userIp;
 
+    console.log('[Auth] guest-usc request:', { name, gender, inviteCode: inviteCode ? '✅ PROVIDED' : '❌ MISSING' });
+
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Name is required' });
     }
@@ -447,20 +449,26 @@ router.post('/link', async (req, res) => {
     let codeVerified = false;
     if (inviteCode) {
       const sanitizedCode = inviteCode.trim().toUpperCase();
+      console.log('[Auth] Validating invite code:', sanitizedCode);
       
       if (!/^[A-Z0-9]{16}$/.test(sanitizedCode)) {
+        console.error('[Auth] Invalid format:', sanitizedCode);
         return res.status(400).json({ error: 'Invalid invite code format' });
       }
 
+      console.log('[Auth] Calling store.useInviteCode...');
       const result = await store.useInviteCode(sanitizedCode, userId, name.trim(), undefined, true); // skipEmailCheck=true for USC card users
+      console.log('[Auth] useInviteCode result:', result);
       
       if (!result.success) {
+        console.error('[Auth] Invite code validation failed:', result.error);
         return res.status(400).json({ 
           error: result.error || 'Invalid or expired invite code' 
         });
       }
 
       codeVerified = true;
+      console.log('[Auth] ✅ Invite code verified');
     }
 
     // CRITICAL: Generate 4-use invite code for verified USC card users (same as regular users)
