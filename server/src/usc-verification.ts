@@ -281,25 +281,32 @@ router.post('/verify-card', async (req: any, res) => {
  * Login using USC card scan
  */
 router.post('/login-card', async (req: any, res) => {
-  const { rawBarcodeValue } = req.body;
-  const ip = req.ip || req.socket?.remoteAddress || 'unknown';
-  
-  // SECURITY: Input validation
-  if (!rawBarcodeValue || typeof rawBarcodeValue !== 'string' || rawBarcodeValue.length > 50) {
-    return res.status(400).json({ error: 'Invalid barcode' });
-  }
-  
-  // Rate limiting
-  if (!checkScanRateLimit(ip)) {
-    return res.status(429).json({ error: 'Too many attempts' });
-  }
-  
-  // Extract USC ID
-  const uscId = extractUSCId(rawBarcodeValue);
-  
-  if (!uscId || !/^[0-9]{10}$/.test(uscId)) {
-    return res.status(400).json({ error: 'Invalid USC card' });
-  }
+  try {
+    const { rawBarcodeValue } = req.body;
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    
+    console.log('[USC Login] Request received from IP:', ip);
+    
+    // SECURITY: Input validation
+    if (!rawBarcodeValue || typeof rawBarcodeValue !== 'string' || rawBarcodeValue.length > 50) {
+      console.error('[USC Login] Invalid barcode value');
+      return res.status(400).json({ error: 'Invalid barcode' });
+    }
+    
+    // Rate limiting
+    if (!checkScanRateLimit(ip)) {
+      console.warn('[USC Login] Rate limit exceeded for IP:', ip);
+      return res.status(429).json({ error: 'Too many attempts' });
+    }
+    
+    // Extract USC ID
+    const uscId = extractUSCId(rawBarcodeValue);
+    console.log('[USC Login] Extracted USC ID:', uscId ? '******' + uscId.slice(-4) : 'NULL');
+    
+    if (!uscId || !/^[0-9]{10}$/.test(uscId)) {
+      console.error('[USC Login] Invalid USC ID format');
+      return res.status(400).json({ error: 'Invalid USC card' });
+    }
   
   // Find user
   const userResult = await query(
@@ -347,15 +354,24 @@ router.post('/login-card', async (req: any, res) => {
   };
   await store.createSession(session);
   
-  // Update login time
-  await query('UPDATE users SET last_login = NOW() WHERE user_id = $1', [user.user_id]);
-  await query(`
-    UPDATE usc_card_registrations 
-    SET last_login_via_card_at = NOW(), total_card_logins = total_card_logins + 1
-    WHERE usc_id = $1
-  `, [uscId]);
+  // Update login time (best effort - column may not exist in older schemas)
+  try {
+    await query('UPDATE users SET last_login = NOW() WHERE user_id = $1', [user.user_id]);
+  } catch (lastLoginErr) {
+    console.warn('[USC Login] last_login column missing (non-critical)');
+  }
   
-  console.log(`[USC] Login successful for USC ID ******${uscId.slice(-4)}`);
+  try {
+    await query(`
+      UPDATE usc_card_registrations 
+      SET last_login_via_card_at = NOW(), total_card_logins = total_card_logins + 1
+      WHERE usc_id = $1
+    `, [uscId]);
+  } catch (loginUpdateErr) {
+    console.warn('[USC Login] Failed to update login stats (non-critical)');
+  }
+  
+  console.log(`[USC Login] ✅ Login successful for USC ID ******${uscId.slice(-4)}, user: ${user.user_id.substring(0, 8)}`);
   
   res.json({
     sessionToken,
@@ -363,6 +379,15 @@ router.post('/login-card', async (req: any, res) => {
     accountType: user.account_type,
     expiresAt: user.account_expires_at,
   });
+  } catch (err: any) {
+    console.error('[USC Login] CRITICAL ERROR:', err);
+    console.error('[USC Login] Error message:', err.message);
+    console.error('[USC Login] Error stack:', err.stack?.split('\n').slice(0, 5));
+    res.status(500).json({ 
+      error: 'Login failed: ' + err.message,
+      details: err.message
+    });
+  }
 });
 
 /**
