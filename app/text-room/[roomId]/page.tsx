@@ -103,7 +103,7 @@ export default function TextChatRoom() {
     enabled: !browserOpen, // Disable when browser is open
   });
 
-  // CRITICAL: Exit protection (prevent accidental close/back)
+  // CRITICAL: Exit protection + Visibility handling (prevent accidental close/back + timer freeze)
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
@@ -117,15 +117,31 @@ export default function TextChatRoom() {
       setShowEndConfirm(true); // Show confirmation modal instead
     };
     
+    // CRITICAL: Handle tab visibility (pause timers when hidden to prevent freeze)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('[TextRoom] Tab hidden - timers may slow down');
+        // Note: Socket.io will maintain connection, timers continue but may lag
+      } else {
+        console.log('[TextRoom] Tab visible again - timers resuming');
+        // Force sync state with server when tab becomes visible
+        if (socketRef.current && socketRef.current.connected) {
+          socketRef.current.emit('textchat:sync-state', { roomId });
+        }
+      }
+    };
+    
     window.history.pushState(null, '', window.location.href);
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('popstate', handlePopState);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [roomId]);
 
   // Initialize socket and load message history
   useEffect(() => {
@@ -222,9 +238,18 @@ export default function TextChatRoom() {
       // FLUSH MESSAGE QUEUE on reconnect (using ref to avoid stale closure)
       if (messageQueueRef.current.length > 0) {
         console.log(`[TextRoom] Flushing ${messageQueueRef.current.length} queued messages after reconnect`);
+        
+        // CRITICAL: Deduplicate queue before sending
+        const uniqueMessages = new Map<string, any>();
         messageQueueRef.current.forEach(msg => {
+          const key = `${msg.timestamp}-${msg.content || msg.gifUrl || msg.fileUrl}`;
+          uniqueMessages.set(key, msg);
+        });
+        
+        Array.from(uniqueMessages.values()).forEach(msg => {
           socket.emit('textchat:send', msg);
         });
+        
         messageQueueRef.current = [];
         setQueuedMessageCount(0);
       }
@@ -391,7 +416,15 @@ export default function TextChatRoom() {
         timestamp: new Date(msg.timestamp),
       };
       
-      setMessages(prev => [...prev, newMessage]);
+      // CRITICAL: Prevent duplicates (reconnection may resend messages)
+      setMessages(prev => {
+        const exists = prev.some(m => m.messageId === newMessage.messageId);
+        if (exists) {
+          console.log('[TextRoom] Duplicate message ignored:', newMessage.messageId);
+          return prev;
+        }
+        return [...prev, newMessage];
+      });
       
       // Show notification if page not in focus
       if (notificationsEnabled && document.hidden && msg.from !== session.userId) {

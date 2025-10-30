@@ -248,6 +248,7 @@ export function USCCardScanner({ onSuccess, onSkipToEmail }: USCCardScannerProps
           const Quagga = (await import('@ericblade/quagga2')).default;
           setScanState('initializing');
           setError(null);
+          setFlashlightOn(false); // CRITICAL: Reset flashlight state on restart
           Quagga.start();
           setScanState('scanning');
           processingRef.current = false; // Reset processing flag

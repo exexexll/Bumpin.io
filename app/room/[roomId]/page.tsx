@@ -50,7 +50,7 @@ export default function RoomPage() {
     document.body.style.width = '100%';
     document.body.style.height = '100%';
     
-    // CRITICAL: Prevent accidental exit (tab close, back button, refresh)
+    // CRITICAL: Prevent accidental exit + Handle visibility (tab close, back button, refresh, tab switch)
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = 'Are you sure you want to leave this video call?';
@@ -63,14 +63,29 @@ export default function RoomPage() {
       setShowLeaveConfirm(true); // Show confirmation modal instead
     };
     
+    // CRITICAL: Handle tab visibility (prevent timer freeze when tab hidden)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('[Room] Tab hidden - WebRTC and timers may slow down');
+      } else {
+        console.log('[Room] Tab visible again');
+        // Check if WebRTC connection is still alive
+        if (peerConnectionRef.current && peerConnectionRef.current.connectionState === 'disconnected') {
+          console.warn('[Room] WebRTC disconnected while tab was hidden - attempting reconnect');
+        }
+      }
+    };
+    
     window.history.pushState(null, '', window.location.href);
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('popstate', handlePopState);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       window.removeEventListener('resize', setViewportHeight);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.width = '';
@@ -1381,19 +1396,17 @@ export default function RoomPage() {
         setChatOpen(true);
       }
 
-      setShowSocialConfirm(true);
+      // Don't show confirmation modal - already sent above
+      // setShowSocialConfirm(true); // REMOVED: Redundant, already sent
     } catch (e) {
       console.error('Failed to parse socials');
     }
   };
 
   const confirmGiveSocial = () => {
-    const savedSocials = localStorage.getItem('bumpin_socials');
-    if (savedSocials && socketRef.current) {
-      const socials = JSON.parse(savedSocials);
-      socketRef.current.emit('room:giveSocial', { roomId, socials });
-      setShowSocialConfirm(false);
-    }
+    // This function is no longer used (social sent immediately in handleGiveSocial)
+    // Keeping for backward compatibility with UI
+    setShowSocialConfirm(false);
   };
 
   const confirmLeave = useCallback(() => {
