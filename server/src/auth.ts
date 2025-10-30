@@ -385,11 +385,12 @@ router.post('/link', async (req, res) => {
   };
 
   // CRITICAL FIX: Use transaction to prevent race condition
+  let invalidatedCount = 0;
   try {
     await store.createSession(session);
     
     // SECURITY: NOW invalidate all OTHER sessions (except this one)
-    const invalidatedCount = await store.invalidateUserSessions(user.userId, sessionToken);
+    invalidatedCount = await store.invalidateUserSessions(user.userId, sessionToken);
     console.log(`[Auth] Invalidated ${invalidatedCount} old sessions (kept new session: ${sessionToken.substring(0, 8)})`);
     
     // Notify old sessions via Socket.IO
