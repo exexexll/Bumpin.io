@@ -414,6 +414,8 @@ router.get('/status', requireAuth, async (req: any, res) => {
           qrUnlocked: row.qr_unlocked || false,
           successfulSessions: row.successful_sessions || 0,
           qrUnlockedAt: row.qr_unlocked_at ? new Date(row.qr_unlocked_at).getTime() : undefined,
+          accountType: row.account_type, // CRITICAL: Include for guest upgrade button
+          accountExpiresAt: row.account_expires_at ? new Date(row.account_expires_at).getTime() : undefined, // CRITICAL: Include for guest upgrade
         };
       }
     } catch (error) {
