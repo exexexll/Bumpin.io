@@ -85,11 +85,27 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
 
   return (
     <div className="space-y-6">
-      <div id="qr-reader" className="w-full rounded-xl overflow-hidden"></div>
+      {/* QR Scanner - Clean UI */}
+      <div id="qr-reader" className="w-full rounded-xl overflow-hidden bg-black">
+        <style jsx global>{`
+          #qr-reader {
+            border: none !important;
+          }
+          #qr-reader__dashboard_section {
+            display: none !important;
+          }
+          #qr-reader__dashboard_section_csr {
+            display: none !important;
+          }
+          #qr-reader video {
+            border-radius: 12px;
+          }
+        `}</style>
+      </div>
 
       {error && (
         <div className="rounded-xl bg-red-500/10 p-4 text-sm text-red-400">
-          <p className="font-medium mb-1">Scan Error</p>
+          <p className="font-medium mb-1">❌ Scan Error</p>
           <p className="text-xs">{error}</p>
         </div>
       )}
@@ -102,11 +118,11 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
       </button>
 
       <div className="text-center space-y-2">
-        <p className="text-sm text-[#eaeaf0]/70">
-          📱 Point camera at admin QR code
+        <p className="text-sm font-medium text-[#eaeaf0]">
+          📱 Point camera at QR code
         </p>
         <p className="text-xs text-[#eaeaf0]/50">
-          Available at USC campus events
+          Admin QR from events or friend invite code
         </p>
       </div>
     </div>

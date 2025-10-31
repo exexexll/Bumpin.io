@@ -97,10 +97,18 @@ function OnboardingPageContent() {
     }
     
     if (!hasInviteCode && !hasUscScan && !session && !hasEmailToVerify) {
-      console.log('[Onboarding] No invite code and no session - redirecting to waitlist');
+      console.log('[Onboarding] BLOCKED - No access method found');
+      console.log('[Onboarding] hasInviteCode:', hasInviteCode);
+      console.log('[Onboarding] hasUscScan:', hasUscScan);
+      console.log('[Onboarding] session:', !!session);
+      console.log('[Onboarding] hasEmailToVerify:', hasEmailToVerify);
+      console.log('[Onboarding] Redirecting to waitlist');
       router.push('/waitlist');
       return;
     }
+    
+    console.log('[Onboarding] ACCESS GRANTED');
+    console.log('[Onboarding] Method:', hasInviteCode ? 'inviteCode' : hasUscScan ? 'uscScan' : hasEmailToVerify ? 'email' : 'session');
     
     // If has session but no invite code, verify session has access
     if (session && !hasInviteCode && !hasUscScan) {
