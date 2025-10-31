@@ -80,12 +80,23 @@ function OnboardingPageContent() {
     const session = getSession();
     const storedInvite = sessionStorage.getItem('onboarding_invite_code');
     const tempUsc = sessionStorage.getItem('temp_usc_id');
+    const uscEmailForVerification = sessionStorage.getItem('usc_email_for_verification');
     
-    // STRICT: Must have EITHER invite code OR valid verified session
+    // STRICT: Must have EITHER invite code OR valid verified session OR USC email for verification
     const hasInviteCode = inviteParam || storedInvite;
     const hasUscScan = tempUsc;
+    const hasEmailToVerify = uscEmailForVerification;
     
-    if (!hasInviteCode && !hasUscScan && !session) {
+    // If user has USC email to verify, set it up and trigger verification
+    if (hasEmailToVerify && !hasInviteCode) {
+      console.log('[Onboarding] USC email verification signup detected');
+      setUscEmail(uscEmailForVerification);
+      setNeedsUSCEmail(true);
+      setStep('email-verify');
+      return;
+    }
+    
+    if (!hasInviteCode && !hasUscScan && !session && !hasEmailToVerify) {
       console.log('[Onboarding] No invite code and no session - redirecting to waitlist');
       router.push('/waitlist');
       return;
