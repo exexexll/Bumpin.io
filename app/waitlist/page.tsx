@@ -137,15 +137,43 @@ export default function WaitlistPage() {
               
               <div className="text-center space-y-4">
                 <p className="text-[#eaeaf0]/80 text-sm font-medium">
-                  USC Students / QR Code Invite Only
+                  USC Students / QR Code Invite Only - Sign Up Below
                 </p>
                 
-                <button
-                  onClick={() => setShowScanChoice(true)}
-                  className="w-full rounded-xl bg-[#ffc46a] px-6 py-4 font-bold text-[#0a0a0c] hover:opacity-90 transition-opacity text-base shadow-lg"
-                >
-                  📱 Scan QR Code or Barcode
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setShowScanChoice(true)}
+                    className="w-full rounded-xl bg-[#ffc46a] px-6 py-4 font-bold text-[#0a0a0c] hover:opacity-90 transition-opacity text-base shadow-lg"
+                  >
+                    📱 Scan QR Code or Barcode to Sign Up
+                  </button>
+                  
+                  <p className="text-[#eaeaf0]/50 text-xs">or</p>
+                  
+                  <button
+                    onClick={() => {
+                      const email = prompt('Enter your @usc.edu email:');
+                      if (!email) return;
+                      
+                      if (!email.trim().toLowerCase().endsWith('@usc.edu')) {
+                        alert('Must be a @usc.edu email address');
+                        return;
+                      }
+                      
+                      const adminCode = prompt('Enter admin invite code from campus events:');
+                      if (!adminCode || !/^[A-Z0-9]{16}$/i.test(adminCode)) {
+                        alert('Invalid admin code. Get a code from USC campus events.');
+                        return;
+                      }
+                      
+                      sessionStorage.setItem('usc_email_temp', email.trim());
+                      router.push(`/onboarding?inviteCode=${adminCode.toUpperCase()}`);
+                    }}
+                    className="w-full rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all text-sm"
+                  >
+                    ✉️ Sign Up with USC Email
+                  </button>
+                </div>
               </div>
             </div>
           </div>
