@@ -247,8 +247,11 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Guest Account Upgrade Section */}
-          {!loadingPayment && paymentStatus?.accountType === 'guest' && paymentStatus?.accountExpiresAt && (
+          {/* Guest Account Upgrade Section - Only show for GUEST accounts */}
+          {!loadingPayment && 
+           paymentStatus?.accountType === 'guest' && 
+           paymentStatus?.accountExpiresAt && 
+           !paymentStatus?.email_verified && (
             <div className="rounded-xl border-2 border-yellow-500/30 bg-yellow-500/10 p-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
