@@ -48,8 +48,11 @@ function OnboardingPageContent() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const videoPreviewRef = useRef<HTMLVideoElement | null>(null);
   
   // Upload progress
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -658,59 +661,70 @@ function OnboardingPageContent() {
     }
   };
 
-  // Handle recorded video upload
+  // Handle recorded video - Show preview instead of auto-upload
   useEffect(() => {
     if (recordedChunks.length > 0 && !isRecording) {
       const blob = new Blob(recordedChunks, { 
         type: mediaRecorderRef.current?.mimeType || 'video/webm' 
       });
 
-      console.log('[Onboarding] Video blob size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
+      console.log('[Onboarding] Video recorded, size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
       
-      // Check if referral user BEFORE upload to decide flow
-      const storedRef = sessionStorage.getItem('onboarding_ref_code');
-      const isReferralUser = targetUser || storedRef || referralCode;
-      
-      console.log('[Onboarding] Is referral user?', isReferralUser);
-      console.log('[Onboarding] Has targetUser?', !!targetUser);
-      
-      setLoading(true);
-      setUploadProgress(0);
-      setShowUploadProgress(true); // Show immediately for better UX
-      
-      // OPTIMIZED: Use real progress tracking from XMLHttpRequest
-      console.log('[Onboarding] 🎬 Starting video upload...');
-      
-      uploadVideo(sessionToken, blob, (percent) => {
-        setUploadProgress(percent);
-      })
-        .then((data: any) => {
-          console.log('[Onboarding] ✅ Video uploaded:', data.videoUrl);
-          
-          setUploadProgress(100);
-          setTimeout(() => {
-            setShowUploadProgress(false);
-            setUploadProgress(0);
-          }, 500);
-          
-          // Stop camera
-          if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            setStream(null);
-          }
-          
-          // SIMPLE: Always go to permanent step for ALL users (referral same as normal)
-          setStep('permanent');
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error('[Onboarding] Upload error:', err);
-          setError(err.message);
-          setStep('permanent');
-          setLoading(false);
-        });
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(blob);
+      setVideoPreviewUrl(previewUrl);
     }
-  }, [recordedChunks, isRecording, sessionToken, stream, targetUser, referralCode]); // Added missing dependencies
+  }, [recordedChunks, isRecording]);
+
+  const confirmVideo = async () => {
+    if (recordedChunks.length === 0) return;
+    
+    const blob = new Blob(recordedChunks, { 
+      type: mediaRecorderRef.current?.mimeType || 'video/webm' 
+    });
+    
+    setUploadingVideo(true);
+    setUploadProgress(0);
+    setShowUploadProgress(true);
+    
+    console.log('[Onboarding] 🎬 Uploading video...');
+    
+    try {
+      const data: any = await uploadVideo(sessionToken, blob, (percent) => {
+        setUploadProgress(percent);
+      });
+      
+      console.log('[Onboarding] ✅ Video uploaded');
+      
+      setUploadProgress(100);
+      setTimeout(() => {
+        setShowUploadProgress(false);
+        setUploadProgress(0);
+      }, 500);
+      
+      // Clean up
+      if (videoPreviewUrl) {
+        URL.revokeObjectURL(videoPreviewUrl);
+        setVideoPreviewUrl(null);
+      }
+      
+      setStep('permanent');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
+  const retakeVideo = () => {
+    setRecordedChunks([]);
+    setRecordingTime(0);
+    if (videoPreviewUrl) {
+      URL.revokeObjectURL(videoPreviewUrl);
+      setVideoPreviewUrl(null);
+    }
+    // Camera already stopped, user will click record again
+  };
 
   /**
    * Skip Video - Allow completing onboarding without video
@@ -1328,21 +1342,34 @@ function OnboardingPageContent() {
 
                 <div className="space-y-6">
                   <div className="relative aspect-video overflow-hidden rounded-xl bg-black">
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="h-full w-full object-contain"
-                      style={{ transform: 'scaleX(-1)' }}
-                    />
-                    {isRecording && (
-                      <div className="absolute top-4 right-4 flex items-center gap-2 rounded-lg bg-black/50 px-3 py-2 backdrop-blur-sm">
-                        <span className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
-                        <span className="text-sm font-medium text-white">
-                          {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')} / 1:00
-                        </span>
-                      </div>
+                    {videoPreviewUrl ? (
+                      // Show recorded video preview with controls
+                      <video
+                        ref={videoPreviewRef}
+                        src={videoPreviewUrl}
+                        controls
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      // Show live camera feed
+                      <>
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          className="h-full w-full object-contain"
+                          style={{ transform: 'scaleX(-1)' }}
+                        />
+                        {isRecording && (
+                          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-lg bg-black/50 px-3 py-2 backdrop-blur-sm">
+                            <span className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
+                            <span className="text-sm font-medium text-white">
+                              {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')} / 1:00
+                            </span>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 
@@ -1352,53 +1379,89 @@ function OnboardingPageContent() {
                     </div>
                   )}
 
-                  {!isRecording && recordedChunks.length === 0 && (
-                    <button
-                      onClick={startVideoRecording}
-                      disabled={loading}
-                      className="focus-ring w-full rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
-                    >
-                      Start recording
-                    </button>
-                  )}
-
-                  {isRecording && (
-                    <button
-                      onClick={stopVideoRecording}
-                      disabled={recordingTime < 5}
-                      className={`focus-ring w-full rounded-xl px-6 py-3 font-medium shadow-sm transition-opacity ${
-                        recordingTime < 5 
-                          ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed opacity-50'
-                          : 'bg-red-500 text-white hover:opacity-90'
-                      }`}
-                    >
-                      {recordingTime < 5 
-                        ? `Keep recording... (${5 - recordingTime}s minimum)` 
-                        : 'Stop recording'}
-                    </button>
-                  )}
-                  
-                  {/* Skip Video Option - Can upload later from profile */}
-                  {!isRecording && recordedChunks.length === 0 && !loading && (
-                    <button
-                      onClick={handleSkipVideo}
-                      className="focus-ring w-full rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
-                    >
-                      Skip for now
-                    </button>
-                  )}
-
-                  {loading && (
-                    <div className="text-center text-sm text-[#eaeaf0]/70">
-                      Uploading video...
+                  {/* Upload progress bar */}
+                  {showUploadProgress && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm text-[#eaeaf0]/70">
+                        <span>Uploading video...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+                        <div 
+                          className="h-full bg-[#ffc46a] transition-all duration-300" 
+                          style={{ width: `${uploadProgress}%` }} 
+                        />
+                      </div>
                     </div>
                   )}
-                  
-                  {/* Helpful hint */}
-                  {!isRecording && recordedChunks.length === 0 && !loading && (
-                    <p className="text-xs text-center text-[#eaeaf0]/50">
-                      You can upload an intro video later from your profile page
-                    </p>
+
+                  {videoPreviewUrl ? (
+                    // Show confirm/retake buttons after recording
+                    <div className="space-y-4">
+                      <p className="text-center text-sm text-[#eaeaf0]/70">
+                        Watch your video above. Confirm to upload or retake if needed.
+                      </p>
+                      <div className="flex gap-4">
+                        <button
+                          onClick={retakeVideo}
+                          disabled={uploadingVideo}
+                          className="focus-ring flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all disabled:opacity-50"
+                        >
+                          🔄 Retake
+                        </button>
+                        <button
+                          onClick={confirmVideo}
+                          disabled={uploadingVideo}
+                          className="focus-ring flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+                        >
+                          {uploadingVideo ? 'Uploading...' : '✓ Confirm & Upload'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Show record/stop buttons
+                    <>
+                      {!isRecording && recordedChunks.length === 0 && (
+                        <button
+                          onClick={startVideoRecording}
+                          disabled={uploadingVideo}
+                          className="focus-ring w-full rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+                        >
+                          🎥 Start recording
+                        </button>
+                      )}
+
+                      {isRecording && (
+                        <button
+                          onClick={stopVideoRecording}
+                          disabled={recordingTime < 5}
+                          className={`focus-ring w-full rounded-xl px-6 py-3 font-medium shadow-sm transition-opacity ${
+                            recordingTime < 5 
+                              ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed opacity-50'
+                              : 'bg-red-500 text-white hover:opacity-90'
+                          }`}
+                        >
+                          {recordingTime < 5 
+                            ? `Keep recording... (${5 - recordingTime}s minimum)` 
+                            : '⏹ Stop recording'}
+                        </button>
+                      )}
+                      
+                      {/* Skip Video Option */}
+                      {!isRecording && recordedChunks.length === 0 && !uploadingVideo && (
+                        <>
+                          <button
+                            onClick={handleSkipVideo}
+                            className="focus-ring w-full rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
+                          >
+                            Skip for now
+                          </button>
+                          <p className="text-xs text-center text-[#eaeaf0]/50">
+                            You can upload an intro video later from your profile page
+                          </p>
+                        </>
+                      )}
+                    </>
                   )}
                 </div>
               </motion.div>
