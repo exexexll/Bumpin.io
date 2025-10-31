@@ -41,15 +41,20 @@ export default function HomePage() {
               </div>
               
               <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <Button variant="primary" href="/onboarding">
-                  Start connecting
+                <Button variant="primary" href="/check-access">
+                  Get Started
                 </Button>
-                <Link 
-                  href="/login"
-                  className="text-sm font-medium text-[#eaeaf0]/70 hover:text-[#ffc46a] transition-colors"
-                >
-                  Already have an account? Login
-                </Link>
+                <div className="text-center">
+                  <p className="text-sm text-[#eaeaf0]/60 mb-1">
+                    USC Students / QR Invite Only
+                  </p>
+                  <Link 
+                    href="/login"
+                    className="text-sm font-medium text-[#eaeaf0]/70 hover:text-[#ffc46a] transition-colors"
+                  >
+                    Log in
+                  </Link>
+                </div>
               </div>
               
               {/* FAQ Link */}

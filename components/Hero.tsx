@@ -70,7 +70,7 @@ export function Hero() {
     if (isVerified) {
       router.push('/main');
     } else {
-      router.push('/onboarding');
+      router.push('/check-access');
     }
   };
   
