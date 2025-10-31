@@ -127,55 +127,6 @@ export default function WaitlistPage() {
             <p className="text-[#eaeaf0]/70">
               BUMPIN is currently invite-only. Join our waitlist to be notified when we expand access.
             </p>
-            {/* USC Portal - Simplified */}
-            <div className="mt-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex-1 border-t border-white/10"></div>
-                <span className="text-[#eaeaf0]/50 text-sm font-medium">OR</span>
-                <div className="flex-1 border-t border-white/10"></div>
-              </div>
-              
-              <div className="text-center space-y-4">
-                <p className="text-[#eaeaf0]/80 text-sm font-medium">
-                  USC Students / QR Code Invite Only - Sign Up Below
-                </p>
-                
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setShowScanChoice(true)}
-                    className="w-full rounded-xl bg-[#ffc46a] px-6 py-4 font-bold text-[#0a0a0c] hover:opacity-90 transition-opacity text-base shadow-lg"
-                  >
-                    📱 Scan QR Code or Barcode to Sign Up
-                  </button>
-                  
-                  <p className="text-[#eaeaf0]/50 text-xs">or</p>
-                  
-                  <button
-                    onClick={() => {
-                      const email = prompt('Enter your @usc.edu email:');
-                      if (!email) return;
-                      
-                      if (!email.trim().toLowerCase().endsWith('@usc.edu')) {
-                        alert('Must be a @usc.edu email address');
-                        return;
-                      }
-                      
-                      const adminCode = prompt('Enter admin invite code from campus events:');
-                      if (!adminCode || !/^[A-Z0-9]{16}$/i.test(adminCode)) {
-                        alert('Invalid admin code. Get a code from USC campus events.');
-                        return;
-                      }
-                      
-                      sessionStorage.setItem('usc_email_temp', email.trim());
-                      router.push(`/onboarding?inviteCode=${adminCode.toUpperCase()}`);
-                    }}
-                    className="w-full rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all text-sm"
-                  >
-                    ✉️ Sign Up with USC Email
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -238,6 +189,12 @@ export default function WaitlistPage() {
               </div>
             )}
 
+            <div className="flex items-center gap-4 my-4">
+              <div className="flex-1 border-t border-white/10"></div>
+              <span className="text-[#eaeaf0]/50 text-xs font-medium">OR</span>
+              <div className="flex-1 border-t border-white/10"></div>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -245,14 +202,58 @@ export default function WaitlistPage() {
             >
               {loading ? 'Submitting...' : 'Join Waitlist'}
             </button>
-
-            <p className="text-center text-sm text-[#eaeaf0]/50">
-              Already have an account?{' '}
-              <Link href="/login" className="text-[#ffc46a] hover:underline">
-                Log in
-              </Link>
-            </p>
           </form>
+
+          {/* USC Portal - Below Waitlist Form */}
+          <div className="mt-8 pt-8 border-t-2 border-white/10">
+            <div className="text-center space-y-4">
+              <p className="text-[#eaeaf0]/80 text-sm font-medium">
+                USC Students / QR Code Invite Only - Sign Up Below
+              </p>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowScanChoice(true)}
+                  className="w-full rounded-xl bg-[#ffc46a] px-6 py-4 font-bold text-[#0a0a0c] hover:opacity-90 transition-opacity text-base shadow-lg"
+                >
+                  📱 Scan QR Code or Barcode to Sign Up
+                </button>
+                
+                <p className="text-[#eaeaf0]/50 text-xs">or</p>
+                
+                <button
+                  onClick={() => {
+                    const email = prompt('Enter your @usc.edu email:');
+                    if (!email) return;
+                    
+                    if (!email.trim().toLowerCase().endsWith('@usc.edu')) {
+                      alert('Must be a @usc.edu email address');
+                      return;
+                    }
+                    
+                    const adminCode = prompt('Enter admin invite code from campus events:');
+                    if (!adminCode || !/^[A-Z0-9]{16}$/i.test(adminCode)) {
+                      alert('Invalid admin code. Get a code from USC campus events.');
+                      return;
+                    }
+                    
+                    sessionStorage.setItem('usc_email_temp', email.trim());
+                    router.push(`/onboarding?inviteCode=${adminCode.toUpperCase()}`);
+                  }}
+                  className="w-full rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all text-sm"
+                >
+                  ✉️ Sign Up with USC Email
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-[#eaeaf0]/50 mt-6">
+            Already have an account?{' '}
+            <Link href="/login" className="text-[#ffc46a] hover:underline">
+              Log in
+            </Link>
+          </p>
         </motion.div>
 
         {/* QR Code Scanner Modal - Centered */}
