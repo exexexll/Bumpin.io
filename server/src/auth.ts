@@ -412,24 +412,24 @@ router.post('/link', async (req, res) => {
   // CRITICAL FIX: Use transaction to prevent race condition
   let invalidatedCount = 0;
   try {
-    await store.createSession(session);
-    
-    // SECURITY: NOW invalidate all OTHER sessions (except this one)
+  await store.createSession(session);
+  
+  // SECURITY: NOW invalidate all OTHER sessions (except this one)
     invalidatedCount = await store.invalidateUserSessions(user.userId, sessionToken);
-    console.log(`[Auth] Invalidated ${invalidatedCount} old sessions (kept new session: ${sessionToken.substring(0, 8)})`);
+  console.log(`[Auth] Invalidated ${invalidatedCount} old sessions (kept new session: ${sessionToken.substring(0, 8)})`);
+  
+  // Notify old sessions via Socket.IO
+  if (invalidatedCount > 0) {
+    const sockets = Array.from(activeSockets.entries())
+      .filter(([userId, _]) => userId === user.userId)
+      .map(([_, socketId]) => socketId);
     
-    // Notify old sessions via Socket.IO
-    if (invalidatedCount > 0) {
-      const sockets = Array.from(activeSockets.entries())
-        .filter(([userId, _]) => userId === user.userId)
-        .map(([_, socketId]) => socketId);
-      
-      sockets.forEach(socketId => {
-        io.to(socketId).emit('session:invalidated', {
-          message: 'You have been logged out because you logged in from another device.',
-          reason: 'new_login',
-        });
+    sockets.forEach(socketId => {
+      io.to(socketId).emit('session:invalidated', {
+        message: 'You have been logged out because you logged in from another device.',
+        reason: 'new_login',
       });
+    });
     }
   } catch (sessionErr: any) {
     console.error('[Auth] Session creation/invalidation failed:', sessionErr);
@@ -601,7 +601,7 @@ router.post('/link', async (req, res) => {
         stack: err.stack?.split('\n').slice(0, 3)
       });
     }
-  });
+});
 
   return router;
 }

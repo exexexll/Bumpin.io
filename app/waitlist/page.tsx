@@ -234,28 +234,26 @@ export default function WaitlistPage() {
           </form>
         </motion.div>
 
-        {/* QR Code Scanner Modal */}
+        {/* QR Code Scanner Modal - Centered */}
         {showQRScanner && (
           <div className="fixed inset-0 z-[999] bg-black/95 flex items-center justify-center p-4">
-            <div className="max-w-2xl w-full">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="rounded-2xl bg-[#0a0a0c] p-6 border border-white/10"
-              >
-                <h2 className="font-playfair text-2xl font-bold text-[#eaeaf0] mb-4 text-center">
-                  Scan Admin QR Code
-                </h2>
-                <AdminQRScanner
-                  onScan={(inviteCode) => {
-                    console.log('[Waitlist] QR scanned:', inviteCode);
-                    setShowQRScanner(false);
-                    router.push(`/onboarding?inviteCode=${inviteCode}`);
-                  }}
-                  onClose={() => setShowQRScanner(false)}
-                />
-              </motion.div>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-full max-w-2xl rounded-2xl bg-[#0a0a0c] p-8 border border-white/10"
+            >
+              <h2 className="font-playfair text-2xl font-bold text-[#eaeaf0] mb-6 text-center">
+                📱 Scan Admin QR Code
+              </h2>
+              <AdminQRScanner
+                onScan={(inviteCode) => {
+                  console.log('[Waitlist] QR scanned:', inviteCode);
+                  setShowQRScanner(false);
+                  router.push(`/onboarding?inviteCode=${inviteCode}`);
+                }}
+                onClose={() => setShowQRScanner(false)}
+              />
+            </motion.div>
           </div>
         )}
 
@@ -331,36 +329,33 @@ export default function WaitlistPage() {
                   />
                   
                   <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        setShowEmailInput(false);
-                        setUscEmail('');
-                      }}
-                      className="flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!uscEmail.trim().toLowerCase().endsWith('@usc.edu')) {
-                          alert('Must be a @usc.edu email address');
-                          return;
-                        }
-                        
-                        const adminCode = prompt('Enter admin invite code:');
-                        if (adminCode && /^[A-Z0-9]{16}$/i.test(adminCode)) {
-                          setShowEmailInput(false);
-                          sessionStorage.setItem('usc_email_temp', uscEmail.trim());
-                          router.push(`/onboarding?inviteCode=${adminCode.toUpperCase()}`);
-                        } else {
-                          alert('Invalid admin code format');
-                        }
-                      }}
-                      disabled={!uscEmail.trim()}
-                      className="flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity disabled:opacity-50"
-                    >
-                      Continue
-                    </button>
+                  <button
+                    onClick={() => {
+                      setShowEmailInput(false);
+                      setUscEmail('');
+                    }}
+                    className="flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!uscEmail.trim().toLowerCase().endsWith('@usc.edu')) {
+                        alert('Must be a @usc.edu email address');
+                        return;
+                      }
+                      
+                      // Email path doesn't need admin code - it's for email verification flow
+                      setShowEmailInput(false);
+                      sessionStorage.setItem('usc_email_temp', uscEmail.trim());
+                      // Redirect to onboarding - will trigger email verification
+                      router.push('/onboarding');
+                    }}
+                    disabled={!uscEmail.trim()}
+                    className="flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    Continue
+                  </button>
                   </div>
                 </div>
               </motion.div>
