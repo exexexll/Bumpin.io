@@ -13,15 +13,17 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Initialize scanner
+    // Initialize scanner with verbose false to hide UI buttons
     const scanner = new Html5QrcodeScanner(
       'qr-reader',
       {
         fps: 10,
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0,
+        rememberLastUsedCamera: true,
+        showTorchButtonIfSupported: true,
       },
-      false
+      /* verbose= */ false
     );
 
     scanner.render(

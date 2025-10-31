@@ -207,9 +207,14 @@ export default function WaitlistPage() {
 
           {/* USC Portal - Separate Section */}
           <div className="text-center space-y-4">
-            <p className="text-[#eaeaf0]/80 text-sm font-medium">
-              USC Students / QR Code Invite Only - Sign Up Below
-            </p>
+            <div className="space-y-2">
+              <p className="text-[#eaeaf0] text-base font-bold">
+                USC Students / QR Code Invite - Sign Up
+              </p>
+              <p className="text-[#eaeaf0]/60 text-xs">
+                Scan admin QR code, USC card, or friend invite code
+              </p>
+            </div>
               
             <button
               onClick={() => setShowScanChoice(true)}
@@ -221,9 +226,10 @@ export default function WaitlistPage() {
 
           <p className="text-center text-sm text-[#eaeaf0]/50 mt-6">
             Already have an account?{' '}
-            <Link href="/login" className="text-[#ffc46a] hover:underline">
-              Log in
+            <Link href="/login" className="text-[#ffc46a] hover:underline font-medium">
+              Log in here
             </Link>
+            {' '}(no admin code needed)
           </p>
         </motion.div>
 
@@ -270,55 +276,22 @@ export default function WaitlistPage() {
             </div>
             <div className="flex-1 flex items-center justify-center p-4">
               <div className="w-full max-w-2xl">
-                <div className="space-y-4">
-                  <USCCardScanner
-                    onSuccess={async (uscId, rawValue) => {
-                      console.log('[Waitlist] USC card scanned:', uscId);
-                      
-                      // Prompt for admin code
-                      const adminCode = prompt('Enter admin invite code from campus events:');
-                      
-                      if (!adminCode) {
-                        // User cancelled
-                        return;
-                      }
-                      
-                      if (!/^[A-Z0-9]{16}$/i.test(adminCode)) {
-                        alert('Invalid code format. Must be 16 characters (A-Z, 0-9)');
-                        return;
-                      }
-                      
-                      // Validate code with backend before storing
-                      try {
-                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/payment/validate-code`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ code: adminCode.toUpperCase() }),
-                        });
-                        
-                        const data = await res.json();
-                        
-                        if (!data.valid || data.type !== 'admin') {
-                          alert('Invalid admin code. Please get an admin code from USC campus events.');
-                          return;
-                        }
-                        
-                        // Valid admin code - proceed
-                        setShowBarcodeScanner(false);
-                        sessionStorage.setItem('temp_usc_id', uscId);
-                        sessionStorage.setItem('temp_usc_barcode', rawValue);
-                        sessionStorage.setItem('usc_card_verified', 'true');
-                        router.push(`/onboarding?inviteCode=${adminCode.toUpperCase()}`);
-                      } catch (err) {
-                        alert('Failed to validate code. Please try again.');
-                      }
-                    }}
-                    onSkipToEmail={() => {
-                      setShowBarcodeScanner(false);
-                      alert('Please scan an admin QR code to continue with email verification.');
-                    }}
-                  />
-                </div>
+                <USCCardScanner
+                  onSuccess={(uscId, rawValue) => {
+                    console.log('[Waitlist] USC card scanned:', uscId);
+                    
+                    // Store USC card data and redirect to onboarding
+                    // No admin code needed - USC card IS the verification
+                    setShowBarcodeScanner(false);
+                    sessionStorage.setItem('temp_usc_id', uscId);
+                    sessionStorage.setItem('temp_usc_barcode', rawValue);
+                    sessionStorage.setItem('usc_card_verified', 'true');
+                    router.push('/onboarding');
+                  }}
+                  onSkipToEmail={() => {
+                    setShowBarcodeScanner(false);
+                  }}
+                />
               </div>
             </div>
           </div>
