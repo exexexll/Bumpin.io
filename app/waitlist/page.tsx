@@ -211,36 +211,12 @@ export default function WaitlistPage() {
               USC Students / QR Code Invite Only - Sign Up Below
             </p>
               
-            <div className="space-y-3">
-              <button
-                onClick={() => setShowScanChoice(true)}
-                className="w-full rounded-xl bg-[#ffc46a] px-6 py-4 font-bold text-[#0a0a0c] hover:opacity-90 transition-opacity text-base shadow-lg"
-              >
-                📱 Scan QR Code or Barcode to Sign Up
-              </button>
-              
-              <p className="text-[#eaeaf0]/50 text-xs">or</p>
-              
-              <button
-                onClick={() => {
-                  const email = prompt('Enter your @usc.edu email for verification:');
-                  if (!email) return;
-                  
-                  if (!email.trim().toLowerCase().endsWith('@usc.edu')) {
-                    alert('Must be a @usc.edu email address');
-                    return;
-                  }
-                  
-                  // Store email and go to onboarding for email verification flow
-                  // No admin code needed - email verification is the access method
-                  sessionStorage.setItem('usc_email_for_verification', email.trim());
-                  router.push('/onboarding');
-                }}
-                className="w-full rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all text-sm"
-              >
-                ✉️ Sign Up with USC Email (Verify Email)
-              </button>
-            </div>
+            <button
+              onClick={() => setShowScanChoice(true)}
+              className="w-full rounded-xl bg-[#ffc46a] px-6 py-4 font-bold text-[#0a0a0c] hover:opacity-90 transition-opacity text-base shadow-lg"
+            >
+              📱 Scan QR Code or Barcode to Sign Up
+            </button>
           </div>
 
           <p className="text-center text-sm text-[#eaeaf0]/50 mt-6">
