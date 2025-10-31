@@ -31,6 +31,7 @@ import verificationRoutes from './verification';
 import locationRoutes from './location';
 import createUSCVerificationRoutes from './usc-verification';
 import instagramRoutes from './instagram';
+import waitlistRoutes from './waitlist';
 import { startGuestAccountCleanup } from './guest-account-cleanup';
 import { securityHeaders, httpsRedirect } from './security-headers';
 import { memoryManager } from './memory-manager';
@@ -510,6 +511,7 @@ app.use('/verification', apiLimiter, verificationRoutes);
 app.use('/location', apiLimiter, locationRoutes);
 app.use('/instagram', apiLimiter, instagramRoutes);
 app.use('/usc', apiLimiter, createUSCVerificationRoutes(io, activeSockets));
+app.use('/waitlist', apiLimiter, waitlistRoutes);
 // EVENT MODE: Public event endpoints with rate limiting (SECURITY: prevent scraping)
 app.use('/event/attendance', eventPublicLimiter);
 app.use('/event/settings', eventPublicLimiter);
