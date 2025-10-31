@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Container } from '@/components/Container';
 import { API_BASE } from '@/lib/config';
+import { AdminQRScanner } from '@/components/AdminQRScanner';
+import { USCCardScanner } from '@/components/usc-verification/USCCardScanner';
 import Link from 'next/link';
 
 const US_STATES = [
@@ -31,6 +33,9 @@ export default function WaitlistPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [showEmailInput, setShowEmailInput] = useState(false);
+  const [uscEmail, setUscEmail] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,6 +233,140 @@ export default function WaitlistPage() {
             </p>
           </form>
         </motion.div>
+
+        {/* QR Code Scanner Modal */}
+        {showQRScanner && (
+          <div className="fixed inset-0 z-[999] bg-black/95 flex items-center justify-center p-4">
+            <div className="max-w-2xl w-full">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-2xl bg-[#0a0a0c] p-6 border border-white/10"
+              >
+                <h2 className="font-playfair text-2xl font-bold text-[#eaeaf0] mb-4 text-center">
+                  Scan Admin QR Code
+                </h2>
+                <AdminQRScanner
+                  onScan={(inviteCode) => {
+                    console.log('[Waitlist] QR scanned:', inviteCode);
+                    setShowQRScanner(false);
+                    router.push(`/onboarding?inviteCode=${inviteCode}`);
+                  }}
+                  onClose={() => setShowQRScanner(false)}
+                />
+              </motion.div>
+            </div>
+          </div>
+        )}
+
+        {/* USC Card Barcode Scanner Modal */}
+        {showBarcodeScanner && (
+          <div className="fixed inset-0 z-[999] bg-black flex flex-col">
+            <div className="p-4 bg-black/90 border-b border-white/10">
+              <div className="max-w-2xl mx-auto flex items-center justify-between">
+                <h2 className="font-playfair text-xl font-bold text-[#eaeaf0]">
+                  Scan USC Campus Card
+                </h2>
+                <button
+                  onClick={() => setShowBarcodeScanner(false)}
+                  className="rounded-full bg-white/10 p-2 hover:bg-white/20"
+                >
+                  <svg className="w-6 h-6 text-[#eaeaf0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 flex items-center justify-center p-4">
+              <div className="w-full max-w-2xl">
+                <USCCardScanner
+                  onSuccess={(uscId, rawValue) => {
+                    console.log('[Waitlist] USC card scanned:', uscId);
+                    // Prompt for admin code
+                    const adminCode = prompt('Enter admin invite code (from campus events):');
+                    if (adminCode && /^[A-Z0-9]{16}$/i.test(adminCode)) {
+                      setShowBarcodeScanner(false);
+                      // Store USC card for onboarding
+                      sessionStorage.setItem('temp_usc_id', uscId);
+                      sessionStorage.setItem('temp_usc_barcode', rawValue);
+                      sessionStorage.setItem('usc_card_verified', 'true');
+                      router.push(`/onboarding?inviteCode=${adminCode.toUpperCase()}`);
+                    } else {
+                      alert('Invalid admin code. Get a code from USC campus events.');
+                    }
+                  }}
+                  onSkipToEmail={() => {
+                    setShowBarcodeScanner(false);
+                    setShowEmailInput(true);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* USC Email Entry Modal */}
+        {showEmailInput && (
+          <div className="fixed inset-0 z-[999] bg-black/95 flex items-center justify-center p-4">
+            <div className="max-w-md w-full">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-2xl bg-[#0a0a0c] p-8 border border-white/10"
+              >
+                <h2 className="font-playfair text-2xl font-bold text-[#eaeaf0] mb-4">
+                  USC Email Verification
+                </h2>
+                <p className="text-[#eaeaf0]/70 text-sm mb-6">
+                  Enter your @usc.edu email to get started
+                </p>
+                
+                <div className="space-y-4">
+                  <input
+                    type="email"
+                    value={uscEmail}
+                    onChange={(e) => setUscEmail(e.target.value)}
+                    placeholder="your@usc.edu"
+                    className="w-full rounded-xl bg-white/10 px-4 py-3 text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowEmailInput(false);
+                        setUscEmail('');
+                      }}
+                      className="flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (!uscEmail.trim().toLowerCase().endsWith('@usc.edu')) {
+                          alert('Must be a @usc.edu email address');
+                          return;
+                        }
+                        
+                        const adminCode = prompt('Enter admin invite code:');
+                        if (adminCode && /^[A-Z0-9]{16}$/i.test(adminCode)) {
+                          setShowEmailInput(false);
+                          sessionStorage.setItem('usc_email_temp', uscEmail.trim());
+                          router.push(`/onboarding?inviteCode=${adminCode.toUpperCase()}`);
+                        } else {
+                          alert('Invalid admin code format');
+                        }
+                      }}
+                      disabled={!uscEmail.trim()}
+                      className="flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity disabled:opacity-50"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        )}
       </Container>
     </main>
   );
