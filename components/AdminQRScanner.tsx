@@ -81,46 +81,32 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
     };
   }, [onScan, onClose]);
 
-  const handleManualEntry = () => {
-    const code = prompt('Enter the 16-character admin invite code:');
-    if (code && /^[A-Z0-9]{16}$/i.test(code)) {
-      if (scannerRef.current) {
-        scannerRef.current.clear();
-      }
-      onScan(code.toUpperCase());
-    } else if (code) {
-      alert('Invalid code format. Must be 16 characters (A-Z, 0-9)');
-    }
-  };
-
   return (
-    <div className="space-y-4">
-      <div id="qr-reader" className="w-full"></div>
+    <div className="space-y-6">
+      <div id="qr-reader" className="w-full rounded-xl overflow-hidden"></div>
 
       {error && (
         <div className="rounded-xl bg-red-500/10 p-4 text-sm text-red-400">
-          {error}
+          <p className="font-medium mb-1">Scan Error</p>
+          <p className="text-xs">{error}</p>
         </div>
       )}
 
-      <div className="flex gap-4">
-        <button
-          onClick={handleManualEntry}
-          className="flex-1 rounded-xl bg-white/10 px-4 py-3 text-sm font-medium text-[#eaeaf0] hover:bg-white/20 transition-all"
-        >
-          Enter Code Manually
-        </button>
-        <button
-          onClick={onClose}
-          className="flex-1 rounded-xl bg-white/10 px-4 py-3 text-sm font-medium text-[#eaeaf0] hover:bg-white/20 transition-all"
-        >
-          Cancel
-        </button>
-      </div>
+      <button
+        onClick={onClose}
+        className="w-full rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all"
+      >
+        Cancel
+      </button>
 
-      <p className="text-xs text-center text-[#eaeaf0]/50">
-        Point your camera at the admin QR code
-      </p>
+      <div className="text-center space-y-2">
+        <p className="text-sm text-[#eaeaf0]/70">
+          📱 Point camera at admin QR code
+        </p>
+        <p className="text-xs text-[#eaeaf0]/50">
+          Available at USC campus events
+        </p>
+      </div>
     </div>
   );
 }
