@@ -1763,7 +1763,7 @@ export default function RoomPage() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25 }}
-            className="fixed right-0 top-0 bottom-0 z-50 flex w-full flex-col bg-black/95 backdrop-blur-md sm:w-96 border-l border-white/10"
+            className="fixed right-0 top-0 bottom-0 z-[999] flex w-full flex-col bg-black/95 backdrop-blur-md sm:w-96 border-l border-white/10"
           >
             <div className="flex items-center justify-between border-b border-white/10 p-4">
               <h3 className="font-playfair text-xl font-bold text-[#eaeaf0]">Chat</h3>
