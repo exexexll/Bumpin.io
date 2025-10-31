@@ -58,34 +58,24 @@ export function Header() {
           <h1 className="font-playfair text-2xl font-bold text-white">BUMPIN</h1>
         </Link>
 
-        <nav aria-label="Main navigation">
-          <ul className="flex items-center gap-2 sm:gap-6">
-            <li className="hidden sm:block">
+        <nav aria-label="Main navigation" className="flex-1 flex justify-end">
+          <ul className="flex items-center gap-4 sm:gap-8">
+            <li>
               <Link
                 href="/manifesto"
                 className={cn(
-                  'focus-ring rounded-md text-sm font-medium transition-colors hover:text-[#ffc46a] sm:text-base',
+                  'focus-ring rounded-md text-sm font-medium transition-colors hover:text-[#ffc46a]',
                   pathname === '/manifesto' ? 'text-[#ffc46a]' : 'text-[#e6e6e9]'
                 )}
               >
-                Meet Who and Do What?
-              </Link>
-            </li>
-            <li className="sm:hidden">
-              <Link
-                href="/manifesto"
-                className={cn(
-                  'focus-ring rounded-md text-xs font-medium transition-colors hover:text-[#ffc46a]',
-                  pathname === '/manifesto' ? 'text-[#ffc46a]' : 'text-[#e6e6e9]'
-                )}
-              >
-                Meet?
+                <span className="hidden sm:inline">Meet Who and Do What?</span>
+                <span className="sm:hidden">Meet?</span>
               </Link>
             </li>
             <li>
               <Link
                 href="/check-access"
-                className="focus-ring rounded-xl bg-[#ffc46a] px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90"
+                className="focus-ring rounded-xl bg-[#ffc46a] px-4 py-2 text-sm font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90"
               >
                 Get Started
               </Link>
