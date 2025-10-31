@@ -8,6 +8,7 @@ import { Container } from '@/components/Container';
 import { getSession, clearSession } from '@/lib/session';
 import { API_BASE } from '@/lib/config';
 import { clearLocation, checkLocationStatus } from '@/lib/locationAPI';
+import { PasswordInput } from '@/components/PasswordInput';
 import Link from 'next/link';
 
 export default function SettingsPage() {
