@@ -345,11 +345,16 @@ export default function WaitlistPage() {
                         return;
                       }
                       
-                      // Email path doesn't need admin code - it's for email verification flow
+                      // Ask for admin code (needed to access onboarding)
+                      const adminCode = prompt('Enter admin invite code from campus events:');
+                      if (!adminCode || !/^[A-Z0-9]{16}$/i.test(adminCode)) {
+                        alert('Invalid admin code. Get a code from USC campus events.');
+                        return;
+                      }
+                      
                       setShowEmailInput(false);
                       sessionStorage.setItem('usc_email_temp', uscEmail.trim());
-                      // Redirect to onboarding - will trigger email verification
-                      router.push('/onboarding');
+                      router.push(`/onboarding?inviteCode=${adminCode.toUpperCase()}`);
                     }}
                     disabled={!uscEmail.trim()}
                     className="flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity disabled:opacity-50"
