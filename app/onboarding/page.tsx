@@ -58,6 +58,7 @@ function OnboardingPageContent() {
   const [password, setPassword] = useState('');
   const [passwordValid, setPasswordValid] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<string>('weak');
+  const [showPermanentEmailVerify, setShowPermanentEmailVerify] = useState(false);
   
   // USC Email for admin QR codes
   const [uscEmail, setUscEmail] = useState('');
@@ -751,14 +752,38 @@ function OnboardingPageContent() {
     setError('');
 
     try {
-      // USC card users: Verify email first (same flow as admin QR email path)
-      if (uscId && email.trim().toLowerCase().endsWith('@usc.edu')) {
-        console.log('[Onboarding] USC card user adding email - verification required');
-        // Set pending email for verification
-        // Email verification will happen via existing EmailVerification component
-        // For now, proceed to link (can add verification step later if needed)
+      // CRITICAL: ALL users must verify email before making permanent
+      // Step 1: Send verification code
+      const sendRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/verification/send`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${sessionToken}`,
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      if (!sendRes.ok) {
+        const error = await sendRes.json();
+        throw new Error(error.error || 'Failed to send verification code');
       }
-      
+
+      // Step 2: Show email verification (using existing EmailVerification component)
+      setShowPermanentEmailVerify(true);
+      setLoading(false);
+      return; // Wait for verification before proceeding
+    } catch (err: any) {
+      setError(err.message || 'Failed to send verification code');
+      setLoading(false);
+    }
+  };
+
+  const handlePermanentEmailVerified = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      // Email is now verified, link password
       await linkAccount(sessionToken, email, password);
       
       // CRITICAL: Use sessionStorage as source of truth (state may be lost)
@@ -1323,27 +1348,45 @@ function OnboardingPageContent() {
                     />
                   </div>
 
-                  {error && (
-                    <div className="rounded-xl bg-red-500/10 p-4 text-sm text-red-400">
-                      {error}
+                  {/* Email Verification Step (if verification code was sent) */}
+                  {showPermanentEmailVerify ? (
+                    <div>
+                      <h2 className="mb-4 text-2xl font-bold text-[#eaeaf0]">Verify Your Email</h2>
+                      <p className="mb-6 text-[#eaeaf0]/70">
+                        We sent a 6-digit code to <strong>{email}</strong>. Enter it below to complete your upgrade.
+                      </p>
+                      
+                      <EmailVerification
+                        sessionToken={sessionToken}
+                        email={email}
+                        onVerified={handlePermanentEmailVerified}
+                      />
                     </div>
-                  )}
+                  ) : (
+                    <>
+                      {error && (
+                        <div className="rounded-xl bg-red-500/10 p-4 text-sm text-red-400">
+                          {error}
+                        </div>
+                      )}
 
-                  <div className="flex gap-4">
-                    <button
-                      onClick={handleSkip}
-                      className="focus-ring flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
-                    >
-                      {(uscId || sessionStorage.getItem('temp_usc_id')) ? 'Continue as Guest (7 days)' : 'Skip for now'}
-                    </button>
-                    <button
-                      onClick={handleMakePermanent}
-                      disabled={loading}
-                      className="focus-ring flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
-                    >
-                      {loading ? 'Saving...' : (uscId || sessionStorage.getItem('temp_usc_id')) ? 'Upgrade to Permanent' : 'Make permanent'}
-                    </button>
-                  </div>
+                      <div className="flex gap-4">
+                        <button
+                          onClick={handleSkip}
+                          className="focus-ring flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
+                        >
+                          {(uscId || sessionStorage.getItem('temp_usc_id')) ? 'Continue as Guest (7 days)' : 'Skip for now'}
+                        </button>
+                        <button
+                          onClick={handleMakePermanent}
+                          disabled={loading}
+                          className="focus-ring flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+                        >
+                          {loading ? 'Sending verification code...' : (uscId || sessionStorage.getItem('temp_usc_id')) ? 'Upgrade to Permanent' : 'Make permanent'}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </motion.div>
               );
