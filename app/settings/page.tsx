@@ -598,9 +598,9 @@ export default function SettingsPage() {
                     <button
                       onClick={handleMakePermanent}
                       disabled={makingPermanent}
-                      className="focus-ring flex-1 rounded-xl bg-green-500 px-6 py-3 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                      className="focus-ring flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90 disabled:opacity-50"
                     >
-                      {makingPermanent ? 'Saving...' : 'Save'}
+                      {makingPermanent ? 'Sending Code...' : 'Continue'}
                     </button>
                   </div>
                 </div>
@@ -654,7 +654,7 @@ export default function SettingsPage() {
                     <button
                       onClick={handleVerifyAndUpgrade}
                       disabled={verifyingCode || verificationCode.length !== 6}
-                      className="focus-ring flex-1 rounded-xl bg-green-500 px-6 py-3 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                      className="focus-ring flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90 disabled:opacity-50"
                     >
                       {verifyingCode ? 'Verifying...' : 'Verify & Upgrade'}
                     </button>
