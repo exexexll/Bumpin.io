@@ -73,6 +73,15 @@ function OnboardingPageContent() {
   // Onboarding completion tracking
   const [onboardingComplete, setOnboardingComplete] = useState(false);
 
+  // CRITICAL: Load USC ID from sessionStorage into state
+  useEffect(() => {
+    const tempUscId = sessionStorage.getItem('temp_usc_id');
+    if (tempUscId) {
+      console.log('[Onboarding] Loading USC ID from sessionStorage:', '******' + tempUscId.slice(-4));
+      setUscId(tempUscId);
+    }
+  }, []);
+
   // CRITICAL: Waitlist protection - require invite code or valid session
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -349,6 +358,12 @@ function OnboardingPageContent() {
    * Step 1: Name + Gender
    */
   const handleNameSubmit = async () => {
+    console.log('[Onboarding] ===== SUBMITTING NAME/GENDER =====');
+    console.log('[Onboarding] uscId state:', uscId);
+    console.log('[Onboarding] temp_usc_id in sessionStorage:', sessionStorage.getItem('temp_usc_id'));
+    console.log('[Onboarding] inviteCode state:', inviteCode);
+    console.log('[Onboarding] Will call:', uscId ? '/auth/guest-usc' : '/auth/guest');
+    
     if (!name.trim()) {
       setError('Please enter your name');
       return;
@@ -383,10 +398,14 @@ function OnboardingPageContent() {
       let response;
       
       // USC CARD PATH: Create guest account WITHOUT USC card (card saved later)
-      if (uscId) {
-        console.log('[Onboarding] Creating guest account for USC card user');
-        console.log('[Onboarding] DEBUG - inviteCode value:', inviteCode, '| length:', inviteCode?.length, '| type:', typeof inviteCode);
-        console.log('[Onboarding] DEBUG - name:', name, '| gender:', gender, '| uscId:', uscId?.slice(-4));
+      const currentUscId = uscId || sessionStorage.getItem('temp_usc_id');
+      console.log('[Onboarding] uscId state:', uscId);
+      console.log('[Onboarding] sessionStorage temp_usc_id:', sessionStorage.getItem('temp_usc_id'));
+      console.log('[Onboarding] currentUscId (combined):', currentUscId);
+      
+      if (currentUscId) {
+        console.log('[Onboarding] ✅ USC CARD USER - Calling /auth/guest-usc');
+        console.log('[Onboarding] DEBUG - name:', name, '| gender:', gender, '| uscId:', currentUscId?.slice(-4));
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/auth/guest-usc`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -404,10 +423,10 @@ function OnboardingPageContent() {
         }
         
         response = await res.json();
-        console.log('[Onboarding] Guest account created, will link USC card after onboarding');
+        console.log('[Onboarding] ✅ USC guest account created, will link USC card after onboarding');
       } else {
         // NORMAL PATH: Call API with USC email if provided
-        console.log('[Onboarding] Calling createGuestAccount with inviteCode:', inviteCode);
+        console.log('[Onboarding] ❌ NOT USC USER - Calling /auth/guest with inviteCode:', inviteCode);
         console.log('[Onboarding] Full params:', {
           name, gender,
           referralCode: referralCode || 'none',

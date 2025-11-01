@@ -13,7 +13,7 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Initialize scanner with verbose false to hide UI buttons
+    // Initialize scanner with auto-start camera
     const scanner = new Html5QrcodeScanner(
       'qr-reader',
       {
@@ -22,8 +22,13 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
         aspectRatio: 1.0,
         rememberLastUsedCamera: true,
         showTorchButtonIfSupported: true,
+        formatsToSupport: undefined, // All formats
+        videoConstraints: {
+          facingMode: "environment", // Back camera on mobile
+          aspectRatio: 1.0,
+        },
       },
-      /* verbose= */ false
+      /* verbose= */ false // Hide default UI buttons
     );
 
     scanner.render(
