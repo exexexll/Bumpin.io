@@ -424,10 +424,10 @@ export default function RefilmPage() {
               <div className="grid gap-6 sm:grid-cols-2">
                 <button
                   onClick={() => setMode('photo')}
-                  className="focus-ring group rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-8 text-center shadow-inner transition-all hover:scale-105 hover:from-blue-500/20 hover:to-purple-500/20"
+                  className="focus-ring group rounded-2xl bg-[#ffc46a]/10 border-2 border-[#ffc46a]/30 p-8 text-center shadow-inner transition-all hover:scale-105 hover:bg-[#ffc46a]/20"
                 >
                   <div className="mb-4 text-5xl">📸</div>
-                  <h3 className="mb-2 font-playfair text-xl font-bold text-[#eaeaf0]">
+                  <h3 className="mb-2 font-playfair text-xl font-bold text-[#ffc46a]">
                     Update Photo
                   </h3>
                   <p className="text-sm text-[#eaeaf0]/70">
@@ -438,10 +438,10 @@ export default function RefilmPage() {
                 <div className="space-y-3">
                   <button
                     onClick={() => setMode('video-record')}
-                    className="focus-ring group w-full rounded-2xl bg-gradient-to-br from-pink-500/10 to-rose-500/10 p-8 text-center shadow-inner transition-all hover:scale-105 hover:from-pink-500/20 hover:to-rose-500/20"
+                    className="focus-ring group w-full rounded-2xl bg-[#ffc46a]/10 border-2 border-[#ffc46a]/30 p-8 text-center shadow-inner transition-all hover:scale-105 hover:bg-[#ffc46a]/20"
                   >
                     <div className="mb-4 text-5xl">📹</div>
-                    <h3 className="mb-2 font-playfair text-xl font-bold text-[#eaeaf0]">
+                    <h3 className="mb-2 font-playfair text-xl font-bold text-[#ffc46a]">
                       Record Video
                     </h3>
                     <p className="text-sm text-[#eaeaf0]/70">

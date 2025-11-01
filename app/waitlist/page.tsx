@@ -277,8 +277,22 @@ export default function WaitlistPage() {
             <div className="flex-1 flex items-center justify-center p-4">
               <div className="w-full max-w-2xl">
                 <USCCardScanner
-                  onSuccess={(uscId, rawValue) => {
+                  onSuccess={async (uscId, rawValue) => {
                     console.log('[Waitlist] USC card scanned:', uscId);
+                    
+                    // CRITICAL: Check if card already registered before storing
+                    try {
+                      const checkRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/usc/check-card/${uscId}`);
+                      const checkData = await checkRes.json();
+                      
+                      if (checkData.registered) {
+                        alert('This USC card is already registered to another account. Please log in with that account or scan a different card.');
+                        setShowBarcodeScanner(false);
+                        return;
+                      }
+                    } catch (err) {
+                      console.warn('[Waitlist] Could not check card status, proceeding anyway');
+                    }
                     
                     // Store USC card data and redirect to onboarding
                     // No admin code needed - USC card IS the verification
