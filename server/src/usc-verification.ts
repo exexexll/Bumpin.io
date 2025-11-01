@@ -45,6 +45,44 @@ function hashUSCId(uscId: string): string {
 }
 
 /**
+ * GET /usc/check-card/:uscId
+ * Check if USC card is already registered (DUPLICATE PREVENTION)
+ */
+router.get('/check-card/:uscId', async (req, res) => {
+  const { uscId } = req.params;
+  
+  console.log('[USC] Checking card registration for:', uscId ? '******' + uscId.slice(-4) : 'invalid');
+  
+  if (!uscId || !/^\d{10}$/.test(uscId)) {
+    return res.status(400).json({ 
+      error: 'Invalid USC ID format',
+      registered: false 
+    });
+  }
+  
+  try {
+    const result = await query(
+      'SELECT user_id, first_scanned_at FROM usc_card_registrations WHERE usc_id = $1 LIMIT 1',
+      [uscId]
+    );
+    
+    const isRegistered = result.rows.length > 0;
+    console.log('[USC] Card check result:', isRegistered ? 'ALREADY REGISTERED' : 'Available');
+    
+    res.json({
+      registered: isRegistered,
+      uscId: uscId.slice(0, 2) + '****' + uscId.slice(-4), // Redacted for privacy
+    });
+  } catch (err) {
+    console.error('[USC] Failed to check card:', err);
+    res.status(500).json({ 
+      error: 'Failed to check card status',
+      registered: false // Fail open (allow signup if check fails)
+    });
+  }
+});
+
+/**
  * Check scan rate limit
  */
 function checkScanRateLimit(ip: string): boolean {
