@@ -207,20 +207,15 @@ export default function WaitlistPage() {
 
           {/* USC Portal - Separate Section */}
           <div className="text-center space-y-4">
-            <div className="space-y-2">
-              <p className="text-[#eaeaf0] text-base font-bold">
-                USC Students / QR Code Invite Only (no admin code needed)
-              </p>
-              <p className="text-[#eaeaf0]/60 text-xs">
-                Scan admin QR code, USC card, or friend invite code
-              </p>
-            </div>
+            <p className="text-[#eaeaf0] text-base font-bold">
+              USC Students / Invite Only
+            </p>
               
             <button
               onClick={() => setShowScanChoice(true)}
               className="w-full rounded-xl bg-[#ffc46a] px-6 py-4 font-bold text-[#0a0a0c] hover:opacity-90 transition-opacity text-base shadow-lg"
             >
-              📱 Scan QR Code or Barcode to Sign Up
+              📱 Scan to Sign Up
             </button>
           </div>
 
