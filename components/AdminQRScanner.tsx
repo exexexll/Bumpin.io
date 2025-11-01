@@ -30,11 +30,12 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
           aspectRatio: 1.0,
           rememberLastUsedCamera: true,
           showTorchButtonIfSupported: true,
+          supportedScanTypes: [0, 1], // QR Code and Data Matrix
         },
-        /* verbose= */ false // Hide default UI buttons
+        /* verbose= */ true // CHANGED: Show default UI to help debug
       );
       
-      console.log('[QR] Calling scanner.render()...');
+      console.log('[QR] Scanner object created, calling render()...');
 
       scanner.render(
         // Success callback
