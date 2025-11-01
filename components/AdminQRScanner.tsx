@@ -14,30 +14,32 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
   const [cameraStarted, setCameraStarted] = useState(false);
 
   const startScanner = () => {
+    console.log('[QR] User clicked Enable Camera button');
     setCameraStarted(true);
     
-    // Initialize scanner after user clicks button
-    const scanner = new Html5QrcodeScanner(
-      'qr-reader',
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-        rememberLastUsedCamera: true,
-        showTorchButtonIfSupported: true,
-        formatsToSupport: undefined, // All formats
-        videoConstraints: {
-          facingMode: "environment", // Back camera on mobile
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+      console.log('[QR] Initializing scanner...');
+      
+      // Initialize scanner after user clicks button
+      const scanner = new Html5QrcodeScanner(
+        'qr-reader',
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
+          rememberLastUsedCamera: true,
+          showTorchButtonIfSupported: true,
         },
-      },
-      /* verbose= */ false // Hide default UI buttons
-    );
+        /* verbose= */ false // Hide default UI buttons
+      );
+      
+      console.log('[QR] Calling scanner.render()...');
 
-    scanner.render(
-      // Success callback
-      (decodedText) => {
-        console.log('[QR] Scanned:', decodedText);
+      scanner.render(
+        // Success callback
+        (decodedText) => {
+          console.log('[QR] ✅ Successfully scanned:', decodedText);
         
         try {
           // Check if it's a URL (QR code from admin)
@@ -70,25 +72,23 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
         } catch (err) {
           setError('Failed to parse QR code');
         }
-      },
-      // Error callback
-      (errorMessage) => {
-        // Ignore frequent scan errors
-      }
-    );
+        },
+        // Error callback
+        (errorMessage) => {
+          // Ignore frequent scan errors (too noisy)
+        }
+      );
+      
+      console.log('[QR] Scanner rendered successfully');
+      scannerRef.current = scanner;
 
-    scannerRef.current = scanner;
-
-    // Auto-timeout after 2 minutes
-    const timeout = setTimeout(() => {
-      scanner.clear();
-      onClose();
-    }, 120000);
-
-    return () => {
-      clearTimeout(timeout);
-      scanner.clear().catch(() => {});
-    };
+      // Auto-timeout after 2 minutes
+      const timeout = setTimeout(() => {
+        console.log('[QR] Timeout reached, closing scanner');
+        scanner.clear();
+        onClose();
+      }, 120000);
+    }, 100); // 100ms delay for DOM readiness
   };
 
   return (

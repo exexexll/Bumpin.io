@@ -466,13 +466,11 @@ router.post('/link', async (req, res) => {
 
     console.log('[Auth] guest-usc request:', { name, gender, inviteCode: inviteCode ? '✅ PROVIDED' : '❌ MISSING' });
 
-    if (!name || !name.trim()) {
-      return res.status(400).json({ error: 'Name is required' });
-    }
-
-    if (!['female', 'male', 'nonbinary', 'unspecified'].includes(gender)) {
-      return res.status(400).json({ error: 'Invalid gender' });
-    }
+    // Allow temporary name/gender for email signup path (will be updated in onboarding)
+    const userName = name?.trim() || 'User';
+    const userGender = ['female', 'male', 'nonbinary', 'unspecified'].includes(gender) ? gender : 'unspecified';
+    
+    console.log('[Auth] Using name:', userName, 'gender:', userGender);
 
     const userId = uuidv4();
     const sessionToken = uuidv4();
@@ -489,7 +487,7 @@ router.post('/link', async (req, res) => {
       }
 
       console.log('[Auth] Calling store.useInviteCode...');
-      const result = await store.useInviteCode(sanitizedCode, userId, name.trim(), undefined, true); // skipEmailCheck=true for USC card users
+      const result = await store.useInviteCode(sanitizedCode, userId, userName, undefined, true); // skipEmailCheck=true for USC card users
       console.log('[Auth] useInviteCode result:', result);
       
       if (!result.success) {
@@ -519,7 +517,7 @@ router.post('/link', async (req, res) => {
         code += chars[randomBytes[i] % chars.length];
       }
       newUserInviteCode = code;
-      console.log(`[Auth] Will generate 4-use invite code for USC user ${name}: ${newUserInviteCode} (length: ${code.length})`);
+      console.log(`[Auth] Will generate 4-use invite code for USC user ${userName}: ${newUserInviteCode} (length: ${code.length})`);
     }
 
     try {
@@ -529,8 +527,8 @@ router.post('/link', async (req, res) => {
       
       const user: User = {
         userId,
-        name: name.trim(),
-        gender,
+        name: userName,
+        gender: userGender,
         accountType: 'guest',
         createdAt: Date.now(),
         banStatus: 'none',
@@ -571,7 +569,7 @@ router.post('/link', async (req, res) => {
         const newInviteCode: import('./types').InviteCode = {
           code: newUserInviteCode,
           createdBy: userId,
-          createdByName: name.trim(),
+          createdByName: userName,
           createdAt: Date.now(),
           type: 'user',
           maxUses: 4,
@@ -581,10 +579,10 @@ router.post('/link', async (req, res) => {
         };
         
         await store.createInviteCode(newInviteCode);
-        console.log(`[Auth] ✅ Generated 4-use invite code for USC user ${name}: ${newUserInviteCode}`);
+        console.log(`[Auth] ✅ Generated 4-use invite code for USC user ${userName}: ${newUserInviteCode}`);
       }
 
-      console.log(`[Auth] USC guest account created: ${name}, user ${userId.substring(0, 8)}, expires: ${expiresAt.toISOString()}`);
+      console.log(`[Auth] USC guest account created: ${userName}, user ${userId.substring(0, 8)}, expires: ${expiresAt.toISOString()}`);
 
       res.json({
         sessionToken,

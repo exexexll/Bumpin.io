@@ -7,6 +7,9 @@ import { Container } from '@/components/Container';
 import { API_BASE } from '@/lib/config';
 import { AdminQRScanner } from '@/components/AdminQRScanner';
 import { USCCardScanner } from '@/components/usc-verification/USCCardScanner';
+import { PasswordInput } from '@/components/PasswordInput';
+import { EmailVerification } from '@/components/EmailVerification';
+import { saveSession } from '@/lib/session';
 import Link from 'next/link';
 
 const US_STATES = [
@@ -35,6 +38,117 @@ export default function WaitlistPage() {
   const [showScanChoice, setShowScanChoice] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  
+  // USC Email Signup states
+  const [showEmailSignup, setShowEmailSignup] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [passwordValid, setPasswordValid] = useState(false);
+  const [showEmailVerify, setShowEmailVerify] = useState(false);
+  const [tempSessionToken, setTempSessionToken] = useState('');
+  const [tempUserId, setTempUserId] = useState('');
+
+  const handleEmailSignup = async () => {
+    if (!signupEmail.trim().toLowerCase().endsWith('@usc.edu')) {
+      setError('Must be a @usc.edu email address');
+      return;
+    }
+    
+    if (!passwordValid) {
+      setError('Password does not meet requirements');
+      return;
+    }
+    
+    setLoading(true);
+    setError('');
+    
+    try {
+      console.log('[Waitlist] Creating USC email signup account...');
+      
+      // Create guest account without name/gender (will be set in onboarding)
+      const res1 = await fetch(`${API_BASE}/auth/guest-usc`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'User', // Temporary
+          gender: 'unspecified', // Temporary
+        }),
+      });
+      
+      if (!res1.ok) {
+        const errorData = await res1.json();
+        throw new Error(errorData.error || 'Failed to create account');
+      }
+      
+      const data1 = await res1.json();
+      setTempSessionToken(data1.sessionToken);
+      setTempUserId(data1.userId);
+      
+      console.log('[Waitlist] Account created, sending verification code...');
+      
+      // Send verification code
+      const res2 = await fetch(`${API_BASE}/verification/send`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${data1.sessionToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: signupEmail.trim() }),
+      });
+      
+      if (!res2.ok) {
+        throw new Error('Failed to send verification code');
+      }
+      
+      console.log('[Waitlist] Verification code sent, showing verification UI');
+      setShowEmailVerify(true);
+    } catch (err: any) {
+      console.error('[Waitlist] Email signup error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleEmailVerified = async () => {
+    try {
+      console.log('[Waitlist] Email verified, linking account...');
+      
+      // Link email and password
+      const res = await fetch(`${API_BASE}/auth/link`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${tempSessionToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: signupEmail.trim(),
+          password: signupPassword,
+        }),
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to link account');
+      }
+      
+      console.log('[Waitlist] Account linked, saving session and redirecting...');
+      
+      // Save session
+      saveSession({
+        sessionToken: tempSessionToken,
+        userId: tempUserId,
+        accountType: 'permanent',
+      });
+      
+      // Redirect to onboarding for name/photo/video
+      setShowEmailSignup(false);
+      router.push('/onboarding');
+    } catch (err: any) {
+      console.error('[Waitlist] Email verification error:', err);
+      setError(err.message);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -305,11 +419,96 @@ export default function WaitlistPage() {
                     router.push('/onboarding');
                   }}
                   onSkipToEmail={() => {
+                    console.log('[Waitlist] User chose email signup instead of card scan');
                     setShowBarcodeScanner(false);
+                    setShowEmailSignup(true);
                   }}
                 />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* USC Email Signup Modal */}
+        {showEmailSignup && (
+          <div className="fixed inset-0 z-[999] bg-black/95 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-w-md w-full rounded-2xl bg-[#0a0a0c] p-8 border border-white/10"
+            >
+              <h2 className="font-playfair text-2xl font-bold text-[#eaeaf0] mb-6">
+                Sign Up with USC Email
+              </h2>
+              
+              {!showEmailVerify ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-[#eaeaf0] mb-2 block">
+                      USC Email
+                    </label>
+                    <input
+                      type="email"
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
+                      placeholder="your@usc.edu"
+                      className="w-full rounded-xl bg-white/10 px-4 py-3 text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-[#ffc46a]"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-[#eaeaf0] mb-2 block">
+                      Password
+                    </label>
+                    <PasswordInput
+                      value={signupPassword}
+                      onChange={setSignupPassword}
+                      onValidationChange={(isValid) => setPasswordValid(isValid)}
+                      placeholder="Choose a password"
+                      showRequirements={true}
+                    />
+                  </div>
+                  
+                  {error && (
+                    <div className="rounded-xl bg-red-500/10 p-4 text-sm text-red-400">
+                      {error}
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowEmailSignup(false);
+                        setSignupEmail('');
+                        setSignupPassword('');
+                        setError('');
+                      }}
+                      className="flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] hover:bg-white/20 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleEmailSignup}
+                      disabled={loading || !passwordValid || !signupEmail.trim().endsWith('@usc.edu')}
+                      className="flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-bold text-[#0a0a0c] hover:opacity-90 transition-opacity disabled:opacity-50"
+                    >
+                      {loading ? 'Sending...' : 'Send Code'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-[#eaeaf0]/70 mb-4">
+                    We sent a 6-digit code to <strong>{signupEmail}</strong>
+                  </p>
+                  <EmailVerification
+                    sessionToken={tempSessionToken}
+                    email={signupEmail}
+                    onVerified={handleEmailVerified}
+                  />
+                </div>
+              )}
+            </motion.div>
           </div>
         )}
 
