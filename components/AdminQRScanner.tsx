@@ -13,31 +13,27 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
   const [error, setError] = useState<string | null>(null);
   const [cameraStarted, setCameraStarted] = useState(false);
 
-  const startScanner = () => {
-    console.log('[QR] User clicked Enable Camera button');
-    setCameraStarted(true);
+  // Initialize scanner when camera is started
+  useEffect(() => {
+    if (!cameraStarted) return;
     
-    // Small delay to ensure DOM is ready
-    setTimeout(() => {
-      console.log('[QR] Initializing scanner...');
-      
-      // Initialize scanner after user clicks button
-      const scanner = new Html5QrcodeScanner(
-        'qr-reader',
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-          rememberLastUsedCamera: true,
-          showTorchButtonIfSupported: true,
-          supportedScanTypes: [0, 1], // QR Code and Data Matrix
-        },
-        /* verbose= */ true // CHANGED: Show default UI to help debug
-      );
-      
-      console.log('[QR] Scanner object created, calling render()...');
+    console.log('[QR] useEffect triggered - initializing scanner...');
+    
+    const scanner = new Html5QrcodeScanner(
+      'qr-reader',
+      {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+        rememberLastUsedCamera: true,
+        showTorchButtonIfSupported: true,
+      },
+      /* verbose= */ true // Show UI for debugging
+    );
+    
+    console.log('[QR] Calling scanner.render()...');
 
-      scanner.render(
+    scanner.render(
         // Success callback
         (decodedText) => {
           console.log('[QR] ✅ Successfully scanned:', decodedText);
@@ -80,16 +76,27 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
         }
       );
       
-      console.log('[QR] Scanner rendered successfully');
-      scannerRef.current = scanner;
+    console.log('[QR] Scanner rendered successfully');
+    scannerRef.current = scanner;
 
-      // Auto-timeout after 2 minutes
-      const timeout = setTimeout(() => {
-        console.log('[QR] Timeout reached, closing scanner');
-        scanner.clear();
-        onClose();
-      }, 120000);
-    }, 100); // 100ms delay for DOM readiness
+    // Auto-timeout after 2 minutes
+    const timeout = setTimeout(() => {
+      console.log('[QR] Timeout reached, closing scanner');
+      scanner.clear();
+      onClose();
+    }, 120000);
+
+    // Cleanup on unmount
+    return () => {
+      console.log('[QR] Cleaning up scanner');
+      clearTimeout(timeout);
+      scanner.clear().catch(() => {});
+    };
+  }, [cameraStarted, onScan, onClose]);
+
+  const startScanner = () => {
+    console.log('[QR] User clicked Enable Camera button');
+    setCameraStarted(true);
   };
 
   return (
