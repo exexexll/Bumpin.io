@@ -626,8 +626,24 @@ router.post('/link', async (req, res) => {
       return res.json({ success: true });
     }
     
+    // Check 3-attempt limit
+    const shouldReset = user.verification_code_expires_at && 
+                       (Date.now() - user.verification_code_expires_at) > 3600000;
+    const currentAttempts = shouldReset ? 0 : (user.verification_attempts || 0);
+    
+    if (currentAttempts >= 3) {
+      return res.status(429).json({ error: 'Too many attempts. Wait 1 hour.' });
+    }
+    
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    await store.setVerificationCode(email.trim().toLowerCase(), code);
+    const expiresAt = Date.now() + (10 * 60 * 1000);
+    
+    // Store in user object (not separate table)
+    await store.updateUser(user.userId, {
+      verification_code: code,
+      verification_code_expires_at: expiresAt,
+      verification_attempts: currentAttempts + 1,
+    });
     
     const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
