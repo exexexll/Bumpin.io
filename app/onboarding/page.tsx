@@ -828,21 +828,38 @@ function OnboardingPageContent() {
         
         if (!res.ok) {
           const errorData = await res.json();
-          throw new Error(errorData.error || 'Failed to register USC card');
+          
+          // If card already registered, allow user to continue anyway
+          if (res.status === 409) {
+            console.warn('[Onboarding] USC card already registered - allowing user to continue');
+            // Clean up temp storage
+            sessionStorage.removeItem('temp_usc_id');
+            sessionStorage.removeItem('temp_usc_barcode');
+            // Continue to main (don't throw error)
+          } else {
+            throw new Error(errorData.error || 'Failed to register USC card');
+          }
+        } else {
+          console.log('[Onboarding] USC card registered to database');
+          // Clean up temp storage
+          sessionStorage.removeItem('temp_usc_id');
+          sessionStorage.removeItem('temp_usc_barcode');
         }
-        
-        console.log('[Onboarding] USC card registered to database');
-        // Clean up temp storage
-        sessionStorage.removeItem('temp_usc_id');
-        sessionStorage.removeItem('temp_usc_barcode');
       } catch (err: any) {
         console.error('[Onboarding] USC card registration failed:', err);
         console.error('[Onboarding] Full error:', err.message);
         
-        // CRITICAL: Don't continue if USC card fails to save
-        setError('Failed to register USC card: ' + err.message);
-        setLoading(false);
-        return; // STOP - don't go to main without USC card saved
+        // Allow user to continue if card already registered
+        if (err.message?.includes('already registered')) {
+          console.warn('[Onboarding] Allowing user to continue despite duplicate card');
+          sessionStorage.removeItem('temp_usc_id');
+          sessionStorage.removeItem('temp_usc_barcode');
+        } else {
+          // For other errors, block and show message
+          setError('Failed to register USC card: ' + err.message);
+          setLoading(false);
+          return;
+        }
       }
     }
     
@@ -1406,7 +1423,10 @@ function OnboardingPageContent() {
                         ref={videoPreviewRef}
                         src={videoPreviewUrl}
                         controls
-                        className="h-full w-full object-contain"
+                        autoPlay
+                        playsInline
+                        className="h-full w-full object-contain bg-black"
+                        style={{ display: 'block' }}
                       />
                     ) : (
                       // Show live camera feed
