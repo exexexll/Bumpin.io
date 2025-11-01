@@ -98,7 +98,7 @@ export default function DirectMatchInput({ onMatch }: DirectMatchInputProps) {
                 placeholder="e.g., ABC12345"
                 maxLength={10}
                 autoFocus
-                className="w-full rounded-xl bg-white/10 px-4 py-3 font-mono text-center text-lg uppercase text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full rounded-xl bg-white/10 px-4 py-3 font-mono text-center text-lg uppercase text-[#eaeaf0] placeholder-[#eaeaf0]/50 focus:outline-none focus:ring-2 focus:ring-[#ffc46a]"
               />
 
               {error && (
@@ -110,9 +110,14 @@ export default function DirectMatchInput({ onMatch }: DirectMatchInputProps) {
               <button
                 onClick={handleMatch}
                 disabled={loading || !code.trim()}
-                className="focus-ring w-full rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 px-6 py-3 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="focus-ring w-full rounded-xl bg-[#ffc46a] px-6 py-3 font-bold text-[#0a0a0c] transition-opacity hover:opacity-90 disabled:opacity-50 shadow-lg"
               >
-                {loading ? 'Matching...' : '🚀 Match Now'}
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#0a0a0c] border-t-transparent" />
+                    <span>Matching...</span>
+                  </div>
+                ) : '🚀 Match Now'}
               </button>
             </div>
 
