@@ -97,9 +97,9 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
         className="w-full h-full flex items-center justify-center overflow-hidden bg-black instagram-embed-wrapper relative"
         style={{ padding: 0, pointerEvents: 'auto' }}
       >
-        {/* Black bars cover Instagram's white header/footer */}
-        <div className="absolute top-0 left-0 right-0 h-16 bg-black z-[15]" style={{ pointerEvents: 'none' }} />
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-black z-[15]" style={{ pointerEvents: 'none' }} />
+        {/* Black bars cover Instagram's white header/footer - arrows must be above */}
+        <div className="absolute top-0 left-0 right-0 h-16 bg-black z-10" style={{ pointerEvents: 'none' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-black z-10" style={{ pointerEvents: 'none' }} />
         
         <style jsx>{`
           /* Container styling */
@@ -152,7 +152,7 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             touch-action: auto !important;
           }
           
-          /* CRITICAL: Make Instagram's carousel navigation arrows ALWAYS visible */
+          /* CRITICAL: Make Instagram's carousel navigation arrows ALWAYS visible and ABOVE black bars */
           .instagram-embed-wrapper :global(.coreSpriteLeftChevron),
           .instagram-embed-wrapper :global(.coreSpriteRightChevron),
           .instagram-embed-wrapper :global([aria-label*="Next"]),
@@ -160,16 +160,20 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
           .instagram-embed-wrapper :global([aria-label*="Go to"]),
           .instagram-embed-wrapper :global(button[aria-label*="Next"]),
           .instagram-embed-wrapper :global(button[aria-label*="Previous"]),
+          .instagram-embed-wrapper :global(button),
           .instagram-embed-wrapper :global([role="button"]) {
             display: block !important;
             pointer-events: auto !important;
             opacity: 1 !important;
             visibility: visible !important;
             cursor: pointer !important;
-            z-index: 9999 !important;
+            z-index: 99999 !important;
             position: relative !important;
-            background: rgba(255, 255, 255, 0.9) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
             border-radius: 50% !important;
+            width: 32px !important;
+            height: 32px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
           }
           
           /* Ensure video controls are visible */
