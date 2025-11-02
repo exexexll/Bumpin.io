@@ -653,26 +653,22 @@ router.post('/link', async (req, res) => {
       verification_attempts: currentAttempts + 1,
     });
     
-    console.log('[Auth] Code stored, sending email...');
+    console.log('[Auth] Code stored, sending email via email service...');
     
-    const sgMail = require('@sendgrid/mail');
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    // Use the same sendVerificationEmail function as regular verification
+    const { sendVerificationEmail } = require('./email');
     
-    if (!process.env.SENDGRID_API_KEY) {
-      throw new Error('SendGrid API key not configured');
+    const emailSent = await sendVerificationEmail(
+      email.trim().toLowerCase(), 
+      code, 
+      user.name,
+      'Password Reset Code - BUMPIN' // Custom subject
+    );
+    
+    if (!emailSent) {
+      console.error('[Auth] Failed to send reset email');
+      throw new Error('Failed to send reset code. Please try again or contact support.');
     }
-    
-    await sgMail.send({
-      to: email.trim().toLowerCase(),
-      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@bumpin.io',
-      subject: 'Password Reset Code - BUMPIN',
-      html: `<div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2 style="color: #ffc46a;">Password Reset</h2>
-        <p>Code: <strong style="font-size: 24px; letter-spacing: 3px;">${code}</strong></p>
-        <p>Expires in 10 minutes.</p>
-        <p style="color: #999; font-size: 12px;">Attempt ${currentAttempts + 1}/3</p>
-      </div>`,
-    });
     
     console.log('[Auth] ✅ Reset code sent successfully');
     res.json({ success: true });

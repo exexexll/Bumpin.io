@@ -27,8 +27,9 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
         aspectRatio: 1.0,
         rememberLastUsedCamera: true,
         showTorchButtonIfSupported: true,
+        formatsToSupport: [0], // Only QR Code (format 0), not other barcodes
       },
-      /* verbose= */ true // Show UI for debugging
+      /* verbose= */ true // Keep UI visible to see errors
     );
     
     console.log('[QR] Calling scanner.render()...');
