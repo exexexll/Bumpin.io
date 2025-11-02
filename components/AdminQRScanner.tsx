@@ -30,7 +30,7 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
           fps: 10,
           qrbox: { width: 250, height: 250 },
         },
-        (decodedText, decodedResult) => {
+        async (decodedText, decodedResult) => {
           console.log('[QR] ✅ Scanned:', decodedText);
           
           try {
@@ -40,11 +40,13 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
               console.log('[QR] Scanned URL hostname:', url.hostname);
               console.log('[QR] Full URL:', decodedText);
               
-              // Accept bumpin.io and all subdomains (www.bumpin.io, app.bumpin.io, etc.)
+              // Accept bumpin.io, napalmsky.com, and QR code generator domains
               const validDomain = url.hostname === 'bumpin.io' || 
                                  url.hostname.endsWith('.bumpin.io') ||
                                  url.hostname === 'napalmsky.com' ||
                                  url.hostname.endsWith('.napalmsky.com') ||
+                                 url.hostname === 'myqrcode.mobi' || // QR generator
+                                 url.hostname.endsWith('.myqrcode.mobi') ||
                                  url.hostname === 'localhost';
               
               if (!validDomain) {
@@ -53,12 +55,18 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
                 return;
               }
               
+              console.log('[QR] ✅ Valid domain:', url.hostname);
+              
               const code = url.searchParams.get('inviteCode');
               console.log('[QR] Extracted inviteCode:', code);
               
               if (code && /^[A-Z0-9]{16}$/i.test(code)) {
                 console.log('[QR] ✅ Valid code, stopping scanner and calling onScan');
-                html5QrCode.stop();
+                try {
+                  await html5QrCode.stop();
+                } catch (stopErr) {
+                  console.warn('[QR] Stop error (ignored):', stopErr);
+                }
                 onScan(code.toUpperCase());
               } else {
                 console.error('[QR] No valid inviteCode parameter in URL');
@@ -67,7 +75,12 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
             }
             // Check if it's direct code
             else if (/^[A-Z0-9]{16}$/i.test(decodedText)) {
-              html5QrCode.stop();
+              console.log('[QR] Direct code scanned');
+              try {
+                await html5QrCode.stop();
+              } catch (stopErr) {
+                console.warn('[QR] Stop error (ignored):', stopErr);
+              }
               onScan(decodedText.toUpperCase());
             }
           } catch (err) {
