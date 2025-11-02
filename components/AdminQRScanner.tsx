@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface AdminQRScannerProps {
   onScan: (inviteCode: string) => void;
@@ -9,110 +9,78 @@ interface AdminQRScannerProps {
 }
 
 export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cameraStarted, setCameraStarted] = useState(false);
+  const [scanning, setScanning] = useState(false);
 
-  // Initialize scanner when camera is started
-  useEffect(() => {
-    if (!cameraStarted) return;
+  const startScanning = async () => {
+    console.log('[QR] Starting camera...');
+    setError(null);
     
-    console.log('[QR] useEffect triggered - initializing scanner...');
-    
-    // Small delay to ensure qr-reader div exists in DOM
-    const timer = setTimeout(() => {
-      try {
-        const qrReaderElement = document.getElementById('qr-reader');
-        if (!qrReaderElement) {
-          console.error('[QR] qr-reader element not found in DOM!');
-          setError('Scanner element not ready. Please try again.');
-          return;
-        }
-        
-        console.log('[QR] qr-reader element found, creating scanner...');
-        
-        const scanner = new Html5QrcodeScanner(
-          'qr-reader',
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0,
-            rememberLastUsedCamera: true,
-            showTorchButtonIfSupported: true,
-            formatsToSupport: [0], // Only QR Code
-          },
-          /* verbose= */ true // Show UI and errors
-        );
-        
-        console.log('[QR] Scanner created, calling render()...');
-
-        scanner.render(
-        // Success callback
-        (decodedText) => {
-          console.log('[QR] ✅ Successfully scanned:', decodedText);
-        
-        try {
-          // Check if it's a URL (QR code from admin)
-          if (decodedText.startsWith('http')) {
-            const url = new URL(decodedText);
-            
-            // SECURITY: Validate domain
-            if (!url.hostname.includes('napalmsky.com') && 
-                !url.hostname.includes('bumpin.io')) {
-              setError('Invalid QR code domain');
-              return;
-            }
-            
-            // Extract invite code
-            const code = url.searchParams.get('inviteCode');
-            if (code && /^[A-Z0-9]{16}$/i.test(code)) {
-              scanner.clear();
-              onScan(code.toUpperCase());
-            } else {
-              setError('No valid invite code in QR');
-            }
-          }
-          // Check if it's a direct invite code
-          else if (/^[A-Z0-9]{16}$/i.test(decodedText)) {
-            scanner.clear();
-            onScan(decodedText.toUpperCase());
-          } else {
-            setError('Invalid QR code format');
-          }
-        } catch (err) {
-          setError('Failed to parse QR code');
-        }
+    try {
+      const html5QrCode = new Html5Qrcode('qr-reader');
+      html5QrCodeRef.current = html5QrCode;
+      
+      console.log('[QR] Requesting camera permission...');
+      
+      await html5QrCode.start(
+        { facingMode: "environment" }, // Back camera on mobile
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
         },
-        // Error callback
+        (decodedText, decodedResult) => {
+          console.log('[QR] ✅ Scanned:', decodedText);
+          
+          try {
+            // Check if it's a URL
+            if (decodedText.startsWith('http')) {
+              const url = new URL(decodedText);
+              if (!url.hostname.includes('napalmsky.com') && 
+                  !url.hostname.includes('bumpin.io')) {
+                setError('Invalid QR domain');
+                return;
+              }
+              const code = url.searchParams.get('inviteCode');
+              if (code && /^[A-Z0-9]{16}$/i.test(code)) {
+                html5QrCode.stop();
+                onScan(code.toUpperCase());
+              }
+            }
+            // Check if it's direct code
+            else if (/^[A-Z0-9]{16}$/i.test(decodedText)) {
+              html5QrCode.stop();
+              onScan(decodedText.toUpperCase());
+            }
+          } catch (err) {
+            console.error('[QR] Parse error:', err);
+          }
+        },
         (errorMessage) => {
-          // Ignore frequent scan errors (too noisy)
+          // Ignore scan errors (too frequent)
         }
       );
       
-        console.log('[QR] Scanner rendered successfully');
-        scannerRef.current = scanner;
-
-        // Auto-timeout after 2 minutes
-        const timeout = setTimeout(() => {
-          console.log('[QR] Timeout reached, closing scanner');
-          scanner.clear();
-          onClose();
-        }, 120000);
-      } catch (err) {
-        console.error('[QR] Scanner initialization error:', err);
-        setError('Failed to initialize scanner: ' + (err as Error).message);
-      }
-    }, 200); // 200ms delay for DOM
-
-    // Cleanup on unmount
+      setScanning(true);
+      console.log('[QR] ✅ Camera started');
+    } catch (err: any) {
+      console.error('[QR] Camera error:', err);
+      setError('Camera error: ' + err.message);
+    }
+  };
+  
+  useEffect(() => {
+    if (cameraStarted && !scanning) {
+      startScanning();
+    }
+    
     return () => {
-      console.log('[QR] Cleaning up scanner');
-      clearTimeout(timer);
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch(() => {});
+      if (html5QrCodeRef.current) {
+        html5QrCodeRef.current.stop().catch(() => {});
       }
     };
-  }, [cameraStarted, onScan, onClose]);
+  }, [cameraStarted]);
 
   const startScanner = () => {
     console.log('[QR] User clicked Enable Camera button');
