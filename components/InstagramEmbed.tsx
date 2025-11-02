@@ -97,9 +97,9 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
         className="w-full h-full flex items-center justify-center overflow-hidden bg-black instagram-embed-wrapper relative"
         style={{ padding: 0, pointerEvents: 'auto' }}
       >
-        {/* Minimal black bars - only cover extreme edges to not block arrows */}
-        <div className="absolute top-0 left-0 right-0 h-8 bg-black z-10" style={{ pointerEvents: 'none' }} />
-        <div className="absolute bottom-0 left-0 right-0 h-12 bg-black z-10" style={{ pointerEvents: 'none' }} />
+        {/* Very minimal black bars - arrows must be fully visible */}
+        <div className="absolute top-0 left-0 right-0 h-4 bg-black z-10" style={{ pointerEvents: 'none' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-black z-10" style={{ pointerEvents: 'none' }} />
         
         <style jsx>{`
           /* Container styling */
@@ -110,15 +110,15 @@ export function InstagramEmbed({ postUrl, onLoad }: InstagramEmbedProps) {
             overflow: hidden;
           }
           
-          /* Scale to hide white header/footer - reduced to show arrows better */
+          /* Minimal scale - prioritize arrow visibility over hiding white UI */
           .instagram-embed-wrapper :global(.instagram-media) {
             background: #000 !important;
             border: none !important;
             box-shadow: none !important;
             margin: 0 auto !important;
             max-width: 540px !important;
-            transform: scale(1.25) translateY(-30px) !important;
-            overflow: hidden !important;
+            transform: scale(1.1) translateY(-15px) !important;
+            overflow: visible !important;
             position: relative !important;
           }
           
