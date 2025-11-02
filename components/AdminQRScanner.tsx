@@ -19,22 +19,34 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
     
     console.log('[QR] useEffect triggered - initializing scanner...');
     
-    const scanner = new Html5QrcodeScanner(
-      'qr-reader',
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-        rememberLastUsedCamera: true,
-        showTorchButtonIfSupported: true,
-        formatsToSupport: [0], // Only QR Code (format 0), not other barcodes
-      },
-      /* verbose= */ true // Keep UI visible to see errors
-    );
-    
-    console.log('[QR] Calling scanner.render()...');
+    // Small delay to ensure qr-reader div exists in DOM
+    const timer = setTimeout(() => {
+      try {
+        const qrReaderElement = document.getElementById('qr-reader');
+        if (!qrReaderElement) {
+          console.error('[QR] qr-reader element not found in DOM!');
+          setError('Scanner element not ready. Please try again.');
+          return;
+        }
+        
+        console.log('[QR] qr-reader element found, creating scanner...');
+        
+        const scanner = new Html5QrcodeScanner(
+          'qr-reader',
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            rememberLastUsedCamera: true,
+            showTorchButtonIfSupported: true,
+            formatsToSupport: [0], // Only QR Code
+          },
+          /* verbose= */ true // Show UI and errors
+        );
+        
+        console.log('[QR] Scanner created, calling render()...');
 
-    scanner.render(
+        scanner.render(
         // Success callback
         (decodedText) => {
           console.log('[QR] ✅ Successfully scanned:', decodedText);
@@ -77,21 +89,28 @@ export function AdminQRScanner({ onScan, onClose }: AdminQRScannerProps) {
         }
       );
       
-    console.log('[QR] Scanner rendered successfully');
-    scannerRef.current = scanner;
+        console.log('[QR] Scanner rendered successfully');
+        scannerRef.current = scanner;
 
-    // Auto-timeout after 2 minutes
-    const timeout = setTimeout(() => {
-      console.log('[QR] Timeout reached, closing scanner');
-      scanner.clear();
-      onClose();
-    }, 120000);
+        // Auto-timeout after 2 minutes
+        const timeout = setTimeout(() => {
+          console.log('[QR] Timeout reached, closing scanner');
+          scanner.clear();
+          onClose();
+        }, 120000);
+      } catch (err) {
+        console.error('[QR] Scanner initialization error:', err);
+        setError('Failed to initialize scanner: ' + (err as Error).message);
+      }
+    }, 200); // 200ms delay for DOM
 
     // Cleanup on unmount
     return () => {
       console.log('[QR] Cleaning up scanner');
-      clearTimeout(timeout);
-      scanner.clear().catch(() => {});
+      clearTimeout(timer);
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(() => {});
+      }
     };
   }, [cameraStarted, onScan, onClose]);
 
