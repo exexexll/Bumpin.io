@@ -398,6 +398,13 @@ function MainPageContent() {
         <MatchmakeOverlay
           isOpen={showMatchmake}
           onClose={() => {
+            console.log('[Main] Closing matchmaking overlay, disabling background queue');
+            
+            // Auto-disable background queue when exiting overlay
+            setBackgroundQueueEnabled(false);
+            localStorage.setItem('bumpin_background_queue', 'false');
+            backgroundQueue.leaveQueue();
+            
             setShowMatchmake(false);
             setDirectMatchTarget(null);
           }}
