@@ -23,6 +23,7 @@ function MainPageContent() {
   const [showMatchmake, setShowMatchmake] = useState(false);
   const [directMatchTarget, setDirectMatchTarget] = useState<string | null>(null);
   const [backgroundQueueEnabled, setBackgroundQueueEnabled] = useState(false);
+  const [profileComplete, setProfileComplete] = useState(false);
 
   useEffect(() => {
     // Hide footer on main page
@@ -100,8 +101,17 @@ function MainPageContent() {
       headers: { 'Authorization': `Bearer ${session.sessionToken}` },
     }).then(res => res.json());
     
-    Promise.all([paymentPromise, eventPromise])
-      .then(([paymentData, eventData]) => {
+    // Check profile completeness
+    const userPromise = fetch(`${API_BASE}/user/me`, {
+      headers: { 'Authorization': `Bearer ${session.sessionToken}` },
+    }).then(res => res.json());
+    
+    Promise.all([paymentPromise, eventPromise, userPromise])
+      .then(([paymentData, eventData, userData]) => {
+        // Check profile completeness for background queue
+        const hasProfile = !!(userData.selfieUrl && userData.videoUrl);
+        setProfileComplete(hasProfile);
+        
         // CRITICAL: Check if email verification is pending (MUST be first check)
         if (paymentData.pendingEmail && !paymentData.emailVerified) {
           console.log('[Main] Email verification pending - redirecting to complete verification');
@@ -308,12 +318,15 @@ function MainPageContent() {
               <Toggle
                 enabled={backgroundQueueEnabled}
                 onChange={(enabled) => {
+                  if (enabled && !profileComplete) {
+                    alert('⚠️ Please upload a photo and intro video first!\n\nBackground Queue requires a complete profile so others can see you in matchmaking.');
+                    return;
+                  }
                   setBackgroundQueueEnabled(enabled);
                   localStorage.setItem('bumpin_background_queue', String(enabled));
-                  console.log('[Main] Background queue toggle changed to:', enabled ? 'ON' : 'OFF');
-                  // Note: useEffect will call syncWithToggle() which handles join/leave
                 }}
                 label="Background queue toggle"
+                disabled={!profileComplete}
               />
               <div className="text-xs text-white/60">
                 {backgroundQueueEnabled ? 'ON' : 'OFF'}
@@ -365,19 +378,8 @@ function MainPageContent() {
         <MatchmakeOverlay
           isOpen={showMatchmake}
           onClose={() => {
-            console.log('[Main] Closing matchmaking overlay');
-            
-            // CRITICAL: Don't auto-disable background queue!
-            // If user has toggle ON, they want to stay in queue across pages
-            // Only leave queue if toggle is OFF
-            if (!backgroundQueueEnabled) {
-              console.log('[Main] Background queue toggle OFF - leaving queue');
-              backgroundQueue.leaveQueue();
-            } else {
-              console.log('[Main] Background queue toggle ON - staying in queue for other pages');
-              // User stays in queue and can navigate to settings, profile, etc.
-            }
-            
+            // Note: Overlay handleClose already manages queue based on toggle state
+            // Don't do anything with queue here - overlay handles it
             setShowMatchmake(false);
             setDirectMatchTarget(null);
           }}
