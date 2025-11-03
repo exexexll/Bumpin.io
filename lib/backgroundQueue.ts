@@ -19,14 +19,21 @@ class BackgroundQueueManager {
   private callListenersSetup = false; // Track if global listeners are setup
   
   init(socket: Socket) {
+    console.log('[BackgroundQueue] ========== INIT CALLED ==========');
+    console.log('[BackgroundQueue] Socket ID:', socket?.id);
+    console.log('[BackgroundQueue] Socket connected:', socket?.connected);
+    
     // Update socket reference (might be new socket after reconnect)
     this.socket = socket;
+    console.log('[BackgroundQueue] ✅ Socket reference stored');
     
     // Setup visibility/activity detection only once
     if (this.activityListeners.length === 0) {
       this.setupVisibilityDetection();
       this.setupActivityDetection();
       console.log('[BackgroundQueue] Visibility and activity detection setup');
+    } else {
+      console.log('[BackgroundQueue] Visibility/activity already setup');
     }
     
     // Setup call listeners only once
@@ -35,6 +42,8 @@ class BackgroundQueueManager {
     } else {
       console.log('[BackgroundQueue] Already initialized (call listeners active)');
     }
+    
+    console.log('[BackgroundQueue] ========================================');
   }
   
   private setupGlobalCallListeners() {
@@ -169,7 +178,8 @@ class BackgroundQueueManager {
     console.log('[BackgroundQueue] Current page:', typeof window !== 'undefined' ? window.location.pathname : 'unknown');
     
     if (!this.socket) {
-      console.warn('[BackgroundQueue] ❌ No socket, cannot join queue');
+      console.warn('[BackgroundQueue] ❌ No socket - backgroundQueue.init() was never called!');
+      console.warn('[BackgroundQueue] Check if GlobalCallHandler properly initialized');
       return;
     }
     
@@ -243,7 +253,9 @@ class BackgroundQueueManager {
     console.log('[BackgroundQueue] Currently in queue:', this.inQueue);
     
     if (!this.socket) {
-      console.warn('[BackgroundQueue] ❌ No socket, cannot leave queue');
+      console.warn('[BackgroundQueue] ❌ No socket - backgroundQueue.init() was never called!');
+      console.warn('[BackgroundQueue] Cannot leave queue without socket, but setting inQueue=false anyway');
+      this.inQueue = false; // Clear state even if can't emit
       return;
     }
     
