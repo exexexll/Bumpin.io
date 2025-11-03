@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     userScalable: false, // Disable pinch zoom
     viewportFit: 'cover', // iOS safe area support
   },
-  title: 'BUMPIN - 1-1 Video Social Network',
+  title: 'BUMPIN - The Social "Intro" Network for USC Students',
   description: 'Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.',
   keywords: ['1-1 video social network', 'video chat', 'matchmaking', 'social networking', 'live video'],
   authors: [{ name: 'BUMPIN' }],
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     shortcut: '/Love.png',
   },
   openGraph: {
-    title: 'BUMPIN - 1-1 Video Social Network',
+    title: 'BUMPIN - The Social "Intro" Network for USC Students',
     description: 'Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.',
     url: 'https://bumpin.com',
     siteName: 'BUMPIN',
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'BUMPIN - 1-1 Video Social Network',
+    title: 'BUMPIN - The Social "Intro" Network for USC Students',
     description: 'Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.',
     images: ['/Love.png'],
   },
