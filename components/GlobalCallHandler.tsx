@@ -75,32 +75,15 @@ export function GlobalCallHandler() {
       }
     };
 
-    // Listen for background queue events (custom events from backgroundQueue.ts)
-    const handleBackgroundCall = (e: Event) => {
-      const data = (e as CustomEvent).detail;
-      console.log('[GlobalCallHandler] Background queue call event:', data);
-      handleCallNotify(data);
-    };
-
-    const handleBackgroundCallStart = (e: Event) => {
-      const data = (e as CustomEvent).detail;
-      console.log('[GlobalCallHandler] Background queue call start event:', data);
-      handleCallStart(data);
-    };
-
     // Remove existing listeners first
     socket.off('call:notify');
     socket.off('call:start');
 
-    // Add socket listeners
+    // Add socket listeners (these work on ALL pages since GlobalCallHandler persists)
     socket.on('call:notify', handleCallNotify);
     socket.on('call:start', handleCallStart);
 
-    // Add window event listeners for background queue
-    window.addEventListener('backgroundqueue:call', handleBackgroundCall);
-    window.addEventListener('backgroundqueue:callstart', handleBackgroundCallStart);
-
-    console.log('[GlobalCallHandler] ✅ Persistent listeners active (works on ALL pages)');
+    console.log('[GlobalCallHandler] ✅ Persistent socket listeners active (works on ALL pages)');
 
     return () => {
       // Keep listeners active - don't remove

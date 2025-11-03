@@ -38,36 +38,12 @@ class BackgroundQueueManager {
   }
   
   private setupGlobalCallListeners() {
-    if (!this.socket || this.callListenersSetup) {
-      return;
-    }
-    
-    console.log('[BackgroundQueue] Setting up global call listeners for background queue');
-    
-    // Listen for incoming calls while in background queue
-    this.socket.on('call:notify', (data: any) => {
-      console.log('[BackgroundQueue] ✅ Received call notification while in background queue');
-      console.log('[BackgroundQueue] From:', data.fromUser?.name);
-      console.log('[BackgroundQueue] Current page:', typeof window !== 'undefined' ? window.location.pathname : 'unknown');
-      
-      // Emit custom event that main page can listen to
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('backgroundqueue:call', { detail: data }));
-      }
-    });
-    
-    this.socket.on('call:start', (data: any) => {
-      console.log('[BackgroundQueue] ✅ Received call:start while in background queue');
-      console.log('[BackgroundQueue] Room:', data.roomId);
-      
-      // Emit custom event that main page can listen to
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('backgroundqueue:callstart', { detail: data }));
-      }
-    });
+    // NOTE: Socket call listeners are handled by GlobalCallHandler
+    // Background queue only manages queue state (join/leave/sync)
+    // No need for call listeners here - GlobalCallHandler persists across all pages
     
     this.callListenersSetup = true;
-    console.log('[BackgroundQueue] Global call listeners active');
+    console.log('[BackgroundQueue] Call listeners handled by GlobalCallHandler (no duplication)');
   }
   
   private setupVisibilityDetection() {
