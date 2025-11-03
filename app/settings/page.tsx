@@ -9,7 +9,6 @@ import { getSession, clearSession } from '@/lib/session';
 import { API_BASE } from '@/lib/config';
 import { clearLocation, checkLocationStatus } from '@/lib/locationAPI';
 import { PasswordInput } from '@/components/PasswordInput';
-import { Toggle } from '@/components/Toggle';
 import Link from 'next/link';
 
 export default function SettingsPage() {
@@ -31,7 +30,6 @@ export default function SettingsPage() {
   const [verifyingCode, setVerifyingCode] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
-  const [backgroundQueue, setBackgroundQueue] = useState(false);
 
   useEffect(() => {
     const sessionData = getSession();
@@ -672,31 +670,6 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* Background Queue Toggle */}
-          <div className="rounded-xl border border-white/10 bg-white/5 p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <h2 className="text-lg font-bold text-[#eaeaf0] mb-2">
-                  🔄 Background Matchmaking
-                </h2>
-                <p className="text-sm text-[#eaeaf0]/70">
-                  Stay in matchmaking queue while browsing other pages.
-                </p>
-                <p className="text-xs text-[#eaeaf0]/50 mt-2">
-                  Note: 1-minute grace period when switching tabs/minimizing. Auto-removed after 5 minutes of inactivity.
-                </p>
-              </div>
-              <Toggle
-                enabled={backgroundQueue}
-                onChange={(enabled) => {
-                  setBackgroundQueue(enabled);
-                  localStorage.setItem('bumpin_background_queue', String(enabled));
-                  console.log('[Settings] Background queue:', enabled ? 'ON' : 'OFF');
-                }}
-                label="Background matchmaking"
-              />
-            </div>
-          </div>
         </motion.div>
       </Container>
     </main>
