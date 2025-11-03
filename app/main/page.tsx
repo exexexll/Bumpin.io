@@ -50,25 +50,20 @@ function MainPageContent() {
   // This ensures they work across ALL pages, not just /main
 
   // NOTE: Background queue is initialized by GlobalCallHandler
-  // Just sync state with toggle here
+  // Sync state with toggle
   useEffect(() => {
-    console.log('[Main] ==================== USEEFFECT FIRED ====================');
-    console.log('[Main] backgroundQueueEnabled state:', backgroundQueueEnabled);
-    console.log('[Main] Calling syncWithToggle with:', backgroundQueueEnabled);
     backgroundQueue.syncWithToggle(backgroundQueueEnabled);
-    console.log('[Main] ========================================================');
-    
+  }, [backgroundQueueEnabled]);
+  
+  // Cleanup only on unmount (NOT on every toggle change)
+  useEffect(() => {
     return () => {
-      // Don't cleanup if background queue is enabled
-      // User should stay in queue even when leaving /main
-      if (!backgroundQueueEnabled) {
-        console.log('[Main] Cleanup: Background queue is OFF, calling cleanup()');
+      const isEnabled = localStorage.getItem('bumpin_background_queue') === 'true';
+      if (!isEnabled) {
         backgroundQueue.cleanup();
-      } else {
-        console.log('[Main] Cleanup: Background queue is ON, skipping cleanup');
       }
     };
-  }, [backgroundQueueEnabled]);
+  }, []); // Empty deps - only unmount
   
   // Sync queue state when page becomes visible
   useEffect(() => {
