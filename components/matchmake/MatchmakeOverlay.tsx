@@ -63,7 +63,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     lastActivityRef.current = Date.now();
     
     // If was inactive, reactivate
-    if (isInactive) {
+      if (isInactive) {
       console.log('[Matchmake] User reactivated!');
       setIsInactive(false);
       setShowInactivityWarning(false);
@@ -71,7 +71,10 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       // Send heartbeat to server to refresh presence
       if (socketRef.current) {
         socketRef.current.emit('heartbeat');
-        socketRef.current.emit('queue:join'); // Rejoin queue
+        // Only rejoin if background queue OFF
+        if (!backgroundQueue.isBackgroundEnabled()) {
+          socketRef.current.emit('queue:join');
+        }
         console.log('[Matchmake] ✅ Sent reactivation heartbeat');
       }
     }
@@ -562,13 +565,17 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         // Continue anyway (fail open for better UX)
       }
       
-      console.log('[Matchmake] Profile complete, joining presence and queue');
+      console.log('[Matchmake] Profile complete, joining queue');
       
-      // Mark as online (presence:join)
-      socket.emit('presence:join');
-
-      // Join queue (available for matching)
-      socket.emit('queue:join');
+      // Only join if background queue is OFF
+      // If background queue ON, it already manages presence/queue
+      if (!backgroundQueue.isBackgroundEnabled()) {
+        socket.emit('presence:join');
+        socket.emit('queue:join');
+        console.log('[Matchmake] Joined presence and queue (background queue OFF)');
+      } else {
+        console.log('[Matchmake] Background queue ON - already in queue');
+      }
 
       // Load initial queue
       console.log('[Matchmake] Loading initial queue...');
@@ -661,8 +668,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       console.log('[Matchmake] Target user for this decline:', targetUserId?.substring(0, 8) || 'NOT FOUND');
 
       if (targetUserId) {
-        // Rejoin queue when invite is declined
-        if (socketRef.current) {
+        // Rejoin queue when invite is declined (only if background queue OFF)
+        if (socketRef.current && !backgroundQueue.isBackgroundEnabled()) {
           socketRef.current.emit('queue:join');
           console.log('[Matchmake] Rejoined queue after decline');
         }
@@ -790,10 +797,11 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         // User tabbed out or minimized - leave queue to prevent ghost users
         console.log('[Matchmake] 👻 User tabbed out, leaving queue to prevent ghost users...');
         
-        if (socketRef.current && socketRef.current.connected) {
+        // Only leave if background queue OFF (if ON, it manages visibility)
+        if (socketRef.current && socketRef.current.connected && !backgroundQueue.isBackgroundEnabled()) {
           socketRef.current.emit('queue:leave');
           socketRef.current.emit('presence:leave');
-          console.log('[Matchmake] ✅ Left queue and presence (tab hidden)');
+          console.log('[Matchmake] ✅ Left queue and presence (tab hidden, background queue OFF)');
         }
       } else {
         // User came back - rejoin queue automatically
@@ -801,7 +809,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         
         if (socketRef.current) {
           // Wait for socket to be connected before emitting
-          if (socketRef.current.connected) {
+          if (socketRef.current.connected && !backgroundQueue.isBackgroundEnabled()) {
             socketRef.current.emit('presence:join');
             socketRef.current.emit('queue:join');
             
@@ -965,9 +973,11 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
 
     console.log(`[Matchmake] 📞 Sending ${mode} invite to user ${toUserId.substring(0, 8)} for ${requestedSeconds}s`);
 
-    // Mark self as unavailable while waiting (prevents others from inviting you)
-    socketRef.current.emit('queue:leave');
-    console.log('[Matchmake] Left queue while waiting for response');
+    // Mark self as unavailable while waiting (only if background queue OFF)
+    if (!backgroundQueue.isBackgroundEnabled()) {
+      socketRef.current.emit('queue:leave');
+      console.log('[Matchmake] Left queue while waiting for response');
+    }
 
     setInviteStatuses(prev => ({ ...prev, [toUserId]: 'waiting' }));
 
@@ -989,9 +999,11 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     // Emit rescind event to server (sets 1h cooldown)
     socketRef.current.emit('call:rescind', { toUserId });
 
-    // Rejoin queue (become available again)
-    socketRef.current.emit('queue:join');
-    console.log('[Matchmake] Rejoined queue after canceling invite');
+    // Rejoin queue (only if background queue OFF)
+    if (!backgroundQueue.isBackgroundEnabled()) {
+      socketRef.current.emit('queue:join');
+      console.log('[Matchmake] Rejoined queue after canceling invite');
+    }
 
     // Set cooldown status immediately (server will enforce)
     setInviteStatuses(prev => ({ ...prev, [toUserId]: 'cooldown' }));
