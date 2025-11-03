@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { MatchmakeOverlay } from '@/components/matchmake/MatchmakeOverlay';
+import { CalleeNotification } from '@/components/matchmake/CalleeNotification';
 import { ReferralNotifications } from '@/components/ReferralNotifications';
 // Animation removed for cleaner main page
 import { FloatingUserNames } from '@/components/FloatingUserNames';
@@ -23,6 +24,7 @@ function MainPageContent() {
   const [showMatchmake, setShowMatchmake] = useState(false);
   const [directMatchTarget, setDirectMatchTarget] = useState<string | null>(null);
   const [backgroundQueueEnabled, setBackgroundQueueEnabled] = useState(false);
+  const [incomingInvite, setIncomingInvite] = useState<any>(null);
 
   useEffect(() => {
     // Hide footer on main page
@@ -44,6 +46,28 @@ function MainPageContent() {
     const saved = localStorage.getItem('bumpin_background_queue');
     setBackgroundQueueEnabled(saved === 'true');
   }, []);
+  
+  // Listen for incoming call invites globally (outside overlay)
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+    
+    const handleCallNotify = (data: any) => {
+      console.log('[Main] Incoming call notification:', data);
+      setIncomingInvite(data);
+      
+      // Auto-open matchmaking if not already open
+      if (!showMatchmake) {
+        setShowMatchmake(true);
+      }
+    };
+    
+    socket.on('call:notify', handleCallNotify);
+    
+    return () => {
+      socket.off('call:notify', handleCallNotify);
+    };
+  }, [showMatchmake]);
 
   // Initialize background queue manager
   useEffect(() => {
@@ -378,6 +402,25 @@ function MainPageContent() {
             setDirectMatchTarget(null);
           }}
           directMatchTarget={directMatchTarget}
+        />
+      )}
+
+      {/* Global Incoming Call Notification - Always rendered */}
+      {incomingInvite && (
+        <CalleeNotification
+          invite={incomingInvite}
+          onAccept={(duration) => {
+            console.log('[Main] Call accepted, opening matchmaking');
+            setShowMatchmake(true);
+            setIncomingInvite(null);
+            // MatchmakeOverlay will handle the rest
+          }}
+          onDecline={() => {
+            console.log('[Main] Call declined');
+            setIncomingInvite(null);
+            const socket = getSocket();
+            socket?.emit('call:decline', { inviteId: incomingInvite.inviteId });
+          }}
         />
       )}
 

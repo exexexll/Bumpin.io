@@ -11,6 +11,7 @@ import { CalleeNotification } from './CalleeNotification';
 import { LocationPermissionModal } from '@/components/LocationPermissionModal';
 import { VideoProgressBar } from './VideoProgressBar';
 import { requestAndUpdateLocation } from '@/lib/locationAPI';
+import { backgroundQueue } from '@/lib/backgroundQueue';
 // FloatingBrowser removed - social links now open directly
 
 interface MatchmakeOverlayProps {
@@ -695,7 +696,16 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     // Cleanup
     return () => {
       clearInterval(refreshInterval);
-      socket.emit('queue:leave');
+      
+      // CRITICAL: Only leave queue if background queue is OFF
+      // If background queue is ON, user should stay in queue
+      if (!backgroundQueue.isBackgroundEnabled()) {
+        console.log('[MatchmakeOverlay] Background queue OFF, leaving queue on overlay close');
+        socket.emit('queue:leave');
+      } else {
+        console.log('[MatchmakeOverlay] Background queue ON, staying in queue after overlay close');
+      }
+      
       socket.off('auth:success');
       socket.off('presence:update');
       socket.off('queue:update');
