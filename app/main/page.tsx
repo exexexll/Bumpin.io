@@ -40,10 +40,19 @@ function MainPageContent() {
     };
   }, []);
 
-  // Load background queue preference
+  // Load background queue preference and rejoin if needed
   useEffect(() => {
     const saved = localStorage.getItem('bumpin_background_queue');
-    setBackgroundQueueEnabled(saved === 'true');
+    const wasEnabled = saved === 'true';
+    setBackgroundQueueEnabled(wasEnabled);
+    
+    // If toggle was ON (e.g. returning from call), rejoin queue after delay
+    if (wasEnabled) {
+      setTimeout(() => {
+        console.log('[Main] Resyncing background queue on page load (toggle was ON)');
+        backgroundQueue.syncWithToggle(true);
+      }, 1000); // Wait 1s for socket to be ready
+    }
   }, []);
   
   // NOTE: Call listeners are now handled by GlobalCallHandler in app/layout.tsx

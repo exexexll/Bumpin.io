@@ -144,8 +144,14 @@ class BackgroundQueueManager {
     
     // Add pagehide event for iOS/mobile devices
     const handlePageHide = () => {
-      console.log('[BackgroundQueue] Page hidden (mobile/iOS), leaving queue immediately');
-      this.leaveQueue();
+      // CRITICAL: Check toggle state - mobile should also get grace period if toggle ON
+      if (!this.isBackgroundEnabled()) {
+        console.log('[BackgroundQueue] Page hidden (mobile/iOS) and toggle OFF, leaving queue immediately');
+        this.leaveQueue();
+      } else {
+        console.log('[BackgroundQueue] Page hidden (mobile/iOS) but toggle ON, starting grace period...');
+        // Let visibility handler manage it with countdown
+      }
     };
     
     // Add beforeunload for browser close
@@ -205,16 +211,16 @@ class BackgroundQueueManager {
       return;
     }
     
-    // If socket not connected yet, wait for it (up to 5 seconds)
+    // If socket not connected yet, wait for it (up to 10 seconds with retry)
     if (!this.socket.connected) {
-      console.log('[BackgroundQueue] Socket not connected yet, waiting...');
+      console.log('[BackgroundQueue] Socket not connected yet, waiting up to 10s...');
       
-      // Wait for connect event
+      // Wait for connect event with longer timeout
       const connected = await new Promise<boolean>((resolve) => {
         const timeout = setTimeout(() => {
-          console.warn('[BackgroundQueue] Socket connection timeout after 5s');
+          console.warn('[BackgroundQueue] Socket connection timeout after 10s');
           resolve(false);
-        }, 5000);
+        }, 10000); // Increased from 5s to 10s
         
         this.socket!.once('connect', () => {
           clearTimeout(timeout);
@@ -231,6 +237,7 @@ class BackgroundQueueManager {
       
       if (!connected) {
         console.warn('[BackgroundQueue] ❌ Socket did not connect in time, cannot join queue');
+        console.warn('[BackgroundQueue] Try toggling OFF then ON again');
         return;
       }
     }
