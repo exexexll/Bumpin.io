@@ -377,12 +377,18 @@ function MainPageContent() {
         <MatchmakeOverlay
           isOpen={showMatchmake}
           onClose={() => {
-            console.log('[Main] Closing matchmaking overlay, disabling background queue');
+            console.log('[Main] Closing matchmaking overlay');
             
-            // Auto-disable background queue when exiting overlay
-            setBackgroundQueueEnabled(false);
-            localStorage.setItem('bumpin_background_queue', 'false');
-            backgroundQueue.leaveQueue();
+            // CRITICAL: Don't auto-disable background queue!
+            // If user has toggle ON, they want to stay in queue across pages
+            // Only leave queue if toggle is OFF
+            if (!backgroundQueueEnabled) {
+              console.log('[Main] Background queue toggle OFF - leaving queue');
+              backgroundQueue.leaveQueue();
+            } else {
+              console.log('[Main] Background queue toggle ON - staying in queue for other pages');
+              // User stays in queue and can navigate to settings, profile, etc.
+            }
             
             setShowMatchmake(false);
             setDirectMatchTarget(null);
