@@ -647,11 +647,11 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       }
     });
 
-    // Aggressive polling for status changes (5s for instant updates)
+    // Polling for queue updates (10s to avoid overriding real-time events)
     const refreshInterval = setInterval(() => {
       console.log('[Matchmake] Polling for queue updates...');
       checkForNewUsers();
-    }, 5000); // Fast polling for real-time feel
+    }, 10000); // 10s - gives server time to process real-time presence changes
 
     // NOTE: call:notify is handled by main page - don't duplicate listener here
     // Main page will handle incoming calls and show CalleeNotification
