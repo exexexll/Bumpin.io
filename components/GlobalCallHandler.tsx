@@ -43,14 +43,7 @@ export function GlobalCallHandler() {
       return;
     }
 
-    console.log('[GlobalCallHandler] Socket obtained, setting up listeners and background queue...');
-
-    // CRITICAL: ALWAYS initialize background queue (even if socket already existed)
-    // This ensures background queue is set up on first page load
-    backgroundQueue.init(socket);
-    console.log('[GlobalCallHandler] ✅ Background queue initialized with socket');
-
-    console.log('[GlobalCallHandler] Setting up persistent call listeners');
+    console.log('[GlobalCallHandler] Socket obtained, waiting for connection...');
 
     // Listener 1: Incoming call notification
     const handleCallNotify = (data: any) => {
@@ -79,15 +72,37 @@ export function GlobalCallHandler() {
       }
     };
 
-    // Remove existing listeners first
-    socket.off('call:notify');
-    socket.off('call:start');
+    // CRITICAL FIX: Wait for socket to actually connect before setting up
+    const setupListenersAndQueue = () => {
+      console.log('[GlobalCallHandler] Socket connected, setting up listeners and background queue...');
+      
+      // Initialize background queue AFTER socket connected
+      backgroundQueue.init(socket);
+      console.log('[GlobalCallHandler] ✅ Background queue initialized with connected socket');
 
-    // Add socket listeners (these work on ALL pages since GlobalCallHandler persists)
-    socket.on('call:notify', handleCallNotify);
-    socket.on('call:start', handleCallStart);
+      // Remove existing listeners first
+      socket.off('call:notify');
+      socket.off('call:start');
 
-    console.log('[GlobalCallHandler] ✅ Persistent socket listeners active (works on ALL pages)');
+      // Add socket listeners
+      socket.on('call:notify', handleCallNotify);
+      socket.on('call:start', handleCallStart);
+
+      console.log('[GlobalCallHandler] ✅ Persistent socket listeners active (works on ALL pages)');
+    };
+
+    // If socket already connected, setup immediately
+    if (socket.connected) {
+      console.log('[GlobalCallHandler] Socket already connected');
+      setupListenersAndQueue();
+    } else {
+      // Wait for connection
+      console.log('[GlobalCallHandler] Waiting for socket to connect...');
+      socket.once('connect', () => {
+        console.log('[GlobalCallHandler] Socket connect event fired');
+        setupListenersAndQueue();
+      });
+    }
 
     return () => {
       // Keep listeners active - don't remove
