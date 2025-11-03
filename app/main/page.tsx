@@ -225,13 +225,8 @@ function MainPageContent() {
                 onChange={(enabled) => {
                   setBackgroundQueueEnabled(enabled);
                   localStorage.setItem('bumpin_background_queue', String(enabled));
-                  console.log('[Main] Background queue:', enabled ? 'ON' : 'OFF');
-                  
-                  if (enabled) {
-                    backgroundQueue.joinQueue();
-                  } else {
-                    backgroundQueue.leaveQueue();
-                  }
+                  console.log('[Main] Background queue toggle changed to:', enabled ? 'ON' : 'OFF');
+                  // Note: useEffect will call syncWithToggle() which handles join/leave
                 }}
                 label="Background queue toggle"
               />
@@ -309,15 +304,8 @@ function MainPageContent() {
                 onChange={(enabled) => {
                   setBackgroundQueueEnabled(enabled);
                   localStorage.setItem('bumpin_background_queue', String(enabled));
-                  console.log('[Main] Background queue:', enabled ? 'ON' : 'OFF');
-                  
-                  if (enabled) {
-                    // Join queue immediately when enabled
-                    backgroundQueue.joinQueue();
-                  } else {
-                    // Leave queue when disabled
-                    backgroundQueue.leaveQueue();
-                  }
+                  console.log('[Main] Background queue toggle changed to:', enabled ? 'ON' : 'OFF');
+                  // Note: useEffect will call syncWithToggle() which handles join/leave
                 }}
                 label="Background queue toggle"
               />
