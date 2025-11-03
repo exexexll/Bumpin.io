@@ -227,7 +227,9 @@ class BackgroundQueueManager {
       }
     }
     
-    console.log('[BackgroundQueue] ✅ Emitting queue:join to server');
+    console.log('[BackgroundQueue] ✅ Emitting presence:join and queue:join to server');
+    // CRITICAL: Must emit BOTH presence:join (online) AND queue:join (available)
+    this.socket.emit('presence:join');
     this.socket.emit('queue:join');
     this.inQueue = true;
     this.lastActivity = Date.now();
@@ -245,8 +247,10 @@ class BackgroundQueueManager {
       return;
     }
     
-    console.log('[BackgroundQueue] ✅ Leaving queue');
+    console.log('[BackgroundQueue] ✅ Leaving queue and presence');
+    // Emit BOTH queue:leave AND presence:leave
     this.socket.emit('queue:leave');
+    this.socket.emit('presence:leave');
     this.inQueue = false;
     console.log('[BackgroundQueue] ✅ Left queue, inQueue =', this.inQueue);
   }
