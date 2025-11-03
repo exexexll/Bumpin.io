@@ -75,12 +75,13 @@ function MainPageContent() {
     }
     
     return () => {
-      // Only cleanup if toggle is OFF
-      if (!backgroundQueueEnabled) {
+      // Only cleanup if toggle is OFF (check localStorage for current state)
+      const isEnabled = localStorage.getItem('bumpin_background_queue') === 'true';
+      if (!isEnabled) {
         backgroundQueue.cleanup();
       }
     };
-  }, [backgroundQueueEnabled]);
+  }, [backgroundQueueEnabled, showMatchmake]); // Include showMatchmake since we use it
   
   // Sync queue state when page becomes visible
   useEffect(() => {
