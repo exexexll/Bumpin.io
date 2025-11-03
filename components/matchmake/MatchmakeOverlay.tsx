@@ -695,23 +695,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       }
     });
 
-    // Listen for call start (matched!)
-    socket.on('call:start', ({ roomId, agreedSeconds, isInitiator, chatMode, peerUser }: any) => {
-      console.log('[Matchmake] Call starting:', { roomId, agreedSeconds, isInitiator, chatMode, peerUser });
-      
-      const mode = chatMode || 'video'; // Default to video
-      
-      // Route to appropriate room based on mode
-      if (mode === 'text') {
-        router.push(
-          `/text-room/${roomId}?duration=${agreedSeconds}&peerId=${peerUser.userId}&peerName=${encodeURIComponent(peerUser.name)}&peerSelfie=${encodeURIComponent(peerUser.selfieUrl || '')}`
-        );
-      } else {
-        router.push(
-          `/room/${roomId}?duration=${agreedSeconds}&peerId=${peerUser.userId}&peerName=${encodeURIComponent(peerUser.name)}&initiator=${isInitiator}`
-        );
-      }
-    });
+    // NOTE: call:start is handled by main page globally - removed from here
+    // This prevents duplicate navigation when overlay is open
 
     // Cleanup
     return () => {
@@ -729,10 +714,9 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       socket.off('auth:success');
       socket.off('presence:update');
       socket.off('queue:update');
-      // call:notify is handled by main page, not here
+      // call:notify and call:start are handled by main page, not here
       socket.off('call:rescinded');
       socket.off('call:declined');
-      socket.off('call:start');
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, router]);
