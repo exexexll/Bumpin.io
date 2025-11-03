@@ -434,8 +434,8 @@ function MainPageContent() {
         />
       )}
 
-      {/* Global Incoming Call Notification - CRITICAL: Always rendered outside overlay */}
-      {incomingInvite && !showMatchmake && (
+      {/* Global Incoming Call Notification - Shows on ALL pages, even when overlay is open */}
+      {incomingInvite && (
         <CalleeNotification
           invite={incomingInvite}
           onAccept={(inviteId, requestedSeconds) => {
@@ -444,10 +444,12 @@ function MainPageContent() {
             // Clear notification
             setIncomingInvite(null);
             
-            // Open matchmaking - overlay will handle the call
-            setShowMatchmake(true);
+            // Open matchmaking if not already open
+            if (!showMatchmake) {
+              setShowMatchmake(true);
+            }
             
-            // Socket event will be handled by overlay
+            // Emit call:accept from main page
             const socket = getSocket();
             if (socket) {
               console.log('[Main] Emitting call:accept');

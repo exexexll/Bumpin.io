@@ -176,10 +176,9 @@ export function CalleeNotification({ invite, onAccept, onDecline }: CalleeNotifi
               <video
                 ref={videoRef}
                 src={invite.fromUser.videoUrl}
-                autoPlay
-                loop
-                muted
+                controls
                 playsInline
+                preload="metadata"
                 className={`${
                   videoOrientation === 'portrait'
                     ? 'h-full w-auto max-w-full' // Portrait: full height, auto width

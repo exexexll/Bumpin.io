@@ -28,7 +28,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [inviteStatuses, setInviteStatuses] = useState<Record<string, 'idle' | 'waiting' | 'declined' | 'timeout' | 'cooldown'>>({});
-  const [incomingInvite, setIncomingInvite] = useState<any>(null);
+  // incomingInvite is now handled by main page - removed from overlay state
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'info' } | null>(null);
   const [totalAvailable, setTotalAvailable] = useState(0); // Total available count (before reported user filter)
   const [autoInviteSent, setAutoInviteSent] = useState(false);
@@ -627,20 +627,14 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       checkForNewUsers();
     }, 5000); // Fast polling for real-time feel
 
-    // Listen for incoming invites
-    socket.on('call:notify', (invite: any) => {
-      console.log('[Matchmake] Incoming invite:', invite);
-      setIncomingInvite(invite);
-    });
+    // NOTE: call:notify is handled by main page - don't duplicate listener here
+    // Main page will handle incoming calls and show CalleeNotification
 
     // Listen for rescinded invites (someone cancelled their invite to you)
     socket.on('call:rescinded', ({ inviteId }: any) => {
       console.log('[Matchmake] 🚫 Incoming invite was rescinded:', inviteId);
-      // Close the incoming invite notification if it's currently showing
-      if (incomingInvite && incomingInvite.inviteId === inviteId) {
-        setIncomingInvite(null);
-        showToast('Invite was cancelled', 'info');
-      }
+      // Note: Notification is handled by main page now
+      showToast('Invite was cancelled', 'info');
     });
 
     // Listen for declined invites
@@ -709,7 +703,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       socket.off('auth:success');
       socket.off('presence:update');
       socket.off('queue:update');
-      socket.off('call:notify');
+      // call:notify is handled by main page, not here
       socket.off('call:rescinded');
       socket.off('call:declined');
       socket.off('call:start');
@@ -765,7 +759,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
 
   // Keyboard navigation
   useEffect(() => {
-    if (!isOpen || incomingInvite) return;
+    if (!isOpen) return;
 
     // Disable navigation if current user has waiting status
     const currentUserId = users[currentIndex]?.userId;
@@ -785,7 +779,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, currentIndex, users.length, hasMore, loading, incomingInvite, inviteStatuses]);
+  }, [isOpen, currentIndex, users.length, hasMore, loading, inviteStatuses]);
 
   // Page Visibility API: Auto-offline when tab out, auto-rejoin when tab back
   useEffect(() => {
@@ -1006,38 +1000,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     console.log('[Matchmake] ✅ Rescind sent, cooldown status set');
   };
 
-  // Handle accept incoming - useCallback to prevent recreating on every render
-  const handleAccept = useCallback((inviteId: string, requestedSeconds: number) => {
-    if (!socketRef.current) {
-      console.error('[Matchmake] ❌ Cannot accept - socket not available');
-      return;
-    }
-
-    // Record activity when accepting
-    recordActivity();
-
-    console.log(`[Matchmake] 📞 Accepting invite ${inviteId} with ${requestedSeconds}s`);
-    
-    socketRef.current.emit('call:accept', {
-      inviteId,
-      requestedSeconds,
-    });
-
-    setIncomingInvite(null);
-    console.log('[Matchmake] ✅ Accept event sent to server');
-  }, [recordActivity]); // Stable dependencies
-
-  // Handle decline incoming - useCallback to prevent recreating on every render
-  const handleDecline = useCallback((inviteId: string) => {
-    if (!socketRef.current) return;
-
-    // Record activity when declining
-    recordActivity();
-
-    socketRef.current.emit('call:decline', { inviteId });
-    setIncomingInvite(null);
-    console.log('[Matchmake] Declined invite:', inviteId);
-  }, [recordActivity]); // Stable dependencies
+  // Note: handleAccept and handleDecline are now handled by main page
+  // These are no longer used in the overlay since CalleeNotification is rendered by main page
 
   // Handle location permission allow
   const handleLocationAllow = useCallback(async () => {
@@ -1074,10 +1038,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
 
   // Handle close overlay
   const handleClose = () => {
-    if (incomingInvite) {
-      // Cannot close while there's a pending invite
-      return;
-    }
+    // Note: Incoming invites are handled by main page now
+    // Users can close overlay freely; main page notification will persist
 
     // CRITICAL FIX: Leave BOTH queue and presence when closing
     if (socketRef.current && socketRef.current.connected) {
@@ -1405,13 +1367,12 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         <div className="absolute top-6 right-6 z-20">
           <button
             onClick={handleClose}
-            disabled={!!incomingInvite}
             style={{
               display: Object.values(inviteStatuses).includes('waiting') ? 'none' : 'block'
             }}
-            className="rounded-full bg-black/60 p-3 backdrop-blur-md hover:bg-black/80 disabled:opacity-30 disabled:cursor-not-allowed border border-white/20"
+            className="rounded-full bg-black/60 p-3 backdrop-blur-md hover:bg-black/80 border border-white/20"
             aria-label="Close matchmaking"
-            title={incomingInvite ? "Cannot close while receiving a call" : "Close matchmaking"}
+            title="Close matchmaking"
           >
             <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1423,13 +1384,12 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         <div className="absolute top-6 right-6 z-40 flex md:hidden">
           <button
             onClick={handleClose}
-            disabled={!!incomingInvite}
             style={{
               display: Object.values(inviteStatuses).includes('waiting') ? 'none' : 'block'
             }}
-            className="focus-ring rounded-full bg-black/70 p-3 backdrop-blur-md transition-all hover:bg-black/90 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl border-2 border-white/20"
+            className="focus-ring rounded-full bg-black/70 p-3 backdrop-blur-md transition-all hover:bg-black/90 shadow-xl border-2 border-white/20"
             aria-label="Close matchmaking"
-            title={incomingInvite ? "Cannot close while receiving a call" : "Close matchmaking"}
+            title="Close matchmaking"
           >
             <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1618,18 +1578,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         />
       )}
 
-      {/* Incoming Invite (Blocking) */}
-      <AnimatePresence mode="wait">
-        {incomingInvite && (
-          <CalleeNotification
-            key={incomingInvite.inviteId}
-            invite={incomingInvite}
-            onAccept={handleAccept}
-            onDecline={handleDecline}
-          />
-        )}
-      </AnimatePresence>
-
+      {/* Incoming Invite: Handled by main page - renders CalleeNotification there */}
+      {/* This ensures notification shows whether overlay is open or closed */}
 
       {/* Video Progress Bar - Bottom Edge (Optimized, no lag) */}
       {!showModeSelection && users.length > 0 && users[currentIndex]?.videoUrl && (
