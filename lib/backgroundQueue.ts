@@ -64,7 +64,16 @@ class BackgroundQueueManager {
           clearTimeout(this.visibilityTimeout);
         }
         
-        console.log('[BackgroundQueue] Tab hidden, starting 1-minute countdown...');
+        // CRITICAL: Only use countdown if background queue toggle is ON
+        // If toggle OFF, leave immediately (user only wants queue while actively browsing)
+        if (!this.isBackgroundEnabled()) {
+          console.log('[BackgroundQueue] Tab hidden and toggle OFF - leaving queue immediately');
+          this.leaveQueue();
+          return;
+        }
+        
+        // Toggle ON - use 1-minute grace period (background queue feature)
+        console.log('[BackgroundQueue] Tab hidden but toggle ON - starting 1-minute countdown...');
         const startTime = Date.now();
         
         this.visibilityTimeout = setTimeout(() => {
@@ -96,7 +105,15 @@ class BackgroundQueueManager {
           clearTimeout(this.blurTimeout);
         }
         
-        console.log('[BackgroundQueue] Window minimized/lost focus, starting 1-minute countdown...');
+        // CRITICAL: Only use countdown if background queue toggle is ON
+        if (!this.isBackgroundEnabled()) {
+          console.log('[BackgroundQueue] Window blur and toggle OFF - leaving queue immediately');
+          this.leaveQueue();
+          return;
+        }
+        
+        // Toggle ON - use 1-minute grace period
+        console.log('[BackgroundQueue] Window minimized/lost focus but toggle ON - starting 1-minute countdown...');
         const startTime = Date.now();
         
         this.blurTimeout = setTimeout(() => {
