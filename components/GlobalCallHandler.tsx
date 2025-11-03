@@ -24,6 +24,8 @@ export function GlobalCallHandler() {
       return;
     }
 
+    console.log('[GlobalCallHandler] Initializing socket connection...');
+
     // Get or create socket connection
     let socket = getSocket();
     if (!socket) {
@@ -37,14 +39,16 @@ export function GlobalCallHandler() {
     }
 
     if (!socket) {
-      console.error('[GlobalCallHandler] Failed to get/create socket');
+      console.error('[GlobalCallHandler] ❌ Failed to get/create socket - aborting setup');
       return;
     }
+
+    console.log('[GlobalCallHandler] Socket obtained, setting up listeners and background queue...');
 
     // CRITICAL: ALWAYS initialize background queue (even if socket already existed)
     // This ensures background queue is set up on first page load
     backgroundQueue.init(socket);
-    console.log('[GlobalCallHandler] Background queue initialized with socket');
+    console.log('[GlobalCallHandler] ✅ Background queue initialized with socket');
 
     console.log('[GlobalCallHandler] Setting up persistent call listeners');
 

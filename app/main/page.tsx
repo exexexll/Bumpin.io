@@ -48,16 +48,11 @@ function MainPageContent() {
   // NOTE: Call listeners are now handled by GlobalCallHandler in app/layout.tsx
   // This ensures they work across ALL pages, not just /main
 
-  // Initialize background queue manager
+  // NOTE: Background queue is initialized by GlobalCallHandler
+  // Just sync state with toggle here
   useEffect(() => {
-    const socket = getSocket();
-    if (socket) {
-      backgroundQueue.init(socket);
-      console.log('[Main] Background queue manager initialized');
-      
-      // Sync queue state with toggle on mount and changes
-      backgroundQueue.syncWithToggle(backgroundQueueEnabled);
-    }
+    console.log('[Main] Syncing background queue with toggle:', backgroundQueueEnabled);
+    backgroundQueue.syncWithToggle(backgroundQueueEnabled);
     
     return () => {
       // Don't cleanup if background queue is enabled
