@@ -49,39 +49,25 @@ function MainPageContent() {
   // NOTE: Call listeners are now handled by GlobalCallHandler in app/layout.tsx
   // This ensures they work across ALL pages, not just /main
 
-  // Initialize and sync background queue with socket
+  // Initialize background queue once
   useEffect(() => {
     const socket = getSocket();
     if (socket && !backgroundQueue.isInitialized()) {
       backgroundQueue.init(socket);
-      console.log('[Main] Background queue initialized');
-    }
-    
-    // Sync queue state with toggle whenever it changes
-    if (socket) {
-      console.log('[Main] Syncing background queue, toggle is:', backgroundQueueEnabled ? 'ON' : 'OFF');
-      backgroundQueue.syncWithToggle(backgroundQueueEnabled);
-      
-      // CRITICAL: Force overlay to refresh if it's open
-      // This ensures user cards show immediately when toggle changes
-      if (showMatchmake) {
-        console.log('[Main] Overlay is open, forcing queue refresh...');
-        // Close and reopen to trigger fresh queue load
-        setShowMatchmake(false);
-        setTimeout(() => {
-          setShowMatchmake(true);
-        }, 100);
-      }
     }
     
     return () => {
-      // Only cleanup if toggle is OFF (check localStorage for current state)
       const isEnabled = localStorage.getItem('bumpin_background_queue') === 'true';
       if (!isEnabled) {
         backgroundQueue.cleanup();
       }
     };
-  }, [backgroundQueueEnabled, showMatchmake]); // Include showMatchmake since we use it
+  }, []); // Only on mount/unmount
+  
+  // Sync with toggle changes
+  useEffect(() => {
+    backgroundQueue.syncWithToggle(backgroundQueueEnabled);
+  }, [backgroundQueueEnabled]);
   
   // Sync queue state when page becomes visible
   useEffect(() => {
