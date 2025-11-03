@@ -198,10 +198,38 @@ function MainPageContent() {
             Profile
           </Link>
 
-          {/* Center - Matchmake Button */}
+          {/* Center - Background Queue Toggle + Matchmake Button */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6">
+            {/* Background Queue Toggle - Desktop */}
+            <div className="flex items-center gap-4 bg-black/40 backdrop-blur-sm px-8 py-4 rounded-2xl border-2 border-white/20">
+              <div className="text-base font-medium text-white">
+                🔄 Background Queue
+              </div>
+              <Toggle
+                enabled={backgroundQueueEnabled}
+                onChange={(enabled) => {
+                  setBackgroundQueueEnabled(enabled);
+                  localStorage.setItem('bumpin_background_queue', String(enabled));
+                  console.log('[Main] Background queue:', enabled ? 'ON' : 'OFF');
+                  
+                  if (enabled) {
+                    backgroundQueue.joinQueue();
+                  } else {
+                    backgroundQueue.leaveQueue();
+                  }
+                }}
+                label="Background queue toggle"
+              />
+              <div className="text-sm text-white/70">
+                {backgroundQueueEnabled ? 'ON' : 'OFF'}
+              </div>
+            </div>
+            
             <button
-              onClick={() => setShowMatchmake(true)}
+              onClick={() => {
+                setShowMatchmake(true);
+                backgroundQueue.joinQueue();
+              }}
               className="px-20 py-10 rounded-3xl font-playfair text-6xl font-bold text-black border-4 border-black hover:scale-105 active:scale-95 transition-all"
               style={{
                 backgroundColor: '#ffc46a',
