@@ -47,27 +47,49 @@ function MainPageContent() {
     setBackgroundQueueEnabled(saved === 'true');
   }, []);
   
-  // Listen for incoming call invites globally (outside overlay)
+  // CRITICAL: Listen for incoming call invites globally
   useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-    
-    const handleCallNotify = (data: any) => {
-      console.log('[Main] Incoming call notification:', data);
-      setIncomingInvite(data);
-      
-      // Auto-open matchmaking if not already open
-      if (!showMatchmake) {
-        setShowMatchmake(true);
+    const initSocket = async () => {
+      const socket = getSocket();
+      if (!socket) {
+        console.error('[Main] No socket available for call notifications!');
+        return;
       }
+      
+      console.log('[Main] Setting up global call:notify listener');
+      
+      const handleCallNotify = (data: any) => {
+        console.log('[Main] ✅ INCOMING CALL NOTIFICATION:', data);
+        console.log('[Main] From:', data.fromUser?.name);
+        console.log('[Main] Current page:', window.location.pathname);
+        console.log('[Main] Overlay open:', showMatchmake);
+        
+        setIncomingInvite(data);
+        
+        // ALWAYS open matchmaking when call comes in
+        console.log('[Main] Opening matchmaking for incoming call');
+        setShowMatchmake(true);
+      };
+      
+      // Remove any existing listeners first
+      socket.off('call:notify');
+      
+      // Add new listener
+      socket.on('call:notify', handleCallNotify);
+      
+      console.log('[Main] call:notify listener registered');
     };
     
-    socket.on('call:notify', handleCallNotify);
+    initSocket();
     
     return () => {
-      socket.off('call:notify', handleCallNotify);
+      const socket = getSocket();
+      if (socket) {
+        socket.off('call:notify');
+        console.log('[Main] call:notify listener removed');
+      }
     };
-  }, [showMatchmake]);
+  }, []);  // Empty deps - only set up once
 
   // Initialize background queue manager
   useEffect(() => {
@@ -412,21 +434,37 @@ function MainPageContent() {
         />
       )}
 
-      {/* Global Incoming Call Notification - Always rendered */}
-      {incomingInvite && (
+      {/* Global Incoming Call Notification - CRITICAL: Always rendered outside overlay */}
+      {incomingInvite && !showMatchmake && (
         <CalleeNotification
           invite={incomingInvite}
-          onAccept={(duration) => {
-            console.log('[Main] Call accepted, opening matchmaking');
+          onAccept={(inviteId, requestedSeconds) => {
+            console.log('[Main] ✅ Call ACCEPTED, duration:', requestedSeconds);
+            
+            // Clear notification
+            setIncomingInvite(null);
+            
+            // Open matchmaking - overlay will handle the call
             setShowMatchmake(true);
-            setIncomingInvite(null);
-            // MatchmakeOverlay will handle the rest
-          }}
-          onDecline={() => {
-            console.log('[Main] Call declined');
-            setIncomingInvite(null);
+            
+            // Socket event will be handled by overlay
             const socket = getSocket();
-            socket?.emit('call:decline', { inviteId: incomingInvite.inviteId });
+            if (socket) {
+              console.log('[Main] Emitting call:accept');
+              socket.emit('call:accept', {
+                inviteId,
+                requestedSeconds,
+              });
+            }
+          }}
+          onDecline={(inviteId) => {
+            console.log('[Main] ❌ Call DECLINED');
+            setIncomingInvite(null);
+            
+            const socket = getSocket();
+            if (socket) {
+              socket.emit('call:decline', { inviteId });
+            }
           }}
         />
       )}
