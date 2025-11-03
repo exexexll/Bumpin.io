@@ -594,19 +594,12 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       console.log('[Matchmake] Presence update:', { userId: userId.substring(0, 8), online, available });
       
       if (!online || !available) {
-        // CRITICAL: Don't remove currently viewed user - keep them visible
+        // Remove user immediately when they go offline/unavailable
         setUsers(prev => {
-          const currentlyViewingUserId = prev[currentIndex]?.userId;
-          
-          // If this is the user we're currently viewing, keep them (don't disrupt viewing)
-          if (userId === currentlyViewingUserId) {
-            console.log('[Matchmake] ⚠️ Currently viewed user went offline - keeping visible for smooth UX');
-            return prev; // Don't remove
-          }
-          
-          // Remove other users who go offline
           const filtered = prev.filter(u => u.userId !== userId);
-          console.log('[Matchmake] Removed user from queue (offline/unavailable)');
+          if (filtered.length < prev.length) {
+            console.log('[Matchmake] Removed user from queue (offline/unavailable)');
+          }
           return filtered;
         });
         
@@ -624,19 +617,12 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       console.log('[Matchmake] Queue update:', { userId: userId.substring(0, 8), available });
       
       if (!available) {
-        // CRITICAL: Don't remove currently viewed user - keep them visible
+        // Remove user immediately when they become unavailable
         setUsers(prev => {
-          const currentlyViewingUserId = prev[currentIndex]?.userId;
-          
-          // If this is the user we're currently viewing, keep them (don't disrupt viewing)
-          if (userId === currentlyViewingUserId) {
-            console.log('[Matchmake] ⚠️ Currently viewed user became busy - keeping visible for smooth UX');
-            return prev; // Don't remove
-          }
-          
-          // Remove other users who became busy
           const filtered = prev.filter(u => u.userId !== userId);
-          console.log('[Matchmake] Removed user (busy/in-call)');
+          if (filtered.length < prev.length) {
+            console.log('[Matchmake] Removed user (busy/in-call)');
+          }
           return filtered;
         });
         setTotalAvailable(prev => Math.max(0, prev - 1));
