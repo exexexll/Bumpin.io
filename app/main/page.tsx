@@ -49,21 +49,27 @@ function MainPageContent() {
   // NOTE: Call listeners are now handled by GlobalCallHandler in app/layout.tsx
   // This ensures they work across ALL pages, not just /main
 
-  // NOTE: Background queue is initialized by GlobalCallHandler
-  // Sync state with toggle
+  // Initialize and sync background queue with socket
   useEffect(() => {
-    backgroundQueue.syncWithToggle(backgroundQueueEnabled);
-  }, [backgroundQueueEnabled]);
-  
-  // Cleanup only on unmount (NOT on every toggle change)
-  useEffect(() => {
+    const socket = getSocket();
+    if (socket && !backgroundQueue.isInitialized()) {
+      backgroundQueue.init(socket);
+      console.log('[Main] Background queue initialized');
+    }
+    
+    // Sync queue state with toggle whenever it changes
+    if (socket) {
+      console.log('[Main] Syncing background queue, toggle is:', backgroundQueueEnabled ? 'ON' : 'OFF');
+      backgroundQueue.syncWithToggle(backgroundQueueEnabled);
+    }
+    
     return () => {
-      const isEnabled = localStorage.getItem('bumpin_background_queue') === 'true';
-      if (!isEnabled) {
+      // Only cleanup if toggle is OFF
+      if (!backgroundQueueEnabled) {
         backgroundQueue.cleanup();
       }
     };
-  }, []); // Empty deps - only unmount
+  }, [backgroundQueueEnabled]);
   
   // Sync queue state when page becomes visible
   useEffect(() => {

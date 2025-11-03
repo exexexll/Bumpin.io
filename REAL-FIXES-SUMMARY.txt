@@ -1,0 +1,47 @@
+ACTUAL FIXES APPLIED (Code Changes Only)
+
+Issue 1: Onboarding Template Literal
+✅ Fixed line 230: Mixed quote → proper backtick
+Result: 148 errors → 0
+
+Issue 2: Video Preview Not Playing (Onboarding)
+✅ Added key={videoPreviewUrl} to force re-mount
+✅ Changed preload="metadata" to preload="auto"
+Result: Video should load and play
+
+Issue 3: CalleeNotification Video Replay
+✅ Removed: autoPlay, loop, muted, onEnded  
+✅ Added: controls, playsInline, preload
+Result: Browser controls work
+
+Issue 4: Background Queue - Users Not Showing in Queue
+✅ Added socket.emit('presence:join') to joinQueue()
+✅ Added socket.emit('presence:leave') to leaveQueue()
+Result: Users marked as online AND available (was missing online)
+
+Issue 5: Toggle OFF Not Working
+✅ Removed duplicate join/leave calls from onChange
+✅ Let useEffect + syncWithToggle handle it
+Result: Single call, clean state management
+
+Issue 6: WebRTC Not Starting After Accepting Call
+✅ Fixed room page useEffect dependencies
+Changed: [cleanupConnections] → [roomId, agreedSeconds, peerUserId, isInitiator, router]
+Result: Runs once on mount, not on every render
+
+Issue 7: Socket Connection Timing
+✅ Wait for socket.once('connect') before backgroundQueue.init()
+Result: Socket is connected before use
+
+Issue 8: Socket Connection Checks
+✅ Added socket.connected checks in onAccept/onDecline
+Result: Won't emit if socket disconnected
+
+KEY COMMITS:
+- e50b4a6: presence:join/leave (CRITICAL)
+- e7ab155: Toggle duplicate removal
+- 57086e9: Room useEffect deps (CRITICAL)
+- 29027e6: Video preview key
+- 10e8c8c: Socket connection wait
+
+Total: 25 commits, 8 source files modified
