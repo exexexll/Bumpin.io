@@ -1071,8 +1071,7 @@ export default function RoomPage() {
       // Only remove room-specific listeners (done above)
       // Socket stays connected for app-level use (main page, matchmaking, etc.)
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cleanupConnections]);
+  }, [roomId, agreedSeconds, peerUserId, isInitiator, router]); // Run when room params change
 
   // BEST-IN-CLASS: Network Change Detection (Proactive ICE Restart)
   useEffect(() => {
