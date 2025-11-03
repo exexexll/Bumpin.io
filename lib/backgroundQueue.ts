@@ -200,9 +200,34 @@ class BackgroundQueueManager {
       return;
     }
     
+    // If socket not connected yet, wait for it (up to 5 seconds)
     if (!this.socket.connected) {
-      console.warn('[BackgroundQueue] ❌ Socket not connected, cannot join queue');
-      return;
+      console.log('[BackgroundQueue] Socket not connected yet, waiting...');
+      
+      // Wait for connect event
+      const connected = await new Promise<boolean>((resolve) => {
+        const timeout = setTimeout(() => {
+          console.warn('[BackgroundQueue] Socket connection timeout after 5s');
+          resolve(false);
+        }, 5000);
+        
+        this.socket!.once('connect', () => {
+          clearTimeout(timeout);
+          console.log('[BackgroundQueue] ✅ Socket connected');
+          resolve(true);
+        });
+        
+        // Check if already connected (race condition)
+        if (this.socket!.connected) {
+          clearTimeout(timeout);
+          resolve(true);
+        }
+      });
+      
+      if (!connected) {
+        console.warn('[BackgroundQueue] ❌ Socket did not connect in time, cannot join queue');
+        return;
+      }
     }
     
     // Check if tab is hidden or window not focused
@@ -306,7 +331,7 @@ class BackgroundQueueManager {
       this.leaveQueue();
     } else if (toggleState && this.inQueue) {
       console.log('[BackgroundQueue] ℹ️ Already in queue, no action needed');
-    } else {
+    } else if (!toggleState && !this.inQueue) {
       console.log('[BackgroundQueue] ℹ️ Already out of queue, no action needed');
     }
     console.log('[BackgroundQueue] ========================================');
