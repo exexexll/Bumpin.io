@@ -12,6 +12,9 @@ class BackgroundQueueManager {
   private lastActivity = Date.now();
   private visibilityCheckInterval: NodeJS.Timeout | null = null;
   private activityListeners: Array<{ event: string; handler: () => void }> = [];
+  private tabHiddenTime: number | null = null;
+  private tabHiddenTimeout: NodeJS.Timeout | null = null;
+  private readonly TAB_HIDDEN_GRACE_PERIOD = 60 * 1000; // 1 minute
   
   init(socket: Socket) {
     this.socket = socket;
@@ -24,25 +27,60 @@ class BackgroundQueueManager {
     // Check if tab is visible
     const handleVisibility = () => {
       if (document.hidden && this.inQueue) {
-        console.log('[BackgroundQueue] Tab hidden, leaving queue');
-        this.leaveQueue();
+        // Start 1-minute countdown
+        this.tabHiddenTime = Date.now();
+        console.log('[BackgroundQueue] Tab hidden, starting 1-minute grace period...');
+        
+        this.tabHiddenTimeout = setTimeout(() => {
+          if (document.hidden && this.inQueue) {
+            console.log('[BackgroundQueue] Tab hidden for 1 minute, leaving queue');
+            this.leaveQueue();
+          }
+        }, this.TAB_HIDDEN_GRACE_PERIOD);
+      } else if (!document.hidden) {
+        // Tab visible again, cancel countdown
+        if (this.tabHiddenTimeout) {
+          clearTimeout(this.tabHiddenTimeout);
+          this.tabHiddenTimeout = null;
+          this.tabHiddenTime = null;
+          console.log('[BackgroundQueue] Tab visible again, grace period cancelled');
+        }
       }
     };
     
     // Check if window is focused
     const handleBlur = () => {
       if (this.inQueue) {
-        console.log('[BackgroundQueue] Window lost focus, leaving queue');
-        this.leaveQueue();
+        // Start 1-minute countdown
+        console.log('[BackgroundQueue] Window lost focus, starting 1-minute grace period...');
+        
+        this.tabHiddenTimeout = setTimeout(() => {
+          if (this.inQueue) {
+            console.log('[BackgroundQueue] Window unfocused for 1 minute, leaving queue');
+            this.leaveQueue();
+          }
+        }, this.TAB_HIDDEN_GRACE_PERIOD);
+      }
+    };
+    
+    const handleFocus = () => {
+      // Window focused again, cancel countdown
+      if (this.tabHiddenTimeout) {
+        clearTimeout(this.tabHiddenTimeout);
+        this.tabHiddenTimeout = null;
+        this.tabHiddenTime = null;
+        console.log('[BackgroundQueue] Window focused again, grace period cancelled');
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
     
     this.activityListeners.push(
       { event: 'visibilitychange', handler: handleVisibility },
-      { event: 'blur', handler: handleBlur }
+      { event: 'blur', handler: handleBlur },
+      { event: 'focus', handler: handleFocus }
     );
   }
   
@@ -67,7 +105,7 @@ class BackgroundQueueManager {
     }, 30000);
   }
   
-  joinQueue() {
+  async joinQueue() {
     if (!this.socket) {
       console.warn('[BackgroundQueue] No socket, cannot join queue');
       return;
@@ -84,6 +122,38 @@ class BackgroundQueueManager {
       if (typeof window !== 'undefined' && window.location.pathname !== '/main') {
         console.log('[BackgroundQueue] Background disabled, not on /main, not joining');
         return;
+      }
+    }
+    
+    // CRITICAL: Check profile completeness before joining
+    const session = typeof window !== 'undefined' ? 
+      JSON.parse(localStorage.getItem('bumpin_session') || 'null') : null;
+    
+    if (session) {
+      try {
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
+        const res = await fetch(`${API_BASE}/user/me`, {
+          headers: { 'Authorization': `Bearer ${session.sessionToken}` },
+        });
+        
+        if (res.ok) {
+          const user = await res.json();
+          
+          // Check if profile is complete
+          if (!user.selfieUrl || !user.videoUrl) {
+            console.warn('[BackgroundQueue] Profile incomplete (no photo/video), cannot join queue');
+            console.log('[BackgroundQueue] selfieUrl:', !!user.selfieUrl, 'videoUrl:', !!user.videoUrl);
+            return; // Don't join queue
+          }
+          
+          console.log('[BackgroundQueue] Profile complete, joining queue');
+        } else {
+          console.warn('[BackgroundQueue] Failed to check profile, not joining queue');
+          return;
+        }
+      } catch (err) {
+        console.error('[BackgroundQueue] Error checking profile:', err);
+        return; // Fail safe - don't join if can't verify
       }
     }
     
@@ -113,10 +183,16 @@ class BackgroundQueueManager {
   cleanup() {
     console.log('[BackgroundQueue] Cleanup');
     
-    // Clear interval
+    // Clear intervals
     if (this.visibilityCheckInterval) {
       clearInterval(this.visibilityCheckInterval);
       this.visibilityCheckInterval = null;
+    }
+    
+    // Clear tab hidden timeout
+    if (this.tabHiddenTimeout) {
+      clearTimeout(this.tabHiddenTimeout);
+      this.tabHiddenTimeout = null;
     }
     
     // Leave queue

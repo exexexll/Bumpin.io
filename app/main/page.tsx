@@ -13,6 +13,7 @@ import { API_BASE } from '@/lib/config';
 import { prefetchTurnCredentials } from '@/lib/webrtc-config';
 import { backgroundQueue } from '@/lib/backgroundQueue';
 import { getSocket } from '@/lib/socket';
+import { Toggle } from '@/components/Toggle';
 import Link from 'next/link';
 
 function MainPageContent() {
@@ -21,6 +22,7 @@ function MainPageContent() {
   const [loading, setLoading] = useState(true);
   const [showMatchmake, setShowMatchmake] = useState(false);
   const [directMatchTarget, setDirectMatchTarget] = useState<string | null>(null);
+  const [backgroundQueueEnabled, setBackgroundQueueEnabled] = useState(false);
 
   useEffect(() => {
     // Hide footer on main page
@@ -37,18 +39,30 @@ function MainPageContent() {
     };
   }, []);
 
+  // Load background queue preference
+  useEffect(() => {
+    const saved = localStorage.getItem('bumpin_background_queue');
+    setBackgroundQueueEnabled(saved === 'true');
+  }, []);
+
   // Initialize background queue manager
   useEffect(() => {
     const socket = getSocket();
     if (socket) {
       backgroundQueue.init(socket);
       console.log('[Main] Background queue manager initialized');
+      
+      // If background queue enabled, join queue immediately
+      if (backgroundQueueEnabled) {
+        console.log('[Main] Background queue enabled, joining queue...');
+        backgroundQueue.joinQueue();
+      }
     }
     
     return () => {
       backgroundQueue.cleanup();
     };
-  }, []);
+  }, [backgroundQueueEnabled]);
 
   useEffect(() => {
     const session = getSession();
@@ -240,10 +254,41 @@ function MainPageContent() {
             </Link>
           </div>
           
-          {/* Center - Matchmake button */}
+          {/* Center - Matchmake button + Background Queue Toggle */}
           <div className="flex flex-col items-center gap-4">
+            {/* Background Queue Toggle - Front and Center */}
+            <div className="flex items-center gap-4 bg-black/40 backdrop-blur-sm px-6 py-3 rounded-2xl border-2 border-white/20">
+              <div className="text-sm font-medium text-white">
+                🔄 Background Queue
+              </div>
+              <Toggle
+                enabled={backgroundQueueEnabled}
+                onChange={(enabled) => {
+                  setBackgroundQueueEnabled(enabled);
+                  localStorage.setItem('bumpin_background_queue', String(enabled));
+                  console.log('[Main] Background queue:', enabled ? 'ON' : 'OFF');
+                  
+                  if (enabled) {
+                    // Join queue immediately when enabled
+                    backgroundQueue.joinQueue();
+                  } else {
+                    // Leave queue when disabled
+                    backgroundQueue.leaveQueue();
+                  }
+                }}
+                label="Background queue toggle"
+              />
+              <div className="text-xs text-white/60">
+                {backgroundQueueEnabled ? 'ON' : 'OFF'}
+              </div>
+            </div>
+            
             <button
-              onClick={() => setShowMatchmake(true)}
+              onClick={() => {
+                setShowMatchmake(true);
+                // Join queue when opening matchmaking
+                backgroundQueue.joinQueue();
+              }}
               className="px-12 py-8 rounded-2xl font-playfair text-4xl font-bold text-black border-4 border-black"
               style={{ backgroundColor: '#ffc46a', boxShadow: '8px 8px 0px #000000' }}
             >

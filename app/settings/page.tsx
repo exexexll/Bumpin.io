@@ -683,7 +683,7 @@ export default function SettingsPage() {
                   Stay in matchmaking queue while browsing other pages.
                 </p>
                 <p className="text-xs text-[#eaeaf0]/50 mt-2">
-                  Note: Auto-removed if you switch tabs, minimize window, or idle 5+ minutes
+                  Note: 1-minute grace period when switching tabs/minimizing. Auto-removed after 5 minutes of inactivity.
                 </p>
               </div>
               <Toggle
