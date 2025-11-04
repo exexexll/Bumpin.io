@@ -2,8 +2,6 @@ import express from 'express';
 import { store } from './store';
 import { query } from './database';
 import { deleteFromCloudinary } from './media';
-import { query } from './database';
-import { deleteFromCloudinary } from './media';
 
 const router = express.Router();
 
