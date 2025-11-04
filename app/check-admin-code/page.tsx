@@ -14,10 +14,11 @@ export default function CheckAdminCodePage() {
 
   useEffect(() => {
     const inviteCode = searchParams.get('inviteCode');
+    const ref = searchParams.get('ref'); // Preserve referral code if present
     
     if (!inviteCode) {
-      // No code, go to regular onboarding
-      router.push('/onboarding');
+      // No code, go to regular onboarding (preserve ref if exists)
+      router.push(ref ? `/onboarding?ref=${ref}` : '/onboarding');
       return;
     }
 
@@ -29,18 +30,27 @@ export default function CheckAdminCodePage() {
     })
       .then(res => res.json())
       .then(data => {
+        // Build redirect URL with all parameters preserved
+        const params = new URLSearchParams();
+        params.set('inviteCode', inviteCode);
+        if (ref) params.set('ref', ref);
+        
         if (data.valid && data.type === 'admin') {
-          // Admin code - redirect to onboarding with admin flag
-          router.push(`/onboarding?inviteCode=${inviteCode}&adminCode=true`);
+          // Admin code - add admin flag
+          params.set('adminCode', 'true');
+          router.push(`/onboarding?${params.toString()}`);
         } else {
           // Regular code - normal onboarding
-          router.push(`/onboarding?inviteCode=${inviteCode}`);
+          router.push(`/onboarding?${params.toString()}`);
         }
       })
       .catch(err => {
         console.error('Code validation failed:', err);
-        // Fallback to regular onboarding
-        router.push(`/onboarding?inviteCode=${inviteCode}`);
+        // Fallback to regular onboarding (preserve ref)
+        const params = new URLSearchParams();
+        params.set('inviteCode', inviteCode);
+        if (ref) params.set('ref', ref);
+        router.push(`/onboarding?${params.toString()}`);
       });
   }, [router, searchParams]);
 
