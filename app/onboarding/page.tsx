@@ -853,13 +853,16 @@ function OnboardingPageContent() {
         if (!res.ok) {
           const errorData = await res.json();
           
-          // If card already registered, allow user to continue anyway
+          // If card already registered, show clear error and stop
           if (res.status === 409) {
-            console.warn('[Onboarding] USC card already registered - allowing user to continue');
-            // Clean up temp storage
+            console.error('[Onboarding] ❌ USC card already registered');
+            setError('This USC Card is already registered to another account. Each card can only be used once. Please contact support if this is an error.');
+            setLoading(false);
+            // Clean up to prevent loops
             sessionStorage.removeItem('temp_usc_id');
             sessionStorage.removeItem('temp_usc_barcode');
-            // Continue to main (don't throw error)
+            sessionStorage.removeItem('onboarding_invite_code'); // Also clear invite to prevent loop
+            return; // STOP - don't continue to main
           } else {
             throw new Error(errorData.error || 'Failed to register USC card');
           }
@@ -873,17 +876,14 @@ function OnboardingPageContent() {
         console.error('[Onboarding] USC card registration failed:', err);
         console.error('[Onboarding] Full error:', err.message);
         
-        // Allow user to continue if card already registered
-        if (err.message?.includes('already registered')) {
-          console.warn('[Onboarding] Allowing user to continue despite duplicate card');
-          sessionStorage.removeItem('temp_usc_id');
-          sessionStorage.removeItem('temp_usc_barcode');
-        } else {
-          // For other errors, block and show message
-          setError('Failed to register USC card: ' + err.message);
-          setLoading(false);
-          return;
-        }
+        // Show error and stop (don't allow continuation)
+        setError('Failed to register USC card: ' + err.message);
+        setLoading(false);
+        // Clean up to prevent loops
+        sessionStorage.removeItem('temp_usc_id');
+        sessionStorage.removeItem('temp_usc_barcode');  
+        sessionStorage.removeItem('onboarding_invite_code');
+        return;
       }
     }
     
