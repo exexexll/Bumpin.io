@@ -20,10 +20,10 @@ function OnboardingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // CRITICAL: Detect admin code BEFORE initializing state
-  // This ensures USC flow starts immediately on page load
+  // CRITICAL: Check for adminCode flag (set by check-admin-code page)
+  const adminCodeFlag = searchParams.get('adminCode');
   const inviteCodeFromURL = searchParams.get('inviteCode');
-  const isAdminCode = inviteCodeFromURL?.startsWith('TCZIOIXWDZLEFQZC') || false;
+  const isAdminCode = adminCodeFlag === 'true';
   
   const [step, setStep] = useState<Step>(isAdminCode ? 'usc-welcome' : 'name'); // Start with USC welcome if admin code
   const [name, setName] = useState('');

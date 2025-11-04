@@ -579,8 +579,11 @@ router.get('/qr/:code', async (req: any, res) => {
     const frontendUrl = process.env.FRONTEND_URL || 
                         (process.env.NODE_ENV === 'production' ? 'https://bumpin.com' : null) ||
                         (req.headers.origin || `${req.protocol}://${req.get('host')}`).replace(':3001', ':3000');
-    const signupUrl = `${frontendUrl}/onboarding?inviteCode=${code}`;
-    console.log(`[QR] Generating QR for URL: ${signupUrl}`);
+    // CRITICAL: Admin codes redirect to check page first to determine flow
+    const signupUrl = inviteCode.type === 'admin' 
+      ? `${frontendUrl}/check-admin-code?inviteCode=${code}`
+      : `${frontendUrl}/onboarding?inviteCode=${code}`;
+    console.log(`[QR] Generating QR for URL: ${signupUrl} (type: ${inviteCode.type})`);
     
     const qrCodeBuffer = await QRCode.toBuffer(signupUrl, {
       width: 300,
