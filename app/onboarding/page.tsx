@@ -867,9 +867,10 @@ function OnboardingPageContent() {
             throw new Error(errorData.error || 'Failed to register USC card');
           }
         } else {
-          console.log('[Onboarding] USC card registered to database');
-          // Clean up temp storage
-          sessionStorage.removeItem('temp_usc_id');
+          console.log('[Onboarding] ✅ USC card registered successfully to database');
+          // NOW it's safe to store in sessionStorage (card is validated)
+          sessionStorage.setItem('temp_usc_id', tempUscId);
+          // Clean up temp barcode storage
           sessionStorage.removeItem('temp_usc_barcode');
         }
       } catch (err: any) {
@@ -1103,13 +1104,18 @@ function OnboardingPageContent() {
                   setNeedsUSCCard(false);
                   setUscEmail('');
                   
-                  // Store temp
-                  sessionStorage.setItem('temp_usc_id', scannedUSCId);
+                  // CRITICAL FIX: DO NOT store in sessionStorage yet!
+                  // Only store after successful registration to prevent loop
+                  // If card is duplicate, we don't want it to persist
+                  // Store barcode for later registration
                   sessionStorage.setItem('temp_usc_barcode', rawValue);
-                  sessionStorage.setItem('usc_card_verified', 'true'); // Flag for later checks
+                  sessionStorage.setItem('usc_card_verified', 'true');
                   
-                  console.log('[Onboarding] ✅✅✅ STATE SET: uscId=SET, needsUSCEmail=FALSE, needsUSCCard=FALSE');
+                  // IMPORTANT: Keep scanned ID in component state only (not sessionStorage)
+                  // This prevents reload loop if card is duplicate
                   
+                  console.log('[Onboarding] ✅ STATE SET: uscId in memory only (not sessionStorage yet)');
+
                   setStep('name');
                 }}
                 onSkipToEmail={() => {
