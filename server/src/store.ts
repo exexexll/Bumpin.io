@@ -88,9 +88,71 @@ class DataStore {
   constructor() {
     console.log(`[Store] Using ${this.useDatabase ? 'PostgreSQL' : 'in-memory'} storage`);
     
-    // Test database connection on startup
+    // Test database connection and load data on startup
     if (this.useDatabase) {
       this.testDatabaseConnection();
+      this.loadReportsAndBansFromDatabase(); // Load reports/bans from DB
+    }
+  }
+  
+  // Load reports and ban records from database on server startup
+  private async loadReportsAndBansFromDatabase(): Promise<void> {
+    try {
+      // Load reports
+      const reportsResult = await query('SELECT * FROM reports ORDER BY timestamp DESC');
+      reportsResult.rows.forEach((row: any) => {
+        const report: Report = {
+          reportId: row.report_id,
+          reportedUserId: row.reported_user_id,
+          reportedUserName: row.reported_user_name,
+          reportedUserSelfie: row.reported_user_selfie,
+          reportedUserVideo: row.reported_user_video,
+          reporterUserId: row.reporter_user_id,
+          reporterName: row.reporter_name,
+          reporterIp: row.reporter_ip,
+          reason: row.reason,
+          timestamp: new Date(row.timestamp).getTime(),
+          roomId: row.room_id,
+        };
+        this.reports.set(report.reportId, report);
+        
+        // Track by reported user
+        if (!this.userReports.has(report.reportedUserId)) {
+          this.userReports.set(report.reportedUserId, new Set());
+        }
+        this.userReports.get(report.reportedUserId)!.add(report.reportId);
+        
+        // Track reporter history
+        if (!this.reporterHistory.has(report.reporterUserId)) {
+          this.reporterHistory.set(report.reporterUserId, new Set());
+        }
+        this.reporterHistory.get(report.reporterUserId)!.add(report.reportedUserId);
+      });
+      console.log(`[Store] ✅ Loaded ${reportsResult.rows.length} reports from database`);
+      
+      // Load ban records
+      const bansResult = await query('SELECT * FROM ban_records');
+      bansResult.rows.forEach((row: any) => {
+        const ban: BanRecord = {
+          userId: row.user_id,
+          userName: row.user_name,
+          userSelfie: row.user_selfie,
+          userVideo: row.user_video,
+          banStatus: row.ban_status,
+          bannedAt: new Date(row.banned_at).getTime(),
+          bannedReason: row.banned_reason,
+          reportCount: row.report_count,
+          reviewStatus: row.review_status,
+          reviewedAt: row.reviewed_at ? new Date(row.reviewed_at).getTime() : undefined,
+          reviewedBy: row.reviewed_by,
+          ipAddresses: row.ip_addresses || [],
+        };
+        this.banRecords.set(ban.userId, ban);
+      });
+      console.log(`[Store] ✅ Loaded ${bansResult.rows.length} ban records from database`);
+      
+    } catch (error) {
+      console.error('[Store] ❌ Failed to load reports/bans from database:', error);
     }
   }
   
