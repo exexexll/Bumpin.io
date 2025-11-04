@@ -20,12 +20,9 @@ function OnboardingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // CRITICAL: Check for adminCode flag (set by check-admin-code page)
-  const adminCodeFlag = searchParams.get('adminCode');
   const inviteCodeFromURL = searchParams.get('inviteCode');
-  const isAdminCode = adminCodeFlag === 'true';
   
-  const [step, setStep] = useState<Step>(isAdminCode ? 'usc-welcome' : 'name'); // Start with USC welcome if admin code
+  const [step, setStep] = useState<Step>('name');
   const [name, setName] = useState('');
   const [gender, setGender] = useState<Gender>('unspecified');
   const [sessionToken, setSessionToken] = useState('');
@@ -36,12 +33,12 @@ function OnboardingPageContent() {
   const [referrerName, setReferrerName] = useState<string | null>(null);
   const [targetUser, setTargetUser] = useState<any>(null);
   const [targetOnline, setTargetOnline] = useState(false);
-  const [inviteCode, setInviteCode] = useState<string | null>(inviteCodeFromURL); // Set from URL immediately
-  const [agreedToTerms, setAgreedToTerms] = useState(false); // Legal consent
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   
   // USC Card verification
-  const [uscId, setUscId] = useState<string | null>(null); // From card scan
-  const [needsUSCCard, setNeedsUSCCard] = useState(isAdminCode); // Set true if admin code
+  const [uscId, setUscId] = useState<string | null>(null);
+  const [needsUSCCard, setNeedsUSCCard] = useState(false);
 
   // Step 2: Selfie
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -90,12 +87,6 @@ function OnboardingPageContent() {
 
   // CRITICAL: Waitlist protection - require invite code or valid session
   useEffect(() => {
-    // Skip all checks if this is an admin code - already handled
-    if (isAdminCode) {
-      console.log('[Onboarding] Admin code - bypassing waitlist protection');
-      return;
-    }
-    
     const params = new URLSearchParams(window.location.search);
     const inviteParam = params.get('inviteCode');
     const session = getSession();
@@ -225,25 +216,34 @@ function OnboardingPageContent() {
     };
   }, [onboardingComplete]);
   
-  // Store invite code and referral in sessionStorage once
+  // Extract invite code and check if admin type
   useEffect(() => {
     const ref = searchParams.get('ref');
     const invite = searchParams.get('inviteCode');
     
-    console.log('[Onboarding] ===== URL PARAMS CHECK =====');
-    console.log('[Onboarding] Full URL:', window.location.href);
-    console.log('[Onboarding] Admin code detected:', isAdminCode);
-    console.log('[Onboarding] Initial step:', step);
-    
-    // Store invite code in sessionStorage
-    if (invite && !sessionStorage.getItem('onboarding_invite_code')) {
+    if (invite) {
+      setInviteCode(invite);
       sessionStorage.setItem('onboarding_invite_code', invite);
-      console.log('[Onboarding] ✅ Stored invite code in sessionStorage');
+      
+      // Validate code to determine type
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/payment/validate-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: invite }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.valid && data.type === 'admin') {
+            console.log('[Onboarding] Admin code - showing USC welcome');
+            setNeedsUSCCard(true);
+            setStep('usc-welcome');
+          }
+        })
+        .catch(err => console.error('[Onboarding] Validation failed:', err));
     }
     
     if (ref) {
       setReferralCode(ref);
-      // Store in sessionStorage so we don't lose it across redirects
       sessionStorage.setItem('onboarding_ref_code', ref);
       console.log('[Onboarding] Referral code from URL:', ref);
     } else {
@@ -261,15 +261,7 @@ function OnboardingPageContent() {
     // IMPORTANT: Validate session is actually valid before redirecting
     // (Server restart clears sessions, but localStorage still has old tokens)
     if (existingSession) {
-      // CRITICAL: NEVER redirect if this is an admin code!
-      // Admin codes require USC card verification even if user has session
-      if (isAdminCode) {
-        console.log('[Onboarding] Admin code detected - NOT redirecting, USC verification required');
-        // Let USC flow proceed (step already set to 'usc-welcome')
-        return;
-      }
-      
-      // For regular codes: If user has session AND referral/invite link, skip onboarding
+      // If user has session AND referral/invite link, skip onboarding
       if (ref || invite) {
         console.log('[Onboarding] Existing session with referral/invite - redirecting to matchmaking');
         // Go to main with query params to open matchmaking
