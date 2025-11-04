@@ -148,6 +148,17 @@ router.post('/selfie', requireAuth, (req: any, res) => {
       let selfieUrl: string;
 
       if (useCloudinary) {
+        // Delete old selfie if exists (cleanup to save space)
+        const user = await store.getUser(req.userId);
+        if (user?.selfieUrl) {
+          try {
+            await deleteFromCloudinary(user.selfieUrl);
+            console.log('[Upload] Deleted old selfie');
+          } catch (err) {
+            console.warn('[Upload] Could not delete old selfie:', err);
+          }
+        }
+        
         // Upload to Cloudinary
         console.log('[Upload] Uploading selfie to Cloudinary...');
         const result = await cloudinary.uploader.upload(req.file.path, {
