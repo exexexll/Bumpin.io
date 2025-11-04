@@ -90,6 +90,12 @@ function OnboardingPageContent() {
 
   // CRITICAL: Waitlist protection - require invite code or valid session
   useEffect(() => {
+    // Skip all checks if this is an admin code - already handled
+    if (isAdminCode) {
+      console.log('[Onboarding] Admin code - bypassing waitlist protection');
+      return;
+    }
+    
     const params = new URLSearchParams(window.location.search);
     const inviteParam = params.get('inviteCode');
     const session = getSession();
@@ -113,10 +119,6 @@ function OnboardingPageContent() {
     
     if (!hasInviteCode && !hasUscScan && !session && !hasEmailToVerify) {
       console.log('[Onboarding] BLOCKED - No access method found');
-      console.log('[Onboarding] hasInviteCode:', hasInviteCode);
-      console.log('[Onboarding] hasUscScan:', hasUscScan);
-      console.log('[Onboarding] session:', !!session);
-      console.log('[Onboarding] hasEmailToVerify:', hasEmailToVerify);
       console.log('[Onboarding] Redirecting to waitlist');
       router.push('/waitlist');
       return;
