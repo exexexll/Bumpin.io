@@ -259,8 +259,15 @@ function OnboardingPageContent() {
     // IMPORTANT: Validate session is actually valid before redirecting
     // (Server restart clears sessions, but localStorage still has old tokens)
     if (existingSession) {
-      // CRITICAL FIX: If user has session AND referral/invite link, skip all onboarding!
-      // Redirect directly to matchmaking with the target user
+      // CRITICAL: NEVER redirect if this is an admin code!
+      // Admin codes require USC card verification even if user has session
+      if (isAdminCode) {
+        console.log('[Onboarding] Admin code detected - NOT redirecting, USC verification required');
+        // Let USC flow proceed (step already set to 'usc-welcome')
+        return;
+      }
+      
+      // For regular codes: If user has session AND referral/invite link, skip onboarding
       if (ref || invite) {
         console.log('[Onboarding] Existing session with referral/invite - redirecting to matchmaking');
         // Go to main with query params to open matchmaking
