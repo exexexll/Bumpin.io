@@ -153,7 +153,7 @@ function OnboardingPageContent() {
           router.push('/waitlist');
         });
     }
-  }, [router, setUscEmail, setNeedsUSCEmail, setStep]);
+  }, [router, setUscEmail, setNeedsUSCEmail, setStep, isAdminCode]); // Add isAdminCode dep
 
   // Prevent tab closing/navigation during onboarding (strengthened)
   useEffect(() => {
@@ -358,7 +358,7 @@ function OnboardingPageContent() {
           console.error('[Onboarding] Failed to fetch referral info:', err);
         });
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, validatingCode, isAdminCode]); // Dependencies
 
   /**
    * Step 1: Name + Gender
