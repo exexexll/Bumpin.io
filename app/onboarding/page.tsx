@@ -89,6 +89,12 @@ function OnboardingPageContent() {
 
   // CRITICAL: Waitlist protection - require invite code or valid session
   useEffect(() => {
+    // FORCE: Skip ALL checks if admin code (already validated)
+    if (isAdminCode) {
+      console.log('[Onboarding] ✅ Admin code - FORCE bypassing waitlist protection');
+      return;
+    }
+    
     const params = new URLSearchParams(window.location.search);
     const inviteParam = params.get('inviteCode');
     const session = getSession();
