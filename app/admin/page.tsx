@@ -769,7 +769,7 @@ export default function AdminPage() {
               <div className="rounded-xl bg-white/5 border border-white/10 p-6">
                 <h3 className="text-lg font-semibold text-[#eaeaf0] mb-4">Signups (Last 30 Days)</h3>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {analyticsData.signups.data.map((day: any, idx: number) => (
+                  {analyticsData?.signups?.data?.map((day: any, idx: number) => (
                     <div key={idx} className="flex items-center gap-3">
                       <div className="text-xs text-[#eaeaf0]/70 w-24">{new Date(day.date).toLocaleDateString()}</div>
                       <div className="flex-1 h-6 bg-white/5 rounded overflow-hidden">
@@ -800,7 +800,7 @@ export default function AdminPage() {
               <div className="rounded-xl bg-white/5 border border-white/10 p-6">
                 <h3 className="text-lg font-semibold text-[#eaeaf0] mb-4">Top 10 Active Users</h3>
                 <div className="space-y-2">
-                  {analyticsData.engagement.topUsers.map((user: any, idx: number) => (
+                  {analyticsData?.engagement?.topUsers?.map((user: any, idx: number) => (
                     <div key={user.userId} className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
                       <div className="text-[#ffc46a] font-bold w-8">#{idx + 1}</div>
                       <div className="flex-1">
