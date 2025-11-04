@@ -734,6 +734,93 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+      
+      {/* Analytics Tab */}
+      {activeTab === 'analytics' && (
+        <div className="space-y-6">
+          {loadingAnalytics ? (
+            <div className="text-center py-12">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#ffc46a] border-t-transparent"></div>
+              <p className="mt-4 text-[#eaeaf0]/70">Loading analytics...</p>
+            </div>
+          ) : analyticsData ? (
+            <>
+              {/* Overview Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="rounded-xl bg-white/5 border border-white/10 p-6">
+                  <div className="text-[#eaeaf0]/70 text-sm mb-2">Total Users</div>
+                  <div className="text-3xl font-bold text-[#ffc46a]">{analyticsData.overview.totalUsers}</div>
+                  <div className="text-xs text-[#eaeaf0]/50 mt-2">Active (7d): {analyticsData.overview.activeUsers}</div>
+                </div>
+                <div className="rounded-xl bg-white/5 border border-white/10 p-6">
+                  <div className="text-[#eaeaf0]/70 text-sm mb-2">Total Sessions</div>
+                  <div className="text-3xl font-bold text-[#ffc46a]">{analyticsData.overview.totalSessions}</div>
+                  <div className="text-xs text-[#eaeaf0]/50 mt-2">Avg: {analyticsData.overview.avgDuration}s</div>
+                </div>
+                <div className="rounded-xl bg-white/5 border border-white/10 p-6">
+                  <div className="text-[#eaeaf0]/70 text-sm mb-2">Paid Users</div>
+                  <div className="text-3xl font-bold text-[#ffc46a]">
+                    {(analyticsData.overview.paidStatus?.paid || 0) + (analyticsData.overview.paidStatus?.qr_verified || 0)}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Signup Graph */}
+              <div className="rounded-xl bg-white/5 border border-white/10 p-6">
+                <h3 className="text-lg font-semibold text-[#eaeaf0] mb-4">Signups (Last 30 Days)</h3>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {analyticsData.signups.data.map((day: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      <div className="text-xs text-[#eaeaf0]/70 w-24">{new Date(day.date).toLocaleDateString()}</div>
+                      <div className="flex-1 h-6 bg-white/5 rounded overflow-hidden">
+                        <div className="h-full bg-[#ffc46a]" style={{
+                          width: `${(day.signups / Math.max(...analyticsData.signups.data.map((d: any) => d.signups), 1) * 100)}%`
+                        }} />
+                      </div>
+                      <div className="text-sm text-[#eaeaf0] w-12 text-right">{day.signups}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Onboarding Routes */}
+              <div className="rounded-xl bg-white/5 border border-white/10 p-6">
+                <h3 className="text-lg font-semibold text-[#eaeaf0] mb-4">Onboarding Methods</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Object.entries(analyticsData.routes.routes || {}).map(([route, count]: any) => (
+                    <div key={route} className="text-center p-4 rounded-lg bg-white/5">
+                      <div className="text-2xl font-bold text-[#ffc46a]">{count}</div>
+                      <div className="text-xs text-[#eaeaf0]/70 capitalize mt-1">{route.replace(/_/g, ' ')}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Top Users */}
+              <div className="rounded-xl bg-white/5 border border-white/10 p-6">
+                <h3 className="text-lg font-semibold text-[#eaeaf0] mb-4">Top 10 Active Users</h3>
+                <div className="space-y-2">
+                  {analyticsData.engagement.topUsers.map((user: any, idx: number) => (
+                    <div key={user.userId} className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                      <div className="text-[#ffc46a] font-bold w-8">#{idx + 1}</div>
+                      <div className="flex-1">
+                        <div className="text-[#eaeaf0]">{user.name}</div>
+                        <div className="text-xs text-[#eaeaf0]/50">
+                          {user.sessionCount} sessions • {Math.floor(user.totalSeconds / 60)} min
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-[#eaeaf0]/70">Click Analytics tab to load data</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {activeTab === 'event' && (
         <div className="space-y-6">
