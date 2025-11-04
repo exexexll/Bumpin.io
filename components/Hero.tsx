@@ -130,7 +130,7 @@ export function Hero() {
 
           {/* Subtitle */}
           <p className="mb-2 font-inter text-base font-medium text-white/95 sm:text-lg lg:text-xl">
-            Make Friends in SoCal— Live Matches, Zero Waiting, Infinite Possibilites.
+            Make Friends On Campus— Live Matches, Zero Waiting, Infinite Possibilites.
           </p>
           
           {/* Venture Credit */}
