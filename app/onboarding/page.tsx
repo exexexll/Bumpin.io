@@ -216,7 +216,7 @@ function OnboardingPageContent() {
     };
   }, [onboardingComplete]);
   
-  // Extract invite code and check if admin type
+  // Extract invite code and check if admin type FIRST
   useEffect(() => {
     const ref = searchParams.get('ref');
     const invite = searchParams.get('inviteCode');
@@ -234,9 +234,15 @@ function OnboardingPageContent() {
         .then(res => res.json())
         .then(data => {
           if (data.valid && data.type === 'admin') {
-            console.log('[Onboarding] Admin code - showing USC welcome');
+            console.log('[Onboarding] ✅ Admin code detected - showing USC welcome');
             setNeedsUSCCard(true);
             setStep('usc-welcome');
+            
+            // CRITICAL: Clear existing session for admin codes
+            // Admin QR should allow creating NEW accounts even if logged in
+            console.log('[Onboarding] Clearing existing session to allow new account creation');
+            localStorage.removeItem('bumpin_session');
+            sessionStorage.clear();
           }
         })
         .catch(err => console.error('[Onboarding] Validation failed:', err));
@@ -262,16 +268,30 @@ function OnboardingPageContent() {
     // (Server restart clears sessions, but localStorage still has old tokens)
     if (existingSession) {
       // If user has session AND referral/invite link, skip onboarding
-      if (ref || invite) {
-        console.log('[Onboarding] Existing session with referral/invite - redirecting to matchmaking');
-        // Go to main with query params to open matchmaking
-        if (ref) {
-          router.push(`/main?openMatchmaking=true&ref=${ref}`);
-        } else {
-          router.push('/main'); // Invite code users just go to main
-        }
+      // UNLESS it's an admin code (will be cleared above after validation)
+      if ((ref || invite) && !invite) { // Only redirect if ref only, not invite
+        console.log('[Onboarding] Existing session with referral - redirecting to matchmaking');
+        router.push(`/main?openMatchmaking=true&ref=${ref}`);
         return;
       }
+      
+      // Has invite - wait for validation to complete before deciding
+      if (invite) {
+        console.log('[Onboarding] Has invite code - waiting for validation before redirect');
+        // Validation will either clear session (admin) or redirect (regular)
+        setTimeout(() => {
+          const stillHasSession = getSession();
+          if (stillHasSession && invite) {
+            // Regular invite code with existing session - go to main
+            console.log('[Onboarding] Regular invite + session - redirecting to main');
+            router.push('/main');
+          }
+        }, 1000); // Wait for validation
+        return;
+      }
+      
+      // No ref or invite - check session validity
+      if (!ref && !invite) {
       
       // No referral/invite - normal flow
       // Verify session is valid by checking with server
