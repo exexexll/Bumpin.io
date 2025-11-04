@@ -530,6 +530,10 @@ app.use('/verification', apiLimiter, verificationRoutes);
 app.use('/location', apiLimiter, locationRoutes);
 app.use('/instagram', apiLimiter, instagramRoutes);
 app.use('/usc', apiLimiter, createUSCVerificationRoutes(io, activeSockets));
+
+// Analytics routes (admin only)
+import analyticsRoutes from './analytics';
+app.use('/analytics', analyticsRoutes);
 app.use('/waitlist', apiLimiter, waitlistRoutes);
 // EVENT MODE: Public event endpoints with rate limiting (SECURITY: prevent scraping)
 app.use('/event/attendance', eventPublicLimiter);
