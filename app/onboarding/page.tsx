@@ -622,10 +622,15 @@ function OnboardingPageContent() {
 
   const retakePhoto = () => {
     setCapturedPhoto(null);
-    // Resume camera stream
+    // Stop old stream and restart camera completely
     if (stream) {
-      stream.getTracks().forEach(track => track.enabled = true);
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
     }
+    // Restart camera
+    setTimeout(() => {
+      startCamera();
+    }, 100);
   };
 
   /**
