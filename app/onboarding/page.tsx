@@ -21,10 +21,8 @@ function OnboardingPageContent() {
   const searchParams = useSearchParams();
   
   const inviteCodeFromURL = searchParams.get('inviteCode');
-  const adminQRFlag = searchParams.get('adminQR'); // Simple flag: if exists, it's admin QR
-  const isAdminQR = adminQRFlag === '1';
   
-  const [step, setStep] = useState<Step>(isAdminQR ? 'usc-welcome' : 'name');
+  const [step, setStep] = useState<Step>('name');
   const [name, setName] = useState('');
   const [gender, setGender] = useState<Gender>('unspecified');
   const [sessionToken, setSessionToken] = useState('');
@@ -37,10 +35,12 @@ function OnboardingPageContent() {
   const [targetOnline, setTargetOnline] = useState(false);
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [validatingCode, setValidatingCode] = useState(false);
+  const [isAdminCode, setIsAdminCode] = useState(false);
   
   // USC Card verification
   const [uscId, setUscId] = useState<string | null>(null);
-  const [needsUSCCard, setNeedsUSCCard] = useState(isAdminQR);
+  const [needsUSCCard, setNeedsUSCCard] = useState(false);
 
   // Step 2: Selfie
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -218,28 +218,54 @@ function OnboardingPageContent() {
     };
   }, [onboardingComplete]);
   
-  // Extract invite code and referral
+  // FIRST: Validate invite code if present (blocks until complete)
   useEffect(() => {
-    const ref = searchParams.get('ref');
     const invite = searchParams.get('inviteCode');
     
-    // CRITICAL: If admin QR flag exists, clear session FIRST
-    if (isAdminQR) {
-      console.log('[Onboarding] ✅ Admin QR detected - clearing session for new account');
-      localStorage.removeItem('bumpin_session');
-      sessionStorage.clear();
-      // Re-store invite after clear
-      if (invite) {
-        sessionStorage.setItem('onboarding_invite_code', invite);
-      }
-    }
+    if (!invite) return;
     
-    if (invite) {
-      setInviteCode(invite);
-      if (!isAdminQR) { // Don't overwrite if already cleared above
-        sessionStorage.setItem('onboarding_invite_code', invite);
-      }
-    }
+    console.log('[Onboarding] Validating invite code:', invite);
+    setValidatingCode(true);
+    setInviteCode(invite);
+    sessionStorage.setItem('onboarding_invite_code', invite);
+    
+    // Call API to check code type from database
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/payment/validate-code`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: invite }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log('[Onboarding] Validation result:', data);
+        
+        if (data.valid && data.type === 'admin') {
+          console.log('[Onboarding] ✅ ADMIN CODE from database');
+          setIsAdminCode(true);
+          setNeedsUSCCard(true);
+          setStep('usc-welcome');
+          
+          // Clear session to allow new account
+          localStorage.removeItem('bumpin_session');
+          console.log('[Onboarding] Session cleared for new account');
+        } else {
+          console.log('[Onboarding] Regular user code');
+          setIsAdminCode(false);
+        }
+        setValidatingCode(false);
+      })
+      .catch(err => {
+        console.error('[Onboarding] Validation failed:', err);
+        setValidatingCode(false);
+      });
+  }, []); // Run once on mount
+  
+  // SECOND: Handle referral and session checks (after validation)
+  useEffect(() => {
+    if (validatingCode) return; // Wait for validation to complete
+    
+    const ref = searchParams.get('ref');
+    const invite = searchParams.get('inviteCode');
     
     if (ref) {
       setReferralCode(ref);
@@ -249,10 +275,10 @@ function OnboardingPageContent() {
     // Check if user is already registered (has session)
     const existingSession = getSession();
     
-    // Skip all session checks if admin QR
-    if (isAdminQR) {
-      console.log('[Onboarding] Admin QR - skipping all session checks');
-      return; // Let USC flow proceed
+    // Skip all session checks if admin code
+    if (isAdminCode) {
+      console.log('[Onboarding] Admin code - allowing new signup');
+      return;
     }
     
     if (existingSession) {

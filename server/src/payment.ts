@@ -579,10 +579,7 @@ router.get('/qr/:code', async (req: any, res) => {
     const frontendUrl = process.env.FRONTEND_URL || 
                         (process.env.NODE_ENV === 'production' ? 'https://bumpin.com' : null) ||
                         (req.headers.origin || `${req.protocol}://${req.get('host')}`).replace(':3001', ':3000');
-    // Admin codes include adminQR=1 flag to always trigger USC flow
-    const signupUrl = inviteCode.type === 'admin'
-      ? `${frontendUrl}/onboarding?inviteCode=${code}&adminQR=1`
-      : `${frontendUrl}/onboarding?inviteCode=${code}`;
+    const signupUrl = `${frontendUrl}/onboarding?inviteCode=${code}`;
     console.log(`[QR] Generating QR for URL: ${signupUrl} (type: ${inviteCode.type})`);
     
     const qrCodeBuffer = await QRCode.toBuffer(signupUrl, {
