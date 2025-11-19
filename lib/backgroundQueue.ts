@@ -247,6 +247,14 @@ class BackgroundQueueManager {
       console.log('[BackgroundQueue] ⚠️ Tab hidden, not joining queue');
       return;
     }
+
+    // CRITICAL: Check location consent
+    const consent = typeof window !== 'undefined' ? localStorage.getItem('bumpin_location_consent') : null;
+    if (this.isBackgroundEnabled() && consent !== 'true') {
+      console.warn('[BackgroundQueue] ⚠️ Location consent missing, cannot join background queue');
+      // We don't force disable the toggle here to avoid UI flicker, but we don't join
+      return;
+    }
     
     // If background queue is disabled, only allow from /main
     if (!this.isBackgroundEnabled()) {

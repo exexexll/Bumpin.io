@@ -15,6 +15,8 @@ import { backgroundQueue } from '@/lib/backgroundQueue';
 import { getSocket } from '@/lib/socket';
 import { Toggle } from '@/components/Toggle';
 import Link from 'next/link';
+import { LocationPermissionModal } from '@/components/LocationPermissionModal';
+import { requestAndUpdateLocation } from '@/lib/locationAPI';
 
 function MainPageContent() {
   const router = useRouter();
@@ -24,6 +26,7 @@ function MainPageContent() {
   const [directMatchTarget, setDirectMatchTarget] = useState<string | null>(null);
   const [backgroundQueueEnabled, setBackgroundQueueEnabled] = useState(false);
   const [profileComplete, setProfileComplete] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
   useEffect(() => {
     // Hide footer on main page
@@ -203,6 +206,31 @@ function MainPageContent() {
     setShowMatchmake(true);
   };
 
+  const handleLocationAllow = async () => {
+    const session = getSession();
+    if (!session) return;
+    
+    setShowLocationModal(false);
+    
+    const success = await requestAndUpdateLocation(session.sessionToken);
+    if (success) {
+      localStorage.setItem('bumpin_location_consent', 'true');
+      // Enable queue now that location is allowed
+      setBackgroundQueueEnabled(true);
+      localStorage.setItem('bumpin_background_queue', 'true');
+      console.log('[Main] Background queue enabled after location allowed');
+    } else {
+      alert('Location permission denied. Background queue cannot be enabled without location access (to show nearby people).');
+      localStorage.setItem('bumpin_location_consent', 'false');
+    }
+  };
+
+  const handleLocationDeny = () => {
+    setShowLocationModal(false);
+    localStorage.setItem('bumpin_location_consent', 'false');
+    // Do NOT enable background queue
+  };
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-white">
@@ -250,6 +278,15 @@ function MainPageContent() {
               <Toggle
                 enabled={backgroundQueueEnabled}
                 onChange={(enabled) => {
+                  if (enabled) {
+                    // Check location consent first
+                    const consent = localStorage.getItem('bumpin_location_consent');
+                    if (consent !== 'true') {
+                      setShowLocationModal(true);
+                      return;
+                    }
+                  }
+                  
                   setBackgroundQueueEnabled(enabled);
                   localStorage.setItem('bumpin_background_queue', String(enabled));
                   console.log('[Main] Background queue toggle changed to:', enabled ? 'ON' : 'OFF');
@@ -333,6 +370,16 @@ function MainPageContent() {
                     alert('⚠️ Please upload a photo and intro video first!\n\nBackground Queue requires a complete profile so others can see you in matchmaking.');
                     return;
                   }
+                  
+                  if (enabled) {
+                    // Check location consent first
+                    const consent = localStorage.getItem('bumpin_location_consent');
+                    if (consent !== 'true') {
+                      setShowLocationModal(true);
+                      return;
+                    }
+                  }
+
                   setBackgroundQueueEnabled(enabled);
                   localStorage.setItem('bumpin_background_queue', String(enabled));
                 }}
@@ -395,6 +442,14 @@ function MainPageContent() {
             setDirectMatchTarget(null);
           }}
           directMatchTarget={directMatchTarget}
+        />
+      )}
+      
+      {/* Location Permission Modal (for Background Queue) */}
+      {showLocationModal && (
+        <LocationPermissionModal
+          onAllow={handleLocationAllow}
+          onDeny={handleLocationDeny}
         />
       )}
 

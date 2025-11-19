@@ -74,10 +74,14 @@ export function GlobalCallHandler() {
 
     // Setup listeners immediately (socket might connect later)
     // CRITICAL: Only remove/add if not already set up to avoid breaking active listeners
-    socket.off('call:notify', handleCallNotify); // Remove this specific handler if exists
-    socket.off('call:start', handleCallStart); // Remove this specific handler if exists
-    socket.on('call:notify', handleCallNotify);
-    socket.on('call:start', handleCallStart);
+    // We remove ALL listeners for these events to prevent duplicates if component re-mounts
+    // GlobalCallHandler is the SINGLE source of truth for these events
+    if (socket) {
+      socket.off('call:notify'); 
+      socket.off('call:start'); 
+      socket.on('call:notify', handleCallNotify);
+      socket.on('call:start', handleCallStart);
+    }
     
     // CRITICAL: ALWAYS initialize background queue with socket
     // Even if already initialized, update socket reference (might be new after reconnect)
