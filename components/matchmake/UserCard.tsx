@@ -90,52 +90,14 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   // Navigation handlers for switching posts (with video autoplay)
   const handleSwipeLeft = () => {
     if (totalMedia <= 1) return;
-    
     const nextIndex = (currentMediaIndex + 1) % totalMedia;
-    console.log('[PostDisplay] Next post:', currentMediaIndex, '→', nextIndex);
-    
-    // Pause current video
-    if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
-      videoRef.current.pause();
-      setIsVideoPaused(true);
-    }
-    
     setCurrentMediaIndex(nextIndex);
-    
-    // Autoplay if navigating TO video
-    if (mediaItems[nextIndex]?.type === 'video') {
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.play().catch(() => console.log('[PostDisplay] Autoplay blocked'));
-          setIsVideoPaused(false);
-        }
-      }, 100);
-    }
   };
 
   const handleSwipeRight = () => {
     if (totalMedia <= 1) return;
-    
     const prevIndex = currentMediaIndex === 0 ? totalMedia - 1 : currentMediaIndex - 1;
-    console.log('[PostDisplay] Previous post:', currentMediaIndex, '→', prevIndex);
-    
-    // Pause current video
-    if (videoRef.current && mediaItems[currentMediaIndex].type === 'video') {
-      videoRef.current.pause();
-      setIsVideoPaused(true);
-    }
-    
     setCurrentMediaIndex(prevIndex);
-    
-    // Autoplay if navigating TO video
-    if (mediaItems[prevIndex]?.type === 'video') {
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.play().catch(() => console.log('[PostDisplay] Autoplay blocked'));
-          setIsVideoPaused(false);
-        }
-      }, 100);
-    }
   };
   
   // ENHANCEMENT: Swipe gesture handlers (MUST be unconditional)
