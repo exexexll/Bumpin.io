@@ -309,7 +309,7 @@ function OnboardingPageContent() {
         .then(res => res.json())
         .then(data => {
           // Check if profile is complete (has selfie AND video)
-          const hasCompletedProfile = data.selfieUrl && data.videoUrl;
+          const hasCompletedProfile = data.selfieUrl; // Photo only required now
           
           // Check payment status (includes grace period users)
           const hasPaid = data.paidStatus === 'paid' || data.paidStatus === 'qr_verified' || data.paidStatus === 'qr_grace_period';

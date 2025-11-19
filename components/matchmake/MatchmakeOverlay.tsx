@@ -549,13 +549,12 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         if (userRes.ok) {
           const userData = await userRes.json();
           const hasSelfie = !!userData.selfieUrl;
-          const hasVideo = !!userData.videoUrl;
           
-          setProfileStatus({ hasSelfie, hasVideo });
+          setProfileStatus({ hasSelfie, hasVideo: true }); // Video not required anymore
           
-          // If missing photo or video, show modal
-          if (!hasSelfie || !hasVideo) {
-            console.warn('[Matchmake] Profile incomplete - selfie:', hasSelfie, 'video:', hasVideo);
+          // If missing photo, show modal
+          if (!hasSelfie) {
+            console.warn('[Matchmake] Profile incomplete - no photo');
             setShowProfileIncompleteModal(true);
             return; // Don't join queue
           }
