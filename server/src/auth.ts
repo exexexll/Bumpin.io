@@ -39,8 +39,12 @@ export function createAuthRoutes(
   const userId = uuidv4();
   const sessionToken = uuidv4();
 
-  // CRITICAL: REQUIRE invite code (app is now invite-only)
-  if (!inviteCode) {
+  // CRITICAL: Check if open signup is enabled
+  const { isOpenSignupEnabled } = await import('./open-signup');
+  const openSignupAllowed = isOpenSignupEnabled();
+  
+  // REQUIRE invite code ONLY if open signup is disabled
+  if (!inviteCode && !openSignupAllowed) {
     return res.status(403).json({ 
       error: 'Invite code required',
       message: 'BUMPIN is currently invite-only. Please use an invite code or join our waitlist.',
@@ -48,12 +52,18 @@ export function createAuthRoutes(
       waitlistUrl: '/waitlist'
     });
   }
+  
+  console.log('[Auth] Open signup:', openSignupAllowed ? 'ENABLED (no code required)' : 'DISABLED (code required)');
 
-  // PAYWALL CHECK: Validate invite code
+  // PAYWALL CHECK: Validate invite code (if provided)
   let codeVerified = false;
   let codeUsed: string | undefined;
   
-  if (inviteCode) {
+  // If open signup enabled and no code, mark as verified via open signup
+  if (!inviteCode && openSignupAllowed) {
+    codeVerified = true;
+    console.log('[Auth] User allowed via open signup (no invite code needed)');
+  } else if (inviteCode) {
     const sanitizedCode = inviteCode.trim().toUpperCase();
     
     // Validate code format first (prevent injection)
@@ -123,13 +133,17 @@ export function createAuthRoutes(
     }
   }
 
-  // Determine paid status based on code type
-  let paidStatus: 'unpaid' | 'paid' | 'qr_verified' | 'qr_grace_period' = 'unpaid';
+  // Determine paid status based on code type or open signup
+  let paidStatus: 'unpaid' | 'paid' | 'qr_verified' | 'qr_grace_period' | 'open_signup' = 'unpaid';
   let isAdminCode = false;
   let uscEmailForVerification: string | undefined;
   
-  if (codeVerified) {
-    const codeInfo = await store.getInviteCode(codeUsed!);
+  if (codeVerified && !codeUsed && openSignupAllowed) {
+    // Open signup user (no code used)
+    paidStatus = 'open_signup';
+    console.log('[Auth] Setting paidStatus to open_signup');
+  } else if (codeVerified && codeUsed) {
+    const codeInfo = await store.getInviteCode(codeUsed);
     if (codeInfo?.type === 'admin') {
       isAdminCode = true;
       // SECURITY: Admin code users are 'qr_grace_period' until email verified
