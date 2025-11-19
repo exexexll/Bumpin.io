@@ -122,12 +122,19 @@ router.delete('/me', requireAuth, async (req: any, res) => {
     }
     
     // Delete user from database (CASCADE will handle related records)
-    await query('DELETE FROM users WHERE user_id = $1', [userId]);
+    console.log(`[User] Attempting database delete for user ${userId.substring(0, 8)}, email: ${user.email}`);
+    
+    const deleteResult = await query('DELETE FROM users WHERE user_id = $1 RETURNING user_id, email', [userId]);
+    
+    console.log(`[User] Database delete result: ${deleteResult.rowCount} rows deleted`);
+    if (deleteResult.rows.length > 0) {
+      console.log(`[User] ✅ Confirmed deleted from DB: ${deleteResult.rows[0].email}`);
+    }
     
     // CRITICAL: Clear from memory cache too (prevents email reuse errors)
     await store.deleteUser(userId);
     
-    console.log(`[User] ✅ Account deleted from DB and cache: ${user.name}`);
+    console.log(`[User] ✅ Account deleted from DB and cache: ${user.name}, email: ${user.email}`);
     
     res.json({ 
       success: true, 
