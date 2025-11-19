@@ -548,7 +548,7 @@ export default function RefilmPage() {
                     </button>
                     <button
                       onClick={() => {
-                        // Capture to preview first
+                        // Capture to preview first (mirrored)
                         if (!canvasRef.current || !videoRef.current) return;
                         const canvas = canvasRef.current;
                         const video = videoRef.current;
@@ -556,7 +556,12 @@ export default function RefilmPage() {
                         canvas.height = video.videoHeight;
                         const ctx = canvas.getContext('2d');
                         if (ctx) {
-                          ctx.drawImage(video, 0, 0);
+                          // Mirror the preview to match live camera
+                          ctx.save();
+                          ctx.scale(-1, 1);
+                          ctx.drawImage(video, -canvas.width, 0);
+                          ctx.restore();
+                          
                           const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
                           setCapturedPhoto(dataUrl);
                           // Stop camera after capture
