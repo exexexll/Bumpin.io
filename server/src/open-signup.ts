@@ -51,13 +51,13 @@ router.post('/toggle', requireAdmin, async (req, res) => {
   try {
     await query(
       'UPDATE open_signup_settings SET enabled = $1, updated_at = NOW(), updated_by = $2 WHERE id = 1',
-      [enabled, req.adminUser || 'admin']
+      [enabled, 'admin']
     );
     
     // Update memory cache
     openSignupEnabled = enabled;
     
-    console.log(`[OpenSignup] Toggled to: ${enabled ? 'ENABLED' : 'DISABLED'} by ${req.adminUser}`);
+    console.log(`[OpenSignup] Toggled to: ${enabled ? 'ENABLED' : 'DISABLED'} by admin`);
     
     res.json({ enabled, message: `Open signup ${enabled ? 'enabled' : 'disabled'}` });
   } catch (error) {

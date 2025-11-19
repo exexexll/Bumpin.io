@@ -534,6 +534,10 @@ app.use('/usc', apiLimiter, createUSCVerificationRoutes(io, activeSockets));
 // Analytics routes (admin only)
 import analyticsRoutes from './analytics';
 app.use('/analytics', analyticsRoutes);
+
+// Open signup routes
+import openSignupRoutes from './open-signup';
+app.use('/open-signup', openSignupRoutes);
 app.use('/waitlist', apiLimiter, waitlistRoutes);
 // EVENT MODE: Public event endpoints with rate limiting (SECURITY: prevent scraping)
 app.use('/event/attendance', eventPublicLimiter);
