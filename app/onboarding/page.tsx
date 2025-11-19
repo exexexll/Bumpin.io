@@ -333,9 +333,9 @@ function OnboardingPageContent() {
             if (!data.selfieUrl) {
               console.log('[Onboarding] No selfie - starting from selfie step');
               setStep('selfie');
-            } else if (!data.videoUrl) {
-              console.log('[Onboarding] No video - starting from video step');
-              setStep('video');
+            } else if (!data.selfieUrl) {
+              console.log('[Onboarding] No photo - starting from selfie step');
+              setStep('selfie');
             } else {
               setStep('permanent');
             }
@@ -612,7 +612,7 @@ function OnboardingPageContent() {
             stream?.getTracks().forEach(track => track.stop());
             setStream(null);
             setCapturedPhoto(null);
-            setStep('video');
+            setStep('permanent'); // Skip video, go straight to permanent
             resolve();
           } catch (err: any) {
             reject(err);
