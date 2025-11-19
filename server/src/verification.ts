@@ -22,12 +22,27 @@ router.post('/send', requireAuth, async (req: any, res) => {
     return res.status(400).json({ error: 'Valid email required' });
   }
   
-  // CRITICAL: Check if email already exists in system
+  // CRITICAL: Check if email already exists in system (both email and pending_email)
   const existingUser = await store.getUserByEmail(email.toLowerCase());
   if (existingUser && existingUser.userId !== req.userId) {
     return res.status(409).json({ 
       error: 'This email is already registered to another account',
       hint: 'Try logging in or use a different email.'
+    });
+  }
+  
+  // ALSO check if another user has this as pending_email
+  const { query } = await import('./database');
+  const pendingCheck = await query(
+    'SELECT user_id FROM users WHERE pending_email = $1 AND user_id != $2',
+    [email.toLowerCase(), req.userId]
+  );
+  
+  if (pendingCheck.rows.length > 0) {
+    console.warn(`[Verification] Email ${email} is pending verification for another user`);
+    return res.status(409).json({
+      error: 'This email is being verified by another account',
+      hint: 'If this is your email, complete the verification in progress or try again later.'
     });
   }
   
