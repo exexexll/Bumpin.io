@@ -47,7 +47,8 @@ function CheckAccessContent() {
             
             const hasAccess = data.paidStatus === 'paid' || 
                              data.paidStatus === 'qr_verified' || 
-                             data.paidStatus === 'qr_grace_period';
+                             data.paidStatus === 'qr_grace_period' ||
+                             data.paidStatus === 'open_signup';
             
             if (hasAccess) {
               // Has valid session with access → Go to main

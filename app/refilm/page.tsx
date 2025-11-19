@@ -55,7 +55,7 @@ export default function RefilmPage() {
           return;
         }
         
-        const hasPaid = paymentData.paidStatus === 'paid' || paymentData.paidStatus === 'qr_verified' || paymentData.paidStatus === 'qr_grace_period';
+        const hasPaid = paymentData.paidStatus === 'paid' || paymentData.paidStatus === 'qr_verified' || paymentData.paidStatus === 'qr_grace_period' || paymentData.paidStatus === 'open_signup';
         
         if (!hasPaid) {
           console.warn('[Refilm] Unpaid user attempted access - redirecting to waitlist');

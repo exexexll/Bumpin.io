@@ -34,7 +34,7 @@ export default function TrackerPage() {
           return;
         }
         
-        const hasPaid = paymentData.paidStatus === 'paid' || paymentData.paidStatus === 'qr_verified' || paymentData.paidStatus === 'qr_grace_period';
+        const hasPaid = paymentData.paidStatus === 'paid' || paymentData.paidStatus === 'qr_verified' || paymentData.paidStatus === 'qr_grace_period' || paymentData.paidStatus === 'open_signup';
         
         if (!hasPaid) {
           console.warn('[Tracker] Unpaid user attempted access - redirecting to waitlist');

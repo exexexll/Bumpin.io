@@ -48,7 +48,7 @@ export default function HistoryPage() {
         }
         
         // Allow BOTH paid users AND qr_verified users (invite code, referral, QR scan)
-        const hasPaid = paymentData.paidStatus === 'paid' || paymentData.paidStatus === 'qr_verified' || paymentData.paidStatus === 'qr_grace_period';
+        const hasPaid = paymentData.paidStatus === 'paid' || paymentData.paidStatus === 'qr_verified' || paymentData.paidStatus === 'qr_grace_period' || paymentData.paidStatus === 'open_signup';
         
         if (!hasPaid) {
           console.warn('[History] Unpaid user attempted access - redirecting to waitlist');
