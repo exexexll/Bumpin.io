@@ -674,53 +674,8 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
           >
             {/* Current Media Item */}
             <AnimatePresence mode="wait">
-              {mediaItems[currentMediaIndex].type === 'video' ? (
-                <motion.div
-                  key="video"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute inset-0 flex items-center justify-center"
-                  onClick={handleVideoTap}
-                >
-                  <video
-                    ref={videoRef}
-                    src={user.videoUrl}
-                    loop
-                    playsInline
-                    className="w-full h-full pointer-events-none"
-                    style={{
-                      objectFit: 'contain',
-                      objectPosition: 'center'
-                    }}
-                  />
-                  
-                  {/* Pause indicator */}
-                  {isVideoPaused && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-                      <svg className="h-20 w-20 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </div>
-                  )}
-                  
-                  {/* Desktop: Click zone hints */}
-                  {!isMobile && (
-                    <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
-                        <p className="text-xs text-white/80">Double-tap: ⏪ -10s</p>
-                      </div>
-                      <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
-                        <p className="text-xs text-white/80">Double-tap: ⏸/▶</p>
-                      </div>
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-lg px-3 py-2 backdrop-blur-sm">
-                        <p className="text-xs text-white/80">Double-tap: +10s ⏩</p>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              ) : (
+              {/* Video removed - only Instagram posts now */}
+              {mediaItems[currentMediaIndex] && (
                 <motion.div
                   key={`instagram-${currentMediaIndex}`}
                   initial={{ opacity: 0 }}
