@@ -89,6 +89,7 @@ function OnboardingPageContent() {
 
   // CRITICAL: Waitlist protection - require invite code or valid session
   useEffect(() => {
+    (async () => {
     // FORCE: Skip ALL checks if admin code (already validated)
     if (isAdminCode) {
       console.log('[Onboarding] ✅ Admin code - FORCE bypassing waitlist protection');
@@ -175,6 +176,7 @@ function OnboardingPageContent() {
           router.push('/waitlist');
         });
     }
+    })();
   }, [router, setUscEmail, setNeedsUSCEmail, setStep, isAdminCode]); // Add isAdminCode dep
 
   // Prevent tab closing/navigation during onboarding (strengthened)
