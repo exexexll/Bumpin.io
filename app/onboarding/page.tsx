@@ -147,7 +147,8 @@ function OnboardingPageContent() {
           
           const hasAccess = data.paidStatus === 'paid' || 
                            data.paidStatus === 'qr_verified' || 
-                           data.paidStatus === 'qr_grace_period';
+                           data.paidStatus === 'qr_grace_period' ||
+                           data.paidStatus === 'open_signup';
           
           if (!hasAccess) {
             console.log('[Onboarding] Session exists but no access - redirecting to waitlist');
@@ -312,7 +313,7 @@ function OnboardingPageContent() {
           const hasCompletedProfile = data.selfieUrl; // Photo only required now
           
           // Check payment status (includes grace period users)
-          const hasPaid = data.paidStatus === 'paid' || data.paidStatus === 'qr_verified' || data.paidStatus === 'qr_grace_period';
+          const hasPaid = data.paidStatus === 'paid' || data.paidStatus === 'qr_verified' || data.paidStatus === 'qr_grace_period' || data.paidStatus === 'open_signup';
           
           if (hasCompletedProfile && hasPaid) {
             // Profile complete AND paid - redirect to main

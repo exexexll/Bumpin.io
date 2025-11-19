@@ -145,7 +145,8 @@ function MainPageContent() {
         
         const hasPaid = paymentData.paidStatus === 'paid' || 
                         paymentData.paidStatus === 'qr_verified' || 
-                        paymentData.paidStatus === 'qr_grace_period';
+                        paymentData.paidStatus === 'qr_grace_period' ||
+                        paymentData.paidStatus === 'open_signup';
         
         if (!hasPaid) {
           router.push('/waitlist');
