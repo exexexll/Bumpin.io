@@ -1113,6 +1113,9 @@ io.on('connection', (socket) => {
     const callerSocket = activeSockets.get(invite.fromUserId);
     const calleeSocket = activeSockets.get(invite.toUserId);
 
+    console.log(`[Call] Caller socket: ${callerSocket ? '✅ Found' : '❌ NOT FOUND'}`);
+    console.log(`[Call] Callee socket: ${calleeSocket ? '✅ Found' : '❌ NOT FOUND'}`);
+
     // Notify both users with chatMode
     if (callerSocket) {
       io.to(callerSocket).emit('call:start', {
@@ -1126,6 +1129,9 @@ io.on('connection', (socket) => {
           selfieUrl: user2?.selfieUrl, // For text chat UI
         },
       });
+      console.log(`[Call] ✅ Emitted call:start to caller`);
+    } else {
+      console.error(`[Call] ❌ Caller socket not found for user ${invite.fromUserId.substring(0, 8)}`);
     }
 
     if (calleeSocket) {
@@ -1138,6 +1144,32 @@ io.on('connection', (socket) => {
           userId: user1?.userId,
           name: user1?.name,
           selfieUrl: user1?.selfieUrl, // For text chat UI
+        },
+      });
+      console.log(`[Call] ✅ Emitted call:start to callee`);
+    } else {
+      console.error(`[Call] ❌ Callee socket not found for user ${invite.toUserId.substring(0, 8)}`);
+    }
+    
+    // BACKUP: Broadcast to all sockets for these user IDs (in case activeSockets is stale)
+    if (!callerSocket || !calleeSocket) {
+      console.warn(`[Call] ⚠️ Using broadcast fallback for missing sockets`);
+      io.emit('call:start:broadcast', {
+        targetUsers: [invite.fromUserId, invite.toUserId],
+        roomId,
+        agreedSeconds,
+        chatMode,
+        caller: invite.fromUserId,
+        callee: invite.toUserId,
+        callerData: {
+          userId: user1?.userId,
+          name: user1?.name,
+          selfieUrl: user1?.selfieUrl,
+        },
+        calleeData: {
+          userId: user2?.userId,
+          name: user2?.name,
+          selfieUrl: user2?.selfieUrl,
         },
       });
     }
