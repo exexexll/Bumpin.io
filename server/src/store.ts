@@ -335,6 +335,12 @@ class DataStore {
     return user;
   }
 
+  async deleteUser(userId: string): Promise<void> {
+    // Delete from memory cache
+    this.users.delete(userId);
+    console.log(`[Store] Deleted user from memory cache: ${userId.substring(0, 8)}`);
+  }
+
   async updateUser(userId: string, updates: Partial<User>): Promise<void> {
     // Update in memory
     const user = this.users.get(userId);
