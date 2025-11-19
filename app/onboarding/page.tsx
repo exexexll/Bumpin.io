@@ -117,8 +117,23 @@ function OnboardingPageContent() {
     }
     
     if (!hasInviteCode && !hasUscScan && !session && !hasEmailToVerify) {
-      console.log('[Onboarding] BLOCKED - No access method found');
-      console.log('[Onboarding] Redirecting to waitlist');
+      console.log('[Onboarding] No access method found, checking open signup...');
+      
+      // CRITICAL: Check if open signup is enabled before blocking
+      try {
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
+        const openSignupRes = await fetch(`${API_BASE}/open-signup/status`);
+        const openSignupData = await openSignupRes.json();
+        
+        if (openSignupData.enabled) {
+          console.log('[Onboarding] ✅ Open signup ENABLED - allowing access');
+          return; // Allow to continue
+        }
+      } catch (err) {
+        console.error('[Onboarding] Failed to check open signup, defaulting to waitlist');
+      }
+      
+      console.log('[Onboarding] BLOCKED - Redirecting to waitlist');
       router.push('/waitlist');
       return;
     }
