@@ -61,8 +61,10 @@ function MainPageContent() {
   // Initialize background queue once
   useEffect(() => {
     const socket = getSocket();
-    if (socket && !backgroundQueue.isInitialized()) {
+    if (socket) {
+      // CRITICAL: Always init, don't check isInitialized (might have stale socket)
       backgroundQueue.init(socket);
+      console.log('[Main] Background queue initialized with socket');
     }
     
     return () => {
