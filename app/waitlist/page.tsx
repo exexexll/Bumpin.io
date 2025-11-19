@@ -112,40 +112,26 @@ export default function WaitlistPage() {
   
   const handleEmailVerified = async () => {
     try {
-      console.log('[Waitlist] Email verified, linking account...');
+      console.log('[Waitlist] Email verified!');
       
-      // Link email and password
-      const res = await fetch(`${API_BASE}/auth/link`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sessionToken: tempSessionToken, // CRITICAL: Must be in body, not header
-          email: signupEmail.trim(),
-          password: signupPassword,
-        }),
-      });
+      // For USC email signup, /verification/verify ALREADY upgraded account to permanent
+      // and linked the email. We just need to save session and redirect.
+      // NO need to call /auth/link (that's for regular guest→permanent upgrades)
       
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to link account');
-      }
+      console.log('[Waitlist] Saving session and redirecting to onboarding...');
       
-      console.log('[Waitlist] Account linked, saving session and redirecting...');
-      
-      // Save session
+      // Save session (account is already permanent from verification)
       saveSession({
         sessionToken: tempSessionToken,
         userId: tempUserId,
-        accountType: 'permanent',
+        accountType: 'permanent', // Already upgraded by /verification/verify
       });
       
-      // Redirect to onboarding for name/photo/video
+      // Redirect to onboarding to complete profile (name/photo)
       setShowEmailSignup(false);
       router.push('/onboarding');
     } catch (err: any) {
-      console.error('[Waitlist] Email verification error:', err);
+      console.error('[Waitlist] Redirect error:', err);
       setError(err.message);
     }
   };
