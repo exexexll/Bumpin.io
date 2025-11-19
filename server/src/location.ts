@@ -226,6 +226,3 @@ console.log('[Location] Auto-cleanup job started (runs hourly)');
 // Default export for backward compatibility
 export default router;
 
-// Also export the factory function
-export { createLocationRoutes };
-
