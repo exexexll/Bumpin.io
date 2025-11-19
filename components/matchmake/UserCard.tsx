@@ -627,37 +627,36 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
         </motion.div>
       </motion.div>
 
-      {/* MEDIA DISPLAY: Full Height Video/Instagram Posts - With padding for bottom controls */}
-      <div className="relative flex-1 bg-black flex items-center justify-center pb-32">
-        {mediaItems.length > 0 ? (
-          <div 
-            className="relative w-full h-full flex items-center justify-center"
-            {...swipeHandlers}
-          >
-            {/* Current Media Item */}
-            <AnimatePresence mode="wait">
-              {/* Video removed - only Instagram posts now */}
-              {mediaItems[currentMediaIndex] && (
-                <motion.div
-                  key={`instagram-${currentMediaIndex}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute inset-0"
-                >
-                  <InstagramEmbed postUrl={mediaItems[currentMediaIndex].url} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-          </div>
-        ) : (
-          <div className="flex h-full items-center justify-center bg-black/80">
-            <p className="text-lg text-white/50">No media</p>
-          </div>
-        )}
+      {/* PHOTO DISPLAY: Full card photo */}
+      <div className="absolute inset-0">
+        <Image
+          src={user.selfieUrl || '/placeholder.png'}
+          alt={user.name}
+          fill
+          className="object-cover"
+          priority
+        />
       </div>
+      
+      {/* INSTAGRAM POSTS: Overlay on top of photo if available */}
+      {mediaItems.length > 0 && (
+        <div className="absolute inset-0 bg-black/50" {...swipeHandlers}>
+          <div className="relative w-full h-full flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`instagram-${currentMediaIndex}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="w-full h-full"
+              >
+                <InstagramEmbed postUrl={mediaItems[currentMediaIndex].url} />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
 
       {/* Video Progress Bar - Removed from UserCard, now in MatchmakeOverlay */}
 
