@@ -337,10 +337,23 @@ function OnboardingPageContent() {
             console.log('[Onboarding] Complete profile + paid - redirecting to main');
             router.push('/main');
           } else if (hasCompletedProfile && !hasPaid) {
-            // Profile complete but NOT paid - redirect to paywall
-            console.log('[Onboarding] Complete profile but unpaid - redirecting to paywall');
-            sessionStorage.setItem('redirecting_to_paywall', 'true');
-            router.push('/paywall');
+            // Profile complete but NOT paid - check event mode first
+            console.log('[Onboarding] Complete profile but unpaid');
+            
+            // If event mode is on, redirect to event-wait (RSVP page)
+            // Paywall is deprecated - use event-wait or waitlist
+            fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/event/status`)
+              .then(r => r.json())
+              .then(eventData => {
+                if (eventData.eventModeEnabled) {
+                  console.log('[Onboarding] Event mode ON - redirecting to event-wait');
+                  router.push('/event-wait');
+                } else {
+                  console.log('[Onboarding] No access - redirecting to waitlist');
+                  router.push('/waitlist');
+                }
+              })
+              .catch(() => router.push('/waitlist'));
           } else {
             // Profile incomplete - resume onboarding
             console.log('[Onboarding] Incomplete profile - resuming onboarding');
