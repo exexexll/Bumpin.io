@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { motion } from 'framer-motion';
 
 interface USCWelcomePopupProps {
@@ -11,6 +12,30 @@ interface USCWelcomePopupProps {
  * Shows before card scanning step
  */
 export function USCWelcomePopup({ onContinue }: USCWelcomePopupProps) {
+  const [checking, setChecking] = React.useState(false);
+  
+  const handleContinue = async () => {
+    setChecking(true);
+    
+    // Check if open signup is enabled
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001'}/open-signup/status`);
+      const data = await res.json();
+      
+      if (data.enabled) {
+        console.log('[USC Welcome] Open signup ENABLED - skipping card scanner');
+        // Redirect to simple signup (name/photo flow)
+        window.location.href = '/onboarding';
+        return;
+      }
+    } catch (err) {
+      console.error('[USC Welcome] Failed to check open signup, proceeding to card scanner');
+    }
+    
+    // Open signup disabled or check failed - proceed to card scanner
+    onContinue();
+  };
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -64,11 +89,12 @@ export function USCWelcomePopup({ onContinue }: USCWelcomePopupProps) {
           transition={{ delay: 0.7 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={onContinue}
-          className="w-full sm:w-auto px-12 py-4 rounded-xl font-bold text-xl text-[#990000] hover:text-[#770000] transition-all shadow-lg"
+          onClick={handleContinue}
+          disabled={checking}
+          className="w-full sm:w-auto px-12 py-4 rounded-xl font-bold text-xl text-[#990000] hover:text-[#770000] transition-all shadow-lg disabled:opacity-50"
           style={{ background: '#FFCC00' }}
         >
-          Continue to Verification →
+          {checking ? 'Checking...' : 'Continue to Verification →'}
         </motion.button>
       </motion.div>
     </motion.div>
