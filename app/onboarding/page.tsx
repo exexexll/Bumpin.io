@@ -385,9 +385,11 @@ function OnboardingPageContent() {
   }, [searchParams, router, validatingCode, isAdminCode]); // Dependencies
   
   // FORCE: Continuously enforce USC welcome for admin codes
+  // But allow progression to name, selfie, permanent steps after card scan
   useEffect(() => {
-    if (isAdminCode && step !== 'usc-welcome' && step !== 'usc-scan') {
-      console.log('[Onboarding] ⚠️ FORCING step back to usc-welcome for admin code');
+    const allowedSteps = ['usc-welcome', 'usc-scan', 'name', 'selfie', 'permanent', 'email-verify'];
+    if (isAdminCode && !allowedSteps.includes(step)) {
+      console.log('[Onboarding] ⚠️ Admin code on invalid step, forcing back to usc-welcome');
       setStep('usc-welcome');
       setNeedsUSCCard(true);
     }
