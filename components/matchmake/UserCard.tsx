@@ -498,38 +498,8 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
           transition={hasMounted ? { duration: 0.3, ease: 'easeOut' } : { duration: 0 }}
         >
           {/* Profile Picture - Much smaller on mobile when minimized */}
-          <motion.div
-            initial={{ 
-              width: isMobile ? '2rem' : '5rem', 
-              height: isMobile ? '2rem' : '5rem' 
-            }}
-            animate={{
-              width: isHovered ? (isMobile ? '2rem' : '5rem') : (isMobile ? '1.5rem' : '3rem'),
-              height: isHovered ? (isMobile ? '2rem' : '5rem') : (isMobile ? '1.5rem' : '3rem'),
-            }}
-            transition={hasMounted ? { duration: 0.3, ease: 'easeOut' } : { duration: 0 }}
-            className="relative flex-shrink-0 overflow-hidden rounded-full border-white/30"
-            style={{ borderWidth: isHovered ? (isMobile ? '1px' : '4px') : '1px' }}
-          >
-            {user.selfieUrl ? (
-              <Image
-                src={user.selfieUrl}
-                alt={user.name}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-white/10 flex items-center justify-center">
-                <motion.span
-                  animate={{ fontSize: isHovered ? '2.25rem' : '1.5rem' }}
-                  transition={{ duration: 0.3 }}
-                >
-                  👤
-                </motion.span>
-              </div>
-            )}
-          </motion.div>
-
+          {/* Profile circle removed - photo shown as card background */}
+          
           {/* Text Content - Animates */}
           <div className="flex-1 min-w-0">
             {/* Name + Distance - Wrap on mobile if needed */}
