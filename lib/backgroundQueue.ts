@@ -307,18 +307,22 @@ class BackgroundQueueManager {
     console.log('[BackgroundQueue] Currently in queue:', this.inQueue);
     
     if (!this.socket) {
-      console.warn('[BackgroundQueue] ❌ No socket - cannot emit leave events');
+      console.warn('[BackgroundQueue] ⚠️ No socket - marking inQueue=false without emitting');
       this.inQueue = false;
       return;
     }
     
-    // ALWAYS emit leave events if socket exists, regardless of inQueue state
-    // This ensures server knows user is leaving even if local state is wrong
-    console.log('[BackgroundQueue] ✅ Emitting queue:leave and presence:leave to server');
-    this.socket.emit('queue:leave');
-    this.socket.emit('presence:leave');
+    // Only emit if socket is connected
+    if (this.socket.connected) {
+      console.log('[BackgroundQueue] ✅ Emitting queue:leave and presence:leave to server');
+      this.socket.emit('queue:leave');
+      this.socket.emit('presence:leave');
+    } else {
+      console.warn('[BackgroundQueue] ⚠️ Socket not connected - cannot emit leave events');
+    }
+    
     this.inQueue = false;
-    console.log('[BackgroundQueue] ✅ Emitted leave events, inQueue =', this.inQueue);
+    console.log('[BackgroundQueue] ✅ Left queue, inQueue =', this.inQueue);
     console.log('[BackgroundQueue] ========================================');
   }
   
