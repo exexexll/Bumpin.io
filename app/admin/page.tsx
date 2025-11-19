@@ -53,7 +53,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [selectedUser, setSelectedUser] = useState<BanRecord | null>(null);
   const [reviewing, setReviewing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'pending' | 'reports' | 'qrcodes' | 'event' | 'analytics'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'reports' | 'qrcodes' | 'event' | 'analytics' | 'signup'>('pending');
   const [qrCodes, setQrCodes] = useState<any[]>([]);
   
   // Analytics state
@@ -65,6 +65,10 @@ export default function AdminPage() {
   // Event mode state
   const [eventSettings, setEventSettings] = useState<any>(null);
   const [eventModeEnabled, setEventModeEnabled] = useState(false);
+  
+  // Open signup state
+  const [openSignupEnabled, setOpenSignupEnabled] = useState(false);
+  const [loadingSignup, setLoadingSignup] = useState(false);
   const [eventStartTime, setEventStartTime] = useState('15:00:00');
   const [eventEndTime, setEventEndTime] = useState('18:00:00');
   const [eventTimezone, setEventTimezone] = useState('America/Los_Angeles');
@@ -157,6 +161,13 @@ export default function AdminPage() {
 
     try {
       setLoading(true);
+      
+      // Load open signup status
+      fetch(`${API_BASE}/open-signup/status`)
+        .then(r => r.json())
+        .then(d => setOpenSignupEnabled(d.enabled))
+        .catch(() => {});
+      
       const [pending, reports, statsData, codes, evtSettings] = await Promise.all([
         // ALL admin endpoints use adminToken (not user session)
         fetch(`${API_BASE}/report/pending`, {
@@ -474,6 +485,17 @@ export default function AdminPage() {
           }`}
         >
           📊 Analytics
+        </button>
+        
+        <button
+          onClick={() => setActiveTab('signup')}
+          className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+            activeTab === 'signup'
+              ? 'border-b-2 border-[#ffc46a] text-[#ffc46a]'
+              : 'text-[#eaeaf0]/50 hover:text-[#eaeaf0]/70'
+          }`}
+        >
+          🔓 Open Signup
         </button>
       </div>
 
