@@ -62,9 +62,24 @@ function CheckAccessContent() {
         }
       }
       
-      // No invite code and no valid session → Go to waitlist
-      console.log('[CheckAccess] No access method found, redirecting to waitlist');
-      router.push('/waitlist');
+      // No invite code and no valid session → Check if open signup is enabled
+      console.log('[CheckAccess] No access method found, checking open signup...');
+      
+      try {
+        const openSignupRes = await fetch(`${API_BASE}/open-signup/status`);
+        const openSignupData = await openSignupRes.json();
+        
+        if (openSignupData.enabled) {
+          console.log('[CheckAccess] Open signup ENABLED - allowing access to onboarding');
+          router.push('/onboarding');
+        } else {
+          console.log('[CheckAccess] Open signup DISABLED - redirecting to waitlist');
+          router.push('/waitlist');
+        }
+      } catch (err) {
+        console.error('[CheckAccess] Failed to check open signup status, defaulting to waitlist');
+        router.push('/waitlist');
+      }
     }
     
     checkAccess();
