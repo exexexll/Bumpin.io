@@ -5,6 +5,7 @@
  */
 
 import { Socket } from 'socket.io-client';
+import { getSocket } from './socket';
 
 class BackgroundQueueManager {
   private socket: Socket | null = null;
@@ -198,6 +199,16 @@ class BackgroundQueueManager {
   
   async joinQueue() {
     console.log('[BackgroundQueue] ========== JOIN QUEUE CALLED ==========');
+    
+    // Fallback: Try to get socket if not initialized
+    if (!this.socket) {
+      const existingSocket = getSocket();
+      if (existingSocket) {
+        console.log('[BackgroundQueue] Socket reference missing, recovering from getSocket()');
+        this.socket = existingSocket;
+      }
+    }
+
     console.log('[BackgroundQueue] Socket exists:', !!this.socket);
     console.log('[BackgroundQueue] Socket connected:', this.socket?.connected);
     console.log('[BackgroundQueue] Already in queue:', this.inQueue);
@@ -310,6 +321,15 @@ class BackgroundQueueManager {
   
   leaveQueue() {
     console.log('[BackgroundQueue] ========== LEAVE QUEUE CALLED ==========');
+    
+    // Fallback: Try to get socket if not initialized
+    if (!this.socket) {
+      const existingSocket = getSocket();
+      if (existingSocket) {
+        this.socket = existingSocket;
+      }
+    }
+
     console.log('[BackgroundQueue] Socket exists:', !!this.socket);
     console.log('[BackgroundQueue] Socket connected:', this.socket?.connected);
     console.log('[BackgroundQueue] Currently in queue:', this.inQueue);

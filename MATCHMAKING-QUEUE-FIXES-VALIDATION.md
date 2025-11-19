@@ -52,7 +52,24 @@
    - Same for `call:start` event
    - Added check: `if (socket)` before removing/adding listeners
 
+### Issue 3: Background Queue Initialization Race Condition
+**Problem:** `backgroundQueue.joinQueue()` could fail with "No socket" error if called before `init(socket)` completed, typically during page reload race conditions.
+
+**Fixes Applied:**
+1. **lib/backgroundQueue.ts**
+   - Imported `getSocket` from socket utility
+   - Added fallback in `joinQueue()`: if `this.socket` is null, try `getSocket()`
+   - Added fallback in `leaveQueue()` as well
+   - Ensures queue manager can recover reference even if init was missed or delayed
+
 **Validation:**
+- ✅ Background queue recovers from missing socket reference
+- ✅ Prevents console errors on page load
+- ✅ Robust against component mount timing
+
+---
+
+## Files Modified
 - ✅ Single listener per event guaranteed
 - ✅ No ghost listeners from previous renders
 - ✅ Notifications work correctly on all pages (/main, /settings, etc.)
@@ -82,6 +99,7 @@
 ### 3. lib/backgroundQueue.ts
 **Lines Changed:**
 - 251-257: Added location consent check in `joinQueue()` method
+- 200-210: Added socket fallback recovery using `getSocket()`
 
 **No Breaking Changes:** Additional validation only, doesn't break existing flows
 
