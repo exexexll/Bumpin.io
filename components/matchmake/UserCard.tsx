@@ -52,9 +52,8 @@ export function UserCard({ user, onInvite, onRescind, inviteStatus = 'idle', coo
   // MEDIA DISPLAY: Current index (0 = video, 1+ = Instagram posts)
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   
-  // Build media items (video first, then Instagram posts)
+  // Build media items (Instagram posts only - video removed)
   const mediaItems = [
-    ...(user.videoUrl ? [{ type: 'video' as const, url: user.videoUrl }] : []),
     ...(user.instagramPosts || []).map(postUrl => ({ 
       type: 'instagram' as const, 
       url: postUrl 
