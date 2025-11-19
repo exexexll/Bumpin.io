@@ -251,6 +251,62 @@ export default function SettingsPage() {
             </Link>
           </div>
 
+          {/* Profile Photo Section */}
+          <div className="rounded-2xl bg-white/5 p-6 shadow-inner">
+            <h2 className="mb-4 text-xl font-bold text-[#eaeaf0]">Profile Photo</h2>
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              {/* Current Photo */}
+              <div className="w-32 h-32 rounded-full overflow-hidden bg-black flex-shrink-0">
+                {paymentStatus?.selfieUrl ? (
+                  <img src={paymentStatus.selfieUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white/30">No photo</div>
+                )}
+              </div>
+              
+              {/* Upload Button */}
+              <div className="flex-1">
+                <p className="text-sm text-[#eaeaf0]/70 mb-3">
+                  Your photo is shown in matchmaking. Keep it up-to-date!
+                </p>
+                <label className="cursor-pointer inline-block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      
+                      try {
+                        const formData = new FormData();
+                        formData.append('selfie', file);
+                        
+                        const res = await fetch(`${API_BASE}/media/selfie`, {
+                          method: 'POST',
+                          headers: { 'Authorization': `Bearer ${session?.sessionToken}` },
+                          body: formData,
+                        });
+                        
+                        if (res.ok) {
+                          alert('✅ Photo updated!');
+                          window.location.reload();
+                        } else {
+                          alert('Failed to upload photo');
+                        }
+                      } catch (err) {
+                        alert('Upload error');
+                      }
+                    }}
+                  />
+                  <span className="rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] hover:opacity-90 transition-opacity inline-block">
+                    📸 Update Photo
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
           {/* Account Summary */}
           <div className="rounded-2xl bg-white/5 p-6 shadow-inner">
             <h2 className="mb-4 text-xl font-bold text-[#eaeaf0]">Account Summary</h2>
