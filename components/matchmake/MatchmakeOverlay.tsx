@@ -1536,16 +1536,11 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                 Complete Your Profile First
               </h3>
               <p className="text-[#eaeaf0]/80 mb-6">
-                {!profileStatus?.hasSelfie && !profileStatus?.hasVideo && 
-                  'You need a photo and intro video to start matchmaking.'}
-                {profileStatus?.hasSelfie && !profileStatus?.hasVideo && 
-                  'You need an intro video to start matchmaking.'}
-                {!profileStatus?.hasSelfie && profileStatus?.hasVideo && 
-                  'You need a profile photo to start matchmaking.'}
+                You need a profile photo to start matchmaking.
               </p>
               <div className="rounded-xl bg-yellow-500/10 border border-yellow-500/30 p-4 mb-6">
                 <p className="text-sm text-yellow-200">
-                  💡 Other users need to see your photo and video before calling you
+                  💡 Other users need to see your photo before calling you
                 </p>
               </div>
               <div className="space-y-3">
@@ -1556,7 +1551,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
                   }}
                   className="w-full rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] transition-opacity hover:opacity-90"
                 >
-                  Upload Photo & Video
+                  Upload Photo
                 </button>
                 <button
                   onClick={() => {
@@ -1584,13 +1579,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       {/* Incoming Invite: Handled by main page - renders CalleeNotification there */}
       {/* This ensures notification shows whether overlay is open or closed */}
 
-      {/* Video Progress Bar - Bottom Edge (Optimized, no lag) */}
-      {!showModeSelection && users.length > 0 && users[currentIndex]?.videoUrl && (
-        <VideoProgressBar 
-          currentIndex={currentIndex}
-          users={users}
-        />
-      )}
+      {/* Video Progress Bar removed - video no longer in system */}
 
       {/* Toast Notifications */}
       <AnimatePresence>
