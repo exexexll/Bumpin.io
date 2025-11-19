@@ -844,6 +844,71 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Open Signup Tab */}
+      {activeTab === 'signup' && (
+        <div className="space-y-6">
+          <div className="rounded-xl bg-white/5 border border-white/10 p-6">
+            <h3 className="text-lg font-semibold text-[#eaeaf0] mb-4">Open Signup Control</h3>
+            <p className="text-sm text-[#eaeaf0]/70 mb-6">
+              Toggle between invite-only mode and open signup. When enabled, anyone can create an account without an invite code.
+            </p>
+            
+            <div className="flex items-center justify-between p-4 rounded-lg bg-white/5">
+              <div>
+                <div className="font-medium text-[#eaeaf0]">
+                  {openSignupEnabled ? '🟢 Open Signup ENABLED' : '🔴 Invite-Only Mode'}
+                </div>
+                <div className="text-xs text-[#eaeaf0]/60 mt-1">
+                  {openSignupEnabled ? 'Anyone can signup' : 'Invite code required'}
+                </div>
+              </div>
+              
+              <button
+                onClick={async () => {
+                  const adminToken = localStorage.getItem('bumpin_admin_token');
+                  if (!adminToken) return;
+                  
+                  setLoadingSignup(true);
+                  try {
+                    const res = await fetch(`${API_BASE}/open-signup/toggle`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ enabled: !openSignupEnabled }),
+                    });
+                    
+                    if (res.ok) {
+                      setOpenSignupEnabled(!openSignupEnabled);
+                      alert(`✅ Open signup ${!openSignupEnabled ? 'ENABLED' : 'DISABLED'}`);
+                    }
+                  } catch (err) {
+                    alert('Failed to toggle setting');
+                  } finally {
+                    setLoadingSignup(false);
+                  }
+                }}
+                disabled={loadingSignup}
+                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                  openSignupEnabled
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                    : 'bg-green-500 hover:bg-green-600 text-white'
+                } disabled:opacity-50`}
+              >
+                {loadingSignup ? 'Updating...' : openSignupEnabled ? 'Disable' : 'Enable'}
+              </button>
+            </div>
+            
+            <div className="mt-4 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+              <p className="text-xs text-yellow-200">
+                ⚠️ <strong>Security Note:</strong> Open signup allows unrestricted account creation. Monitor for spam/abuse when enabled.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeTab === 'event' && (
         <div className="space-y-6">
           {/* Event Mode Toggle */}
