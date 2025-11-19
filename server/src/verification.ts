@@ -23,11 +23,18 @@ router.post('/send', requireAuth, async (req: any, res) => {
   }
   
   // CRITICAL: Check if email already exists in system (both email and pending_email)
+  console.log(`[Verification] Checking if email ${email} already exists...`);
+  
   const existingUser = await store.getUserByEmail(email.toLowerCase());
+  console.log(`[Verification] getUserByEmail result:`, existingUser ? `Found user ${existingUser.userId.substring(0, 8)}` : 'Not found');
+  
   if (existingUser && existingUser.userId !== req.userId) {
+    console.error(`[Verification] ❌ Email conflict in users.email field`);
+    console.error(`[Verification] Existing user: ${existingUser.userId.substring(0, 8)}, Current user: ${req.userId.substring(0, 8)}`);
     return res.status(409).json({ 
       error: 'This email is already registered to another account',
-      hint: 'Try logging in or use a different email.'
+      hint: 'Try logging in or use a different email.',
+      debug: `Conflict with user ${existingUser.userId.substring(0, 8)}`
     });
   }
   
@@ -38,13 +45,18 @@ router.post('/send', requireAuth, async (req: any, res) => {
     [email.toLowerCase(), req.userId]
   );
   
+  console.log(`[Verification] Pending email check:`, pendingCheck.rows.length > 0 ? `Found in ${pendingCheck.rows[0].user_id.substring(0, 8)}` : 'Not found');
+  
   if (pendingCheck.rows.length > 0) {
-    console.warn(`[Verification] Email ${email} is pending verification for another user`);
+    console.error(`[Verification] ❌ Email conflict in users.pending_email field`);
     return res.status(409).json({
       error: 'This email is being verified by another account',
-      hint: 'If this is your email, complete the verification in progress or try again later.'
+      hint: 'If this is your email, complete the verification in progress or try again later.',
+      debug: `Conflict with user ${pendingCheck.rows[0].user_id.substring(0, 8)}`
     });
   }
+  
+  console.log(`[Verification] ✅ Email ${email} is available for user ${req.userId.substring(0, 8)}`);
   
   const user = await store.getUser(req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
