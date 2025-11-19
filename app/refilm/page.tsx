@@ -373,10 +373,10 @@ export default function RefilmPage() {
               </p>
 
               {/* Current Profile Preview */}
-              <div className="grid gap-6 sm:grid-cols-2">
-                {/* Current Selfie */}
-                <div className="rounded-2xl bg-white/5 p-6 shadow-inner">
-                  <h3 className="mb-4 font-playfair text-xl font-bold text-[#eaeaf0]">
+              <div className="flex justify-center">
+                {/* Current Photo - Centered */}
+                <div className="rounded-2xl bg-white/5 p-6 shadow-inner w-full max-w-md">
+                  <h3 className="mb-4 font-playfair text-xl font-bold text-[#eaeaf0] text-center">
                     Profile Photo
                   </h3>
                   <div className="relative aspect-square overflow-hidden rounded-xl bg-black">
@@ -394,37 +394,16 @@ export default function RefilmPage() {
                     )}
                   </div>
                 </div>
-
-                {/* Current Video */}
-                <div className="rounded-2xl bg-white/5 p-6 shadow-inner">
-                  <h3 className="mb-4 font-playfair text-xl font-bold text-[#eaeaf0]">
-                    Intro Video
-                  </h3>
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-black">
-                    {currentUser.videoUrl ? (
-                      <video
-                        src={currentUser.videoUrl}
-                        controls
-                        loop
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <p className="text-lg text-white/50">No video yet</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </div>
 
-              <p className="text-lg text-[#eaeaf0]/70">
-                Update your profile photo or intro video
+              <p className="text-lg text-[#eaeaf0]/70 text-center">
+                Update your profile photo
               </p>
 
-              <div className="grid gap-6 sm:grid-cols-2">
+              <div className="flex justify-center">
                 <button
                   onClick={() => setMode('photo')}
-                  className="focus-ring group rounded-2xl bg-[#ffc46a]/10 border-2 border-[#ffc46a]/30 p-8 text-center shadow-inner transition-all hover:scale-105 hover:bg-[#ffc46a]/20"
+                  className="focus-ring group rounded-2xl bg-[#ffc46a]/10 border-2 border-[#ffc46a]/30 p-8 text-center shadow-inner transition-all hover:scale-105 hover:bg-[#ffc46a]/20 max-w-md w-full"
                 >
                   <div className="mb-4 text-5xl">📸</div>
                   <h3 className="mb-2 font-playfair text-xl font-bold text-[#ffc46a]">
@@ -434,39 +413,6 @@ export default function RefilmPage() {
                     Camera only (no uploads)
                   </p>
                 </button>
-
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setMode('video-record')}
-                    className="focus-ring group w-full rounded-2xl bg-[#ffc46a]/10 border-2 border-[#ffc46a]/30 p-8 text-center shadow-inner transition-all hover:scale-105 hover:bg-[#ffc46a]/20"
-                  >
-                    <div className="mb-4 text-5xl">📹</div>
-                    <h3 className="mb-2 font-playfair text-xl font-bold text-[#ffc46a]">
-                      Record Video
-                    </h3>
-                    <p className="text-sm text-[#eaeaf0]/70">
-                      Camera + mic (60s max)
-                    </p>
-                  </button>
-
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="focus-ring w-full rounded-xl bg-white/5 px-4 py-3 text-sm text-[#eaeaf0]/70 transition-all hover:bg-white/10"
-                  >
-                    Or upload video file
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="video/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        handleVideoUpload(e.target.files[0]);
-                      }
-                    }}
-                    className="hidden"
-                  />
-                </div>
               </div>
             </>
           )}
@@ -512,7 +458,8 @@ export default function RefilmPage() {
             </div>
           )}
 
-          {mode === 'video-record' && (
+          {/* Video recording mode removed - photo only */}
+          {mode === 'video-record' && false && (
             <div className="space-y-6">
               <div className="relative aspect-video overflow-hidden rounded-2xl bg-black shadow-inner">
                 <video
