@@ -106,7 +106,12 @@ export default function RefilmPage() {
     const ctx = canvas.getContext('2d');
     
     if (ctx) {
-      ctx.drawImage(video, 0, 0);
+      // CRITICAL: Mirror the image (flip horizontally) to match preview
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, -canvas.width, 0);
+      ctx.restore();
+      
       canvas.toBlob(async (blob) => {
         if (blob) {
           setUploading(true);
@@ -120,6 +125,7 @@ export default function RefilmPage() {
                 setStream(null);
                 console.log('[Refilm] Camera stopped after photo capture');
               }
+              setCapturedPhoto(null); // Clear preview
               setMode('select');
               setSuccess('Photo updated successfully!');
               setTimeout(() => setSuccess(''), 3000);
@@ -437,20 +443,64 @@ export default function RefilmPage() {
                     </div>
                   )}
                   
+                  {uploading && (
+                    <div className="text-center text-sm text-[#ffc46a]">
+                      Uploading photo...
+                    </div>
+                  )}
+                  
                   <div className="flex gap-4">
                     <button
                       onClick={() => {
                         setCapturedPhoto(null);
+                        setError('');
                         // Restart camera
                         startCamera();
                       }}
                       disabled={uploading}
-                      className="focus-ring flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
+                      className="focus-ring flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20 disabled:opacity-50"
                     >
                       Retake
                     </button>
                     <button
-                      onClick={capturePhoto}
+                      onClick={async () => {
+                        if (!capturedPhoto) return;
+                        
+                        setUploading(true);
+                        setError('');
+                        
+                        try {
+                          const session = getSession();
+                          if (!session) {
+                            setError('Not logged in');
+                            return;
+                          }
+                          
+                          // Convert data URL to blob
+                          const res = await fetch(capturedPhoto);
+                          const blob = await res.blob();
+                          
+                          // Upload
+                          await uploadSelfie(session.sessionToken, blob);
+                          
+                          console.log('[Refilm] ✅ Photo uploaded successfully');
+                          
+                          // Clear state
+                          setCapturedPhoto(null);
+                          setMode('select');
+                          setSuccess('Photo updated successfully!');
+                          setTimeout(() => setSuccess(''), 3000);
+                          
+                          // Refresh user data
+                          const userData = await getCurrentUser(session.sessionToken);
+                          setCurrentUser(userData);
+                        } catch (err: any) {
+                          console.error('[Refilm] Upload error:', err);
+                          setError(err.message || 'Upload failed');
+                        } finally {
+                          setUploading(false);
+                        }
+                      }}
                       disabled={uploading}
                       className="focus-ring flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
                     >
