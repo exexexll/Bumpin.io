@@ -79,12 +79,10 @@ export function GlobalCallHandler() {
     socket.on('call:notify', handleCallNotify);
     socket.on('call:start', handleCallStart);
     
-    // Initialize background queue immediately with socket
-    // Socket doesn't need to be connected yet for storing the reference
-    if (!backgroundQueue.isInitialized()) {
-      backgroundQueue.init(socket);
-      console.log('[GlobalCallHandler] Background queue initialized with socket');
-    }
+    // CRITICAL: ALWAYS initialize background queue with socket
+    // Even if already initialized, update socket reference (might be new after reconnect)
+    backgroundQueue.init(socket);
+    console.log('[GlobalCallHandler] Background queue initialized/updated with socket:', socket.id);
 
     return () => {
       // CRITICAL: Don't remove listeners on unmount!
