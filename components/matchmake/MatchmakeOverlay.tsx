@@ -639,6 +639,19 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       }
     });
 
+    // Listen for location updates (real-time)
+    socket.on('location:updated', ({ userId }: any) => {
+      console.log('[Matchmake] Location updated for user:', userId.substring(0, 8));
+      // Refresh queue to get new distances
+      setTimeout(() => checkForNewUsers(), 500);
+    });
+    
+    socket.on('location:cleared', ({ userId }: any) => {
+      console.log('[Matchmake] Location cleared for user:', userId.substring(0, 8));
+      // Refresh queue (distances will be null)
+      setTimeout(() => checkForNewUsers(), 500);
+    });
+
     // Polling for queue updates (10s to avoid overriding real-time events)
     const refreshInterval = setInterval(() => {
       console.log('[Matchmake] Polling for queue updates...');
@@ -710,6 +723,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       socket.off('auth:success');
       socket.off('presence:update');
       socket.off('queue:update');
+      socket.off('location:updated');
+      socket.off('location:cleared');
       // call:notify and call:start are handled by main page, not here
       socket.off('call:rescinded');
       socket.off('call:declined');
