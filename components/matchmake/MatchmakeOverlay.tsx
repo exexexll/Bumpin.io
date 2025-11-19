@@ -639,17 +639,17 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       }
     });
 
-    // Listen for location updates (real-time)
+    // Listen for location updates (real-time) - ALWAYS listen, even if overlay closed
     socket.on('location:updated', ({ userId }: any) => {
-      console.log('[Matchmake] Location updated for user:', userId.substring(0, 8));
-      // Refresh queue to get new distances
-      setTimeout(() => checkForNewUsers(), 500);
+      console.log('[Matchmake] 📍 Location updated for user:', userId.substring(0, 8));
+      // Refresh queue to get new distances (works even with background queue)
+      checkForNewUsers();
     });
     
     socket.on('location:cleared', ({ userId }: any) => {
-      console.log('[Matchmake] Location cleared for user:', userId.substring(0, 8));
+      console.log('[Matchmake] 📍 Location cleared for user:', userId.substring(0, 8));
       // Refresh queue (distances will be null)
-      setTimeout(() => checkForNewUsers(), 500);
+      checkForNewUsers();
     });
 
     // Polling for queue updates (10s to avoid overriding real-time events)

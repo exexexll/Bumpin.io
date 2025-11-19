@@ -476,9 +476,17 @@ export default function RefilmPage() {
                             return;
                           }
                           
-                          // Convert data URL to blob
-                          const res = await fetch(capturedPhoto);
-                          const blob = await res.blob();
+                          // Convert data URL to blob (CSP-safe method)
+                          const base64Data = capturedPhoto.split(',')[1];
+                          const byteCharacters = atob(base64Data);
+                          const byteNumbers = new Array(byteCharacters.length);
+                          for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                          }
+                          const byteArray = new Uint8Array(byteNumbers);
+                          const blob = new Blob([byteArray], { type: 'image/jpeg' });
+                          
+                          console.log('[Refilm] Converting data URL to blob, size:', blob.size);
                           
                           // Upload
                           await uploadSelfie(session.sessionToken, blob);
