@@ -118,10 +118,10 @@ export default function WaitlistPage() {
       const res = await fetch(`${API_BASE}/auth/link`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${tempSessionToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          sessionToken: tempSessionToken, // CRITICAL: Must be in body, not header
           email: signupEmail.trim(),
           password: signupPassword,
         }),
