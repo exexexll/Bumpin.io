@@ -63,7 +63,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     lastActivityRef.current = Date.now();
     
     // If was inactive, reactivate
-      if (isInactive) {
+    if (isInactive) {
       console.log('[Matchmake] User reactivated!');
       setIsInactive(false);
       setShowInactivityWarning(false);
@@ -570,8 +570,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
       // Only join if background queue is OFF
       // If background queue ON, it already manages presence/queue
       if (!backgroundQueue.isBackgroundEnabled()) {
-        socket.emit('presence:join');
-        socket.emit('queue:join');
+      socket.emit('presence:join');
+      socket.emit('queue:join');
         console.log('[Matchmake] Joined presence and queue (background queue OFF)');
       } else {
         console.log('[Matchmake] Background queue ON - already in queue');
@@ -605,7 +605,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         setUsers(prev => {
           const filtered = prev.filter(u => u.userId !== userId);
           if (filtered.length < prev.length) {
-            console.log('[Matchmake] Removed user from queue (offline/unavailable)');
+          console.log('[Matchmake] Removed user from queue (offline/unavailable)');
           }
           return filtered;
         });
@@ -628,7 +628,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
         setUsers(prev => {
           const filtered = prev.filter(u => u.userId !== userId);
           if (filtered.length < prev.length) {
-            console.log('[Matchmake] Removed user (busy/in-call)');
+          console.log('[Matchmake] Removed user (busy/in-call)');
           }
           return filtered;
         });
@@ -653,7 +653,7 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
     socket.on('call:rescinded', ({ inviteId }: any) => {
       console.log('[Matchmake] 🚫 Incoming invite was rescinded:', inviteId);
       // Note: Notification is handled by main page now
-      showToast('Invite was cancelled', 'info');
+        showToast('Invite was cancelled', 'info');
     });
 
     // Listen for declined invites
@@ -975,8 +975,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
 
     // Mark self as unavailable while waiting (only if background queue OFF)
     if (!backgroundQueue.isBackgroundEnabled()) {
-      socketRef.current.emit('queue:leave');
-      console.log('[Matchmake] Left queue while waiting for response');
+    socketRef.current.emit('queue:leave');
+    console.log('[Matchmake] Left queue while waiting for response');
     }
 
     setInviteStatuses(prev => ({ ...prev, [toUserId]: 'waiting' }));
@@ -1001,8 +1001,8 @@ export function MatchmakeOverlay({ isOpen, onClose, directMatchTarget }: Matchma
 
     // Rejoin queue (only if background queue OFF)
     if (!backgroundQueue.isBackgroundEnabled()) {
-      socketRef.current.emit('queue:join');
-      console.log('[Matchmake] Rejoined queue after canceling invite');
+    socketRef.current.emit('queue:join');
+    console.log('[Matchmake] Rejoined queue after canceling invite');
     }
 
     // Set cooldown status immediately (server will enforce)

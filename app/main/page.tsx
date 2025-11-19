@@ -116,8 +116,8 @@ function MainPageContent() {
     
     Promise.all([paymentPromise, eventPromise, userPromise])
       .then(([paymentData, eventData, userData]) => {
-        // Check profile completeness for background queue
-        const hasProfile = !!(userData.selfieUrl && userData.videoUrl);
+        // Check profile completeness for background queue (photo only now)
+        const hasProfile = !!userData.selfieUrl;
         setProfileComplete(hasProfile);
         
         // CRITICAL: Check if email verification is pending (MUST be first check)

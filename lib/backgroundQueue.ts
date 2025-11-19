@@ -30,8 +30,8 @@ class BackgroundQueueManager {
     
     // Setup visibility/activity detection only once
     if (this.activityListeners.length === 0) {
-      this.setupVisibilityDetection();
-      this.setupActivityDetection();
+    this.setupVisibilityDetection();
+    this.setupActivityDetection();
       console.log('[BackgroundQueue] Visibility and activity detection setup');
     } else {
       console.log('[BackgroundQueue] Visibility/activity already setup');
@@ -147,7 +147,7 @@ class BackgroundQueueManager {
       // CRITICAL: Check toggle state - mobile should also get grace period if toggle ON
       if (!this.isBackgroundEnabled()) {
         console.log('[BackgroundQueue] Page hidden (mobile/iOS) and toggle OFF, leaving queue immediately');
-        this.leaveQueue();
+      this.leaveQueue();
       } else {
         console.log('[BackgroundQueue] Page hidden (mobile/iOS) but toggle ON, starting grace period...');
         // Let visibility handler manage it with countdown
@@ -271,9 +271,9 @@ class BackgroundQueueManager {
           if (res.ok) {
             const user = await res.json();
             
-            // Check if profile is complete
-            if (!user.selfieUrl || !user.videoUrl) {
-              console.warn('[BackgroundQueue] Profile incomplete, cannot join queue');
+            // Check if profile is complete (photo only required now)
+            if (!user.selfieUrl) {
+              console.warn('[BackgroundQueue] Profile incomplete (no photo), cannot join queue');
               return;
             }
             
