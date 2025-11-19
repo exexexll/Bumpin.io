@@ -1527,6 +1527,48 @@ io.on('connection', (socket) => {
     socket.to(roomId).emit('textchat:typing', { userId: currentUserId });
   });
 
+  // TEXT CHAT: Sync state (for reconnection/backgrounding)
+  socket.on('textchat:sync-state', async ({ roomId }) => {
+    if (!currentUserId) return;
+    
+    const room = activeRooms.get(roomId);
+    if (!room) {
+      socket.emit('room:invalid');
+      return;
+    }
+    
+    if (room.user1 !== currentUserId && room.user2 !== currentUserId) {
+      socket.emit('room:unauthorized');
+      return;
+    }
+    
+    console.log(`[TextChat] Syncing state for ${currentUserId.substring(0, 8)} in room ${roomId.substring(0, 8)}`);
+    
+    // Send current activity status
+    const activity = textRoomActivity.get(roomId);
+    if (activity && activity.warningStartedAt) {
+      const warningSince = Date.now() - activity.warningStartedAt;
+      const remaining = Math.max(0, Math.ceil((60000 - warningSince) / 1000));
+      socket.emit('textroom:inactivity-warning', { secondsRemaining: remaining });
+    } else {
+      socket.emit('textroom:inactivity-cleared');
+    }
+    
+    // Notify partner we're back
+    const partnerId = room.user1 === currentUserId ? room.user2 : room.user1;
+    const partnerSocket = activeSockets.get(partnerId);
+    if (partnerSocket) {
+      io.to(partnerSocket).emit('room:partner-reconnected', { userId: currentUserId });
+      
+      // Also send status update
+      io.to(partnerSocket).emit('textchat:partner-status', { 
+        userId: currentUserId,
+        status: 'active',
+        lastSeen: Date.now()
+      });
+    }
+  });
+
   // TEXT CHAT: Send message (text/image/file/GIF)
   socket.on('textchat:send', async ({ roomId, messageType, content, fileUrl, fileName, fileSizeBytes, gifUrl, gifId }) => {
     if (!currentUserId) return;
@@ -2097,6 +2139,34 @@ io.on('connection', (socket) => {
     // Find any active room and clean up properly
     for (const [roomId, room] of activeRooms.entries()) {
       if (room.user1 === userId || room.user2 === userId) {
+        // TEXT MODE EXCEPTION: Don't end room on disconnect (background/mobile support)
+        // Let "Torch Rule" inactivity timer handle cleanup instead
+        if (room.chatMode === 'text') {
+          console.log(`[Disconnect] User ${userId.substring(0, 8)} disconnected from TEXT room ${roomId.substring(0, 8)} - keeping room alive for grace period`);
+          
+          const partnerId = room.user1 === userId ? room.user2 : room.user1;
+          const partnerSocket = activeSockets.get(partnerId);
+          
+          // Notify partner about disconnection (optional: so they know user might be away)
+          if (partnerSocket) {
+            // Send status update for subtle UI (Away/Backgrounded)
+            io.to(partnerSocket).emit('textchat:partner-status', { 
+              userId,
+              status: 'away',
+              lastSeen: Date.now()
+            });
+            
+            // Also send standard disconnect event (frontend can choose how to display it)
+            io.to(partnerSocket).emit('room:partner-disconnected', { 
+              userId,
+              gracePeriodSeconds: 180 // Visual countdown only (actual logic is inactivity-based)
+            });
+          }
+          
+          // Don't clean up room yet - wait for inactivity timer
+          continue; 
+        }
+
         const partnerId = room.user1 === userId ? room.user2 : room.user1;
           const partnerUser = await store.getUser(partnerId);
           

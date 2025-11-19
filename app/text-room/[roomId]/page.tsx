@@ -64,6 +64,7 @@ export default function TextChatRoom() {
   const [reportReason, setReportReason] = useState('');
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [reportError, setReportError] = useState('');
+  const [partnerStatus, setPartnerStatus] = useState<'active' | 'away'>('active');
   
   // Floating browser state
   const [browserUrl, setBrowserUrl] = useState('');
@@ -270,6 +271,9 @@ export default function TextChatRoom() {
           })));
         }
       });
+      
+      // Sync inactivity/partner state
+      socket.emit('textchat:sync-state', { roomId });
     };
     
     // Register handler
@@ -305,24 +309,21 @@ export default function TextChatRoom() {
         partnerDisconnectCountdownRef.current = null;
       }
       
-      // Set countdown and show popup
+      // For text mode, DON'T show intrusive modal, just update status
+      // The server sends 'textchat:partner-status' for this purpose
+      setPartnerStatus('away');
+      
+      // Optional: We can still set countdown state if we want to use it in non-modal UI
       setReconnectCountdown(gracePeriodSeconds || 10);
-      setShowReconnecting(true);
-      
-      const interval = setInterval(() => {
-        setReconnectCountdown((prev: number) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            partnerDisconnectCountdownRef.current = null;
-            setShowReconnecting(false); // CRITICAL: Auto-hide when countdown ends
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      
-      // Store interval ref for cleanup
-      partnerDisconnectCountdownRef.current = interval;
+    });
+    
+    socket.on('textchat:partner-status', ({ status }: any) => {
+      console.log('[TextRoom] Partner status:', status);
+      setPartnerStatus(status);
+      if (status === 'active') {
+        setReconnectCountdown(10); // Reset
+        setShowReconnecting(false);
+      }
     });
     
     socket.on('room:partner-reconnected', ({ userId }: any) => {
@@ -336,6 +337,7 @@ export default function TextChatRoom() {
       
       // Reset countdown to default
       setReconnectCountdown(10);
+      setPartnerStatus('active');
       
       // CRITICAL: Hide popup immediately (prevent flash)
       setShowReconnecting(false);
@@ -531,6 +533,7 @@ export default function TextChatRoom() {
       socket.off('textchat:video-declined');
       socket.off('session:finalized');
       socket.off('textchat:typing');
+      socket.off('textchat:partner-status');
       socket.off('textroom:inactivity-warning');
       socket.off('textroom:inactivity-countdown');
       socket.off('textroom:inactivity-cleared');
@@ -1081,6 +1084,13 @@ export default function TextChatRoom() {
       <div className="fixed bottom-0 left-0 right-0 border-t border-white/10 bg-black/95 backdrop-blur-md z-30" style={{
         paddingBottom: 'max(1rem, env(safe-area-inset-bottom))', // iOS safe area
       }}>
+        {/* Partner Status (Subtle Bottom Indicator) */}
+        <div className="px-4 pt-2 pb-0">
+          <p className="text-[10px] text-[#eaeaf0]/40 font-medium tracking-wide uppercase">
+            {partnerStatus === 'away' ? `${peerName} is away` : `${peerName} is looking`}
+          </p>
+        </div>
+
         {/* Action Buttons Row - Social, File, GIF */}
         <div className="flex items-center gap-2 px-4 pt-2 pb-1 border-b border-white/5">
           {/* Share Social Button */}
@@ -1221,7 +1231,7 @@ export default function TextChatRoom() {
 
       {/* Partner Reconnecting Modal */}
       <AnimatePresence>
-        {showReconnecting && (
+        {showReconnecting && partnerStatus !== 'away' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
