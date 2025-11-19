@@ -36,7 +36,7 @@ export interface User {
   bannedReason?: string;
   reviewStatus?: ReviewStatus;
   // Paywall system
-  paidStatus?: 'unpaid' | 'paid' | 'qr_verified' | 'qr_grace_period';
+  paidStatus?: 'unpaid' | 'paid' | 'qr_verified' | 'qr_grace_period' | 'open_signup';
   paidAt?: number;
   paymentId?: string; // Stripe payment intent ID
   inviteCodeUsed?: string; // QR/invite code used for free access
