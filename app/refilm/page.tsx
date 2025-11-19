@@ -24,6 +24,7 @@ export default function RefilmPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
 
   // Video recording
   const [isRecording, setIsRecording] = useState(false);
@@ -419,42 +420,100 @@ export default function RefilmPage() {
 
           {mode === 'photo' && (
             <div className="space-y-6">
-              <div className="relative aspect-square overflow-hidden rounded-2xl bg-black shadow-inner">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="h-full w-full object-cover"
-                  style={{ transform: 'scaleX(-1)' }}
-                />
-              </div>
-              <canvas ref={canvasRef} className="hidden" />
+              {/* Photo Preview or Live Camera */}
+              {capturedPhoto ? (
+                <>
+                  <div className="relative aspect-square overflow-hidden rounded-2xl bg-black shadow-inner">
+                    <img 
+                      src={capturedPhoto} 
+                      alt="Captured" 
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  
+                  {error && (
+                    <div className="rounded-xl bg-red-500/10 p-4 text-sm text-red-400">
+                      {error}
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => {
+                        setCapturedPhoto(null);
+                        // Restart camera
+                        startCamera();
+                      }}
+                      disabled={uploading}
+                      className="focus-ring flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
+                    >
+                      Retake
+                    </button>
+                    <button
+                      onClick={capturePhoto}
+                      disabled={uploading}
+                      className="focus-ring flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+                    >
+                      {uploading ? 'Uploading...' : 'Use This Photo'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="relative aspect-square overflow-hidden rounded-2xl bg-black shadow-inner">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="h-full w-full object-cover"
+                      style={{ transform: 'scaleX(-1)' }}
+                    />
+                  </div>
+                  <canvas ref={canvasRef} className="hidden" />
 
-              {error && (
-                <div className="rounded-xl bg-red-500/10 p-4 text-sm text-red-400">
-                  {error}
-                </div>
+                  {error && (
+                    <div className="rounded-xl bg-red-500/10 p-4 text-sm text-red-400">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => {
+                        stream?.getTracks().forEach(track => track.stop());
+                        setMode('select');
+                      }}
+                      className="focus-ring flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Capture to preview first
+                        if (!canvasRef.current || !videoRef.current) return;
+                        const canvas = canvasRef.current;
+                        const video = videoRef.current;
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        const ctx = canvas.getContext('2d');
+                        if (ctx) {
+                          ctx.drawImage(video, 0, 0);
+                          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                          setCapturedPhoto(dataUrl);
+                          // Stop camera after capture
+                          stream?.getTracks().forEach(track => track.stop());
+                          setStream(null);
+                        }
+                      }}
+                      disabled={!stream}
+                      className="focus-ring flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+                    >
+                      Capture Photo
+                    </button>
+                  </div>
+                </>
               )}
-
-              <div className="flex gap-4">
-                <button
-                  onClick={() => {
-                    stream?.getTracks().forEach(track => track.stop());
-                    setMode('select');
-                  }}
-                  className="focus-ring flex-1 rounded-xl bg-white/10 px-6 py-3 font-medium text-[#eaeaf0] transition-all hover:bg-white/20"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={capturePhoto}
-                  disabled={uploading || !stream}
-                  className="focus-ring flex-1 rounded-xl bg-[#ffc46a] px-6 py-3 font-medium text-[#0a0a0c] shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
-                >
-                  {uploading ? 'Uploading...' : 'Capture'}
-                </button>
-              </div>
             </div>
           )}
 
