@@ -28,7 +28,7 @@ import { createEventAdminRoutes } from './event-admin';
 import { requireEventAccess } from './event-guard';
 import { authLimiter, apiLimiter, turnLimiter, paymentLimiter, reportLimiter, rsvpLimiter, eventPublicLimiter } from './rate-limit';
 import verificationRoutes from './verification';
-import locationRoutes from './location';
+import { createLocationRoutes } from './location';
 import createUSCVerificationRoutes from './usc-verification';
 import instagramRoutes from './instagram';
 import waitlistRoutes from './waitlist';
@@ -527,7 +527,7 @@ app.use('/payment', paymentRoutes);
 app.use('/turn', turnLimiter, turnRoutes);
 app.use('/admin', authLimiter, adminAuthRoutes);
 app.use('/verification', apiLimiter, verificationRoutes);
-app.use('/location', apiLimiter, locationRoutes);
+app.use('/location', apiLimiter, createLocationRoutes(io));
 app.use('/instagram', apiLimiter, instagramRoutes);
 app.use('/usc', apiLimiter, createUSCVerificationRoutes(io, activeSockets));
 

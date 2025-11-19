@@ -1,6 +1,15 @@
 import express from 'express';
 import { query } from './database';
 import { store } from './store';
+import { Server as SocketServer } from 'socket.io';
+
+// Socket.io instance (injected via route creation)
+let io: SocketServer;
+
+export function createLocationRoutes(ioInstance: SocketServer) {
+  io = ioInstance;
+  return router;
+}
 
 const router = express.Router();
 
@@ -129,6 +138,12 @@ router.post('/update', requireAuth, async (req: any, res) => {
     
     console.log(`[Location] ✅ Updated for user ${req.userId.substring(0, 8)}: ${roundedLat}, ${roundedLon}`);
     
+    // CRITICAL: Broadcast location update to trigger queue refresh for all users
+    if (io) {
+      io.emit('location:updated', { userId: req.userId });
+      console.log(`[Location] 📡 Broadcasted location update for ${req.userId.substring(0, 8)}`);
+    }
+    
     res.json({ success: true });
   } catch (error: any) {
     console.error('[Location] Update failed:', error);
@@ -152,6 +167,12 @@ router.delete('/clear', requireAuth, async (req: any, res) => {
     `, [req.userId]);
     
     console.log(`[Location] Cleared for user ${req.userId.substring(0, 8)}`);
+    
+    // CRITICAL: Broadcast location clear to trigger queue refresh
+    if (io) {
+      io.emit('location:cleared', { userId: req.userId });
+      console.log(`[Location] 📡 Broadcasted location clear for ${req.userId.substring(0, 8)}`);
+    }
     
     res.json({ success: true });
   } catch (error: any) {
@@ -202,5 +223,9 @@ setInterval(async () => {
 
 console.log('[Location] Auto-cleanup job started (runs hourly)');
 
+// Default export for backward compatibility
 export default router;
+
+// Also export the factory function
+export { createLocationRoutes };
 
