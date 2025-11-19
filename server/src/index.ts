@@ -1972,7 +1972,39 @@ io.on('connection', (socket) => {
     }
     
     if (userRoom && roomId) {
-      // User disconnected from active room - start 10s grace period
+      // TEXT MODE EXCEPTION: Don't start grace period for text rooms (mobile background support)
+      if (userRoom.chatMode === 'text') {
+        console.log(`[Room] User ${currentUserId?.substring(0, 8)} disconnected from TEXT room ${roomId.substring(0, 8)} - keeping room alive (Torch Rule)`);
+        
+        // Mark user as disconnected but keep status 'active'
+        if (userRoom.user1 === currentUserId) userRoom.user1Connected = false;
+        if (userRoom.user2 === currentUserId) userRoom.user2Connected = false;
+        
+        // Notify partner
+        const partnerSocketId = activeSockets.get(
+          userRoom.user1 === currentUserId ? userRoom.user2 : userRoom.user1
+        );
+        
+        if (partnerSocketId) {
+          // Send new status event
+          io.to(partnerSocketId).emit('textchat:partner-status', { 
+            userId: currentUserId,
+            status: 'away',
+            lastSeen: Date.now()
+          });
+          
+          // Send disconnect event for legacy support (but with long duration to imply "away" not "ending")
+          io.to(partnerSocketId).emit('room:partner-disconnected', {
+            gracePeriodSeconds: 180, // Visual only
+            userId: currentUserId,
+          });
+        }
+        
+        // Skip grace period timeout - let Torch Rule interval handle cleanup
+        return;
+      }
+
+      // User disconnected from active VIDEO room - start 10s grace period
       console.log(`[Room] User ${currentUserId?.substring(0, 8)} disconnected from room ${roomId.substring(0, 8)} - GRACE PERIOD STARTING`);
       
       // Mark user as disconnected

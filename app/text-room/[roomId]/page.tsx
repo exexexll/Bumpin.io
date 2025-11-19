@@ -1229,39 +1229,8 @@ export default function TextChatRoom() {
         )}
       </AnimatePresence>
 
-      {/* Partner Reconnecting Modal */}
-      <AnimatePresence>
-        {showReconnecting && partnerStatus !== 'away' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              className="max-w-md rounded-2xl bg-[#0a0a0c] p-8 shadow-2xl border-2 border-yellow-500/50 text-center"
-            >
-              <div className="text-6xl mb-4">🔄</div>
-              <h3 className="font-playfair text-2xl font-bold text-[#eaeaf0] mb-3">
-                Partner Disconnected
-              </h3>
-              <p className="text-[#eaeaf0]/80 mb-6">
-                Waiting for {peerName} to reconnect...
-              </p>
-              <div className="text-4xl font-mono font-bold text-yellow-300 mb-4">
-                {reconnectCountdown}s
-              </div>
-              <p className="text-sm text-[#eaeaf0]/60">
-                {reconnectCountdown > 0 
-                  ? 'Session will end if they don\'t reconnect' 
-                  : 'Grace period ended'}
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Partner Reconnecting Modal - REMOVED for Text Mode (Subtle UI instead) */}
+      {/* Connection status is shown in header and footer */}
 
       {/* Incoming Video Request Modal */}
       <AnimatePresence>
